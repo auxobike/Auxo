@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment variables — never commit these
+.env
+.env.local
+.env.*.local
+client/.env
+server/.env
+
+# Build output
+dist/
+client/dist/
+build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Maintenance data (local state — not source code)
+server/data/maintenance-data.json
+
+# Temp / lock files
+~$*
+*.tmp
+*.lock
+
+# Design & asset source files
+*.ai
+*.eps
+*.indd
+*.psd
+*.pages
+*.docx
+*.doc
+
+# Design / asset folders (store in Figma, Drive, etc.)
+Brand/
+Website/
+bike images/
+Claude Export/
+Dev Assets/
+inspo/
+prompts.pages
+
