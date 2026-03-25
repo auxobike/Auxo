@@ -44,6 +44,7 @@ export const api = {
   getBike:        (id) => apiFetch(`/api/strava/bikes/${id}`),
 
   // Maintenance
+  getConfiguredBikes:   () => apiFetch('/api/maintenance/configured'),
   getMaintenanceStatus: (bikeId) => apiFetch(`/api/maintenance/status/${bikeId}`),
   configureBike: (bikeId, config) => apiFetch(`/api/maintenance/bikes/${bikeId}`, {
     method: 'PUT',

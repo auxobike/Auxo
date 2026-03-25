@@ -2,38 +2,37 @@ import { useNavigate } from 'react-router-dom';
 import AppHeader from '../components/AppHeader';
 import './AccountLandingScreen.css';
 
-const ACTIONS = [
-  {
-    id: 'service-log',
-    label: 'Add Service Log',
-    icon: '🔧',
-    path: '/add-service-log',
-    desc: 'Log a maintenance task',
-  },
-  {
-    id: 'quiver',
-    label: 'Review Your Quiver',
-    icon: '🚲',
-    path: '/add-bike',
-    desc: 'View all your bikes',
-  },
-  {
-    id: 'book-service',
-    label: 'Book Service',
-    icon: '📅',
-    path: '/book-service',
-    desc: 'Find a local shop',
-  },
-  {
-    id: 'profile',
-    label: 'Update Profile',
-    icon: '👤',
-    path: '/profile',
-    desc: 'Settings & preferences',
-  },
-];
-
-export default function AccountLandingScreen({ athlete }) {
+export default function AccountLandingScreen({ athlete, hasConfiguredBikes }) {
+  const ACTIONS = [
+    {
+      id: 'service-log',
+      label: 'Add Service Log',
+      icon: '🔧',
+      path: '/add-service-log',
+      desc: 'Log a maintenance task',
+    },
+    {
+      id: 'quiver',
+      label: 'Review Your Quiver',
+      icon: '🚲',
+      path: hasConfiguredBikes ? '/maintenance' : '/add-bike',
+      desc: 'View all your bikes',
+    },
+    {
+      id: 'book-service',
+      label: 'Book Service',
+      icon: '📅',
+      path: '/book-service',
+      desc: 'Find a local shop',
+    },
+    {
+      id: 'profile',
+      label: 'Update Profile',
+      icon: '👤',
+      path: '/profile',
+      desc: 'Settings & preferences',
+    },
+  ];
   const navigate = useNavigate();
   const firstname = athlete?.firstname || 'Rider';
 

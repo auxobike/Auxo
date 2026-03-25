@@ -20,7 +20,12 @@ export default function SignInScreen({ onLogin }) {
     try {
       const data = await api.login(form.email, form.password);
       onLogin(data.user, data.stravaLinked);
-      navigate(data.stravaLinked ? '/dashboard' : '/link-strava');
+      if (!data.stravaLinked) {
+        navigate('/link-strava');
+      } else {
+        const { hasConfigured } = await api.getConfiguredBikes();
+        navigate(hasConfigured ? '/maintenance' : '/add-bike');
+      }
     } catch (err) {
       setError(err.message || 'Sign in failed. Please try again.');
     } finally {

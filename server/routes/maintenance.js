@@ -4,7 +4,7 @@ const axios   = require('axios');
 const requireAuth             = require('../middleware/requireAuth');
 const RULES                   = require('../data/maintenanceRules');
 const { getItemStatus, getBikeSummary } = require('../utils/maintenanceCalculator');
-const { getBikeData, setBikeConfig, logService, getServiceHistory } = require('../utils/store');
+const { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds } = require('../utils/store');
 
 const router = express.Router();
 
@@ -154,6 +154,13 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
 router.get('/history/:bikeId/:itemId', requireAuth, (req, res) => {
   const { bikeId, itemId } = req.params;
   res.json(getServiceHistory(bikeId, itemId));
+});
+
+// GET /api/maintenance/configured
+// Returns the IDs of bikes that have been configured with a bikeType (no Strava call needed).
+router.get('/configured', requireAuth, (req, res) => {
+  const ids = getConfiguredBikeIds();
+  res.json({ configuredBikeIds: ids, hasConfigured: ids.length > 0 });
 });
 
 // GET /api/maintenance/rules

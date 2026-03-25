@@ -37,8 +37,9 @@ export default function App() {
     athlete:      null,  // Strava athlete object
     stravaLinked: false,
   });
-  const [bikes,   setBikes]   = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bikes,              setBikes]              = useState([]);
+  const [hasConfiguredBikes, setHasConfiguredBikes] = useState(false);
+  const [loading,            setLoading]            = useState(true);
 
   useEffect(() => {
     api.getMe()
@@ -50,7 +51,12 @@ export default function App() {
             stravaLinked: data.stravaLinked,
           });
           if (data.stravaLinked) {
-            return api.getBikes().then(setBikes).catch(() => {});
+            return Promise.all([
+              api.getBikes().then(setBikes).catch(() => {}),
+              api.getConfiguredBikes()
+                .then(({ hasConfigured }) => setHasConfiguredBikes(hasConfigured))
+                .catch(() => {}),
+            ]);
           }
         }
       })
@@ -135,6 +141,7 @@ export default function App() {
                 athlete={session.athlete}
                 user={session.user}
                 onLogout={handleLogout}
+                hasConfiguredBikes={hasConfiguredBikes}
               />
             </RequireStrava>
           }

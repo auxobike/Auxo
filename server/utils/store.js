@@ -50,4 +50,11 @@ function getServiceHistory(bikeId, itemId) {
   return bike?.serviceHistory?.[itemId] || [];
 }
 
-module.exports = { getBikeData, setBikeConfig, logService, getServiceHistory };
+function getConfiguredBikeIds() {
+  const data = load();
+  return Object.entries(data.bikes)
+    .filter(([, bike]) => bike?.bikeType)
+    .map(([id]) => id);
+}
+
+module.exports = { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds };
