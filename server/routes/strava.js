@@ -43,12 +43,27 @@ router.get('/activities/:id', requireAuth, async (req, res) => {
 
 // GET /api/strava/bikes — list athlete's bikes (gear)
 router.get('/bikes', requireAuth, async (req, res) => {
+  const token = req.session.access_token;
+  console.log('[/api/strava/bikes] token present:', !!token);
+  console.log('[/api/strava/bikes] token prefix:', token?.slice(0, 8));
+  console.log('[/api/strava/bikes] session expires_at:', req.session.expires_at, '| now:', Math.floor(Date.now() / 1000));
+
   try {
-    const athleteRes = await stravaGet('/athlete', req.session.access_token);
-    const bikes = athleteRes.data.bikes || [];
+    const athleteRes = await stravaGet('/athlete', token);
+    const athlete    = athleteRes.data;
+
+    console.log('[/api/strava/bikes] Strava /athlete status:', athleteRes.status);
+    console.log('[/api/strava/bikes] athlete id:', athlete.id, '| username:', athlete.username);
+    console.log('[/api/strava/bikes] bikes array raw:', JSON.stringify(athlete.bikes));
+
+    const bikes = athlete.bikes || [];
+    console.log('[/api/strava/bikes] returning', bikes.length, 'bike(s)');
+
     res.json(bikes);
   } catch (err) {
-    console.error('Strava bikes error:', err.response?.data || err.message);
+    console.error('[/api/strava/bikes] Strava error status:', err.response?.status);
+    console.error('[/api/strava/bikes] Strava error body:', JSON.stringify(err.response?.data));
+    console.error('[/api/strava/bikes] message:', err.message);
     res.status(500).json({ error: 'Failed to fetch bikes' });
   }
 });

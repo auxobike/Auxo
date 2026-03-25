@@ -30,8 +30,10 @@ npm-debug.log*
 *.swp
 *.swo
 
-# Maintenance data (local state — not source code)
+# Runtime data (local state — not source code)
 server/data/maintenance-data.json
+server/data/users.json
+server/data/sessions/
 
 # Temp / lock files
 ~$*

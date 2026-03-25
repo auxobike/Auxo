@@ -151,15 +151,30 @@ export default function MaintenanceDashboard() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
 
-  useEffect(() => {
+  function fetchBikes() {
+    setLoading(true);
+    setError(null);
     api.getBikes()
-      .then(setBikes)
-      .catch(() => setError('Could not load bikes from Strava.'))
+      .then(data => {
+        console.log('[MaintenanceDashboard] fetched bikes:', data);
+        setBikes(data);
+      })
+      .catch(err => {
+        console.error('[MaintenanceDashboard] failed to fetch bikes:', err.message);
+        setError(err.message || 'Could not load bikes from Strava.');
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }
+
+  useEffect(() => { fetchBikes(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <p className="loading-text">Loading your bikes…</p>;
-  if (error)   return <p className="error">{error}</p>;
+  if (error) return (
+    <div className="bikes-fetch-error">
+      <p className="error">{error}</p>
+      <button className="btn-pill btn-pill-outline" onClick={fetchBikes}>Retry</button>
+    </div>
+  );
   if (bikes.length === 0) return (
     <div className="no-bikes">
       <p>No bikes found on your Strava account.</p>

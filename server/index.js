@@ -1,7 +1,8 @@
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const session = require('express-session');
+const express     = require('express');
+const cors        = require('cors');
+const session     = require('express-session');
+const FileStore   = require('session-file-store')(session);
 const authRoutes        = require('./routes/auth');
 const stravaRoutes      = require('./routes/strava');
 const maintenanceRoutes = require('./routes/maintenance');
@@ -17,10 +18,16 @@ app.use(cors({
 app.use(express.json());
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret',
-  resave: false,
+  store: new FileStore({
+    path:   './data/sessions',
+    ttl:    86400,  // 1 day in seconds
+    reapInterval: 3600, // clean up expired sessions every hour
+    logFn: () => {},    // silence verbose file-store logs
+  }),
+  secret:            process.env.SESSION_SECRET || 'dev-secret',
+  resave:            false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }, // 1 day
+  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
 }));
 
 app.use('/auth', authRoutes);

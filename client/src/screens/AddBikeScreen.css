@@ -1,0 +1,205 @@
+.add-bike-screen {
+  background:
+    radial-gradient(ellipse 100% 50% at 50% 30%, rgba(201, 150, 12, 0.1) 0%, transparent 70%),
+    var(--bg);
+}
+
+.add-bike-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px var(--screen-pad) 16px;
+  overflow: hidden;
+}
+
+/* ── Type dots ── */
+.bike-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.bike-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--white-15);
+  cursor: pointer;
+  transition: background var(--ease), transform var(--ease);
+  padding: 0;
+}
+
+.bike-dot.active {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+
+/* ── Labels ── */
+.add-bike-type-label {
+  font-size: clamp(2.2rem, 12vw, 3.5rem);
+  margin-bottom: 4px;
+}
+
+.add-bike-tagline {
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+
+/* ── Carousel ── */
+.bike-carousel {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.carousel-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Main bike */
+.bike-image-wrap {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1.4 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.bike-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 40px rgba(201, 150, 12, 0.18));
+  animation: bikeFloat 3.5s ease-in-out infinite;
+  user-select: none;
+}
+
+@keyframes bikeFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* Terrain island */
+.terrain-wrap {
+  width: 100%;
+  max-width: 280px;
+  position: relative;
+  z-index: 1;
+  margin-top: -60px;
+}
+
+.terrain-wrap--tarmac {
+  margin-top: -100px;
+}
+
+.terrain-image {
+  width: 100%;
+  object-fit: contain;
+  opacity: 0.85;
+  user-select: none;
+}
+
+/* ── Arrow buttons ── */
+.carousel-arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--white-15);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--ease), transform var(--ease);
+  color: var(--white);
+}
+
+.carousel-arrow:hover { background: rgba(255,255,255,0.2); }
+.carousel-arrow:active { transform: scale(0.92); }
+
+.carousel-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Bike picker ── */
+.bike-picker-group {
+  margin-top: 16px;
+}
+
+.input-field option {
+  background: var(--bg-dark);
+  color: var(--white);
+}
+
+.bike-picker-loading {
+  font-size: 0.88rem;
+  color: var(--white-40);
+  padding: 12px 0;
+}
+
+.bike-picker-empty {
+  font-size: 0.88rem;
+  color: var(--white-70);
+  line-height: 1.5;
+  padding: 12px 0;
+}
+
+.bike-picker-empty a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* ── Footer messages ── */
+.add-bike-success {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6fcf7a;
+  text-align: center;
+  padding: 10px 16px;
+  background: rgba(111, 207, 122, 0.1);
+  border: 1px solid rgba(111, 207, 122, 0.25);
+  border-radius: 10px;
+  width: 100%;
+  animation: fadeIn 0.2s ease;
+}
+
+.add-bike-error {
+  font-size: 0.88rem;
+  color: #ff6b6b;
+  text-align: center;
+  padding: 10px 16px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.25);
+  border-radius: 10px;
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Footer ── */
+.add-bike-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px var(--screen-pad) 40px;
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+}
+
+.add-bike-footer .btn-pill { max-width: 100%; }
