@@ -36,6 +36,39 @@ async function fetchStravaState(bikeId, accessToken) {
   };
 }
 
+// Map user-selected replaced components to maintenance item IDs.
+// Items in this map will receive a baseline service log (treated as recently serviced)
+// when the bike is first configured, so the maintenance calculator starts from zero.
+const COMPONENT_ITEM_MAP = {
+  bottom_bracket: [],
+  brake_pads:     ['brake_resin_clean', 'brake_resin_check', 'brake_resin_inspect', 'brake_resin_replace',
+                   'brake_metal_clean', 'brake_metal_check', 'brake_metal_inspect', 'brake_metal_replace'],
+  brake_set:      ['brake_resin_clean', 'brake_resin_check', 'brake_resin_inspect', 'brake_resin_replace',
+                   'brake_metal_clean', 'brake_metal_check', 'brake_metal_inspect', 'brake_metal_replace',
+                   'rim_brakes_replace', 'hydraulics_bleed', 'mech_brakes_replace'],
+  chain:          ['chain_clean', 'chain_check', 'chain_replace'],
+  chain_ring:     ['chainring_check', 'chainring_replace'],
+  cassette:       ['cassette_replace'],
+  drivetrain:     ['chain_clean', 'chain_check', 'chain_replace', 'wire_housing_replace',
+                   'cassette_replace', 'chainring_check', 'chainring_replace'],
+  fork:           ['fork_pressure', 'fork_lower_service', 'fork_full_service'],
+  head_set:       [],
+  tires:          ['tires_check', 'sealant_add'],
+  suspension:     ['fork_pressure', 'fork_lower_service', 'fork_full_service',
+                   'rear_shock_pressure', 'rear_shock_air_service', 'rear_shock_full_service'],
+  wheel_set:      ['tires_check'],
+};
+
+function getBaselineItemIds(replacedComponents) {
+  const ids = new Set();
+  for (const comp of (replacedComponents || [])) {
+    for (const itemId of (COMPONENT_ITEM_MAP[comp] || [])) {
+      ids.add(itemId);
+    }
+  }
+  return ids;
+}
+
 // Apply per-bike config filters to rules items
 function filterItems(items, bikeData) {
   return items.filter(item => {
@@ -71,14 +104,30 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
       chainReplacements: bikeData.chainReplacements || 0,
     };
 
+    // Build a synthetic "baseline" service log for components the user marked as
+    // recently replaced at setup time. Only applied when no real log exists yet.
+    const baselineItemIds = getBaselineItemIds(bikeData.replacedComponents);
+    const baselineLog = baselineItemIds.size > 0 ? {
+      lastServiceDate:       new Date().toISOString().split('T')[0],
+      lastServiceMileage:    Math.round(stravaState.currentMileage),
+      lastServiceRideCount:  stravaState.currentRideCount,
+      lastServiceHours:      Math.round(stravaState.rideHours * 10) / 10,
+      lastChainReplacements: bikeData.chainReplacements || 0,
+      baseline: true,
+    } : null;
+
     const sections = rules.sections.map(section => ({
       id:    section.id,
       label: section.label,
-      items: filterItems(section.items, bikeData).map(item => ({
-        ...item,
-        serviceLog: bikeData.serviceLogs?.[item.id] || null,
-        status:     getItemStatus(item, bikeData.serviceLogs?.[item.id] || null, bikeState),
-      })),
+      items: filterItems(section.items, bikeData).map(item => {
+        const existingLog = bikeData.serviceLogs?.[item.id] || null;
+        const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
+        return {
+          ...item,
+          serviceLog,
+          status: getItemStatus(item, serviceLog, bikeState),
+        };
+      }),
     })).filter(s => s.items.length > 0);
 
     const summary = getBikeSummary(sections);
@@ -101,16 +150,16 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
 });
 
 // PUT /api/maintenance/bikes/:bikeId
-// Configure a bike: bikeType, padType, brakeType, isTubeless
+// Configure a bike: bikeType, padType, brakeType, isTubeless, replacedComponents
 router.put('/bikes/:bikeId', requireAuth, (req, res) => {
   const { bikeId } = req.params;
-  const { bikeType, padType, brakeType, isTubeless } = req.body;
+  const { bikeType, padType, brakeType, isTubeless, replacedComponents } = req.body;
 
   if (bikeType && !RULES[bikeType]) {
     return res.status(400).json({ error: `Invalid bikeType. Must be one of: ${Object.keys(RULES).join(', ')}` });
   }
 
-  const updated = setBikeConfig(bikeId, { bikeType, padType, brakeType, isTubeless });
+  const updated = setBikeConfig(bikeId, { bikeType, padType, brakeType, isTubeless, replacedComponents });
   res.json(updated);
 });
 
