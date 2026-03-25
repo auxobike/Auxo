@@ -33,51 +33,16 @@
   color: var(--white);
 }
 
-/* ── Action grid ── */
-.action-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.action-card {
+/* ── Action buttons ── */
+.action-buttons {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  padding: 20px 16px;
-  cursor: pointer;
-  transition: background var(--ease), border-color var(--ease), transform var(--ease);
-  text-align: left;
+  align-items: center;
+  gap: 14px;
 }
 
-.action-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(201, 150, 12, 0.3);
-  transform: translateY(-2px);
-}
-
-.action-card:active { transform: scale(0.97); }
-
-.action-icon {
-  font-size: 1.6rem;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.action-label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--white);
-  line-height: 1.2;
-}
-
-.action-desc {
-  font-size: 0.78rem;
-  line-height: 1.3;
+.action-btn {
+  width: 70%;
 }
 
 /* ── Stats strip ── */

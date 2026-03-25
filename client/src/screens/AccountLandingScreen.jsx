@@ -4,34 +4,10 @@ import './AccountLandingScreen.css';
 
 export default function AccountLandingScreen({ athlete, hasConfiguredBikes }) {
   const ACTIONS = [
-    {
-      id: 'service-log',
-      label: 'Add Service Log',
-      icon: '🔧',
-      path: '/add-service-log',
-      desc: 'Log a maintenance task',
-    },
-    {
-      id: 'quiver',
-      label: 'Review Your Quiver',
-      icon: '🚲',
-      path: hasConfiguredBikes ? '/maintenance' : '/add-bike',
-      desc: 'View all your bikes',
-    },
-    {
-      id: 'book-service',
-      label: 'Book Service',
-      icon: '📅',
-      path: '/book-service',
-      desc: 'Find a local shop',
-    },
-    {
-      id: 'profile',
-      label: 'Update Profile',
-      icon: '👤',
-      path: '/profile',
-      desc: 'Settings & preferences',
-    },
+    { id: 'service-log', label: 'Add Service Log',    path: '/add-service-log' },
+    { id: 'quiver',      label: 'Review Your Quiver', path: hasConfiguredBikes ? '/maintenance' : '/add-bike' },
+    { id: 'book-service',label: 'Book Service',       path: '/book-service' },
+    { id: 'profile',     label: 'Update Profile',     path: '/profile' },
   ];
   const navigate = useNavigate();
   const firstname = athlete?.firstname || 'Rider';
@@ -49,17 +25,15 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes }) {
           </h1>
         </div>
 
-        {/* Action grid */}
-        <div className="action-grid">
+        {/* Action buttons */}
+        <div className="action-buttons">
           {ACTIONS.map(action => (
             <button
               key={action.id}
-              className="action-card"
+              className="btn-pill btn-pill-gold action-btn"
               onClick={() => navigate(action.path)}
             >
-              <span className="action-icon" aria-hidden="true">{action.icon}</span>
-              <span className="action-label">{action.label}</span>
-              <span className="action-desc text-muted">{action.desc}</span>
+              {action.label}
             </button>
           ))}
         </div>
