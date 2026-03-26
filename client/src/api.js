@@ -46,6 +46,7 @@ export const api = {
   // Maintenance
   getConfiguredBikes:   () => apiFetch('/api/maintenance/configured'),
   getMaintenanceStatus: (bikeId) => apiFetch(`/api/maintenance/status/${bikeId}`),
+  getMaintenanceItems:  (bikeId) => apiFetch(`/api/maintenance/items/${bikeId}`),
   configureBike: (bikeId, config) => apiFetch(`/api/maintenance/bikes/${bikeId}`, {
     method: 'PUT',
     body: JSON.stringify(config),

@@ -139,6 +139,42 @@
   margin-top: 16px;
 }
 
+/* ── Brake pad type picker ── */
+.pad-type-group {
+  margin-top: 12px;
+}
+
+.pad-type-picker {
+  display: flex;
+  gap: 10px;
+}
+
+.pad-type-btn {
+  flex: 1;
+  padding: 14px 12px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--border);
+  background: var(--bg-input);
+  color: var(--white-70);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: border-color var(--ease), background var(--ease), color var(--ease);
+}
+
+.pad-type-btn:hover:not(.pad-type-btn--selected) {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--white);
+}
+
+.pad-type-btn--selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
 .input-field option {
   background: var(--bg-dark);
   color: var(--white);
@@ -291,5 +327,263 @@
 .component-label {
   font-size: 0.95rem;
   font-weight: 500;
+  color: var(--white);
+}
+
+/* ── Mileage inputs (step 3) ── */
+.mileage-body {
+  overflow-y: auto;
+}
+
+.mileage-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+
+.mileage-intro-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--white-70);
+  line-height: 1.5;
+}
+
+.mileage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── MTB notification settings (step 4) ── */
+.mtb-settings-body {
+  overflow-y: auto;
+  gap: 0;
+}
+
+.mtb-step-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 24px;
+}
+
+.mtb-type-label {
+  font-family: var(--font-marker);
+  font-size: clamp(1.8rem, 10vw, 2.6rem);
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.mtb-bike-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mtb-bike-nav .carousel-arrow {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.mtb-bike-nav .carousel-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.mtb-bike-nav .carousel-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mtb-bike-nav-name {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mtb-settings-title {
+  font-size: clamp(1.6rem, 8vw, 2.2rem);
+  margin-top: 4px;
+}
+
+/* ── Component section (Fork / Rear Shock) ── */
+.mtb-component-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 28px;
+  margin-bottom: 8px;
+}
+
+.mtb-section-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.mtb-section-divider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 2px;
+}
+
+.mtb-note {
+  font-size: 0.88rem;
+  color: var(--white-70);
+  font-style: italic;
+}
+
+.mtb-note-body {
+  font-size: 0.92rem;
+  color: var(--white-70);
+  line-height: 1.55;
+}
+
+.mtb-note-body strong {
+  color: var(--white);
+  font-weight: 700;
+}
+
+/* ── Radio options ── */
+.interval-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.interval-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--ease), background var(--ease);
+}
+
+.interval-option:has(.interval-radio:checked) {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.interval-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.interval-radio-visual {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: transparent;
+  position: relative;
+  transition: border-color var(--ease), background var(--ease);
+}
+
+.interval-option:has(.interval-radio:checked) .interval-radio-visual {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.interval-radio-visual::after {
+  content: '';
+  position: absolute;
+  display: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.interval-option:has(.interval-radio:checked) .interval-radio-visual::after {
+  display: block;
+}
+
+.interval-option-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--white);
+}
+
+/* ── Custom interval sub-inputs ── */
+.interval-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+}
+
+.interval-sub-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.interval-sub-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--white-70);
+}
+
+.interval-input-row {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.interval-number-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.interval-unit-select {
+  /* own field styles — not using .input-field to avoid width:100% conflict */
+  flex-shrink: 0;
+  width: auto;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 15px 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--ease), background var(--ease);
+  appearance: auto;
+}
+
+.interval-unit-select:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.interval-unit-select option {
+  background: var(--bg-dark);
   color: var(--white);
 }

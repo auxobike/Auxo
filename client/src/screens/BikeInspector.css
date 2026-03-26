@@ -1,0 +1,366 @@
+/* ── Screen ── */
+.inspector-screen {
+  overflow: hidden; /* children handle their own scroll */
+}
+
+/* ── Loading / error states ── */
+.inspector-loading,
+.inspector-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px var(--screen-pad);
+}
+
+.inspector-loading-text,
+.inspector-error-text {
+  font-size: 0.95rem;
+  color: var(--white-70);
+  text-align: center;
+}
+
+/* ── Bike navigation header ── */
+.inspector-nav-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px var(--screen-pad) 12px;
+  flex-shrink: 0;
+}
+
+.inspector-nav-arrow {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--white);
+  cursor: pointer;
+  transition: background var(--ease), opacity var(--ease);
+}
+
+.inspector-nav-arrow:hover   { background: var(--white-15); }
+.inspector-nav-arrow:disabled { opacity: 0.25; cursor: default; }
+
+.inspector-nav-arrow svg {
+  width: 18px;
+  height: 18px;
+}
+
+.inspector-bike-name {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 7vw, 2rem);
+  letter-spacing: 0.04em;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Scrollable body ── */
+.inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 40px;
+}
+
+/* ── Hero ── */
+.inspector-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--screen-pad) 20px;
+  gap: 16px;
+}
+
+.inspector-hero-img-wrap {
+  width: 100%;
+  position: relative;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.inspector-hero-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  display: block;
+  padding: 16px 20px 40px; /* extra bottom padding so banners don't cover the bike */
+}
+
+.inspector-hero-banners {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+}
+
+.inspector-banner {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.inspector-banner--critical {
+  background: rgba(255, 71, 87, 0.85);
+  color: #fff;
+}
+
+.inspector-banner--alert {
+  background: rgba(201, 150, 12, 0.9);
+  color: #000;
+}
+
+.inspector-mechanic-btn {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ── Maintenance sections ── */
+.inspector-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 var(--screen-pad);
+}
+
+.inspector-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* Section header */
+.inspector-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.inspector-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inspector-section-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot--ok       { background: #128D93; }
+.dot--due_soon { background: var(--accent); }
+.dot--due      { background: #ff4757; }
+.dot--overdue  { background: #ff4757; }
+
+.inspector-section-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  color: var(--white);
+}
+
+/* Book button */
+.inspector-book-btn {
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: opacity var(--ease);
+}
+
+.inspector-book-btn:active { opacity: 0.75; }
+
+.inspector-book-btn--soon {
+  background: var(--accent);
+  color: #000;
+}
+
+.inspector-book-btn--urgent {
+  background: #ff4757;
+  color: #fff;
+}
+
+/* Items list */
+.inspector-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.inspector-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  min-height: 52px;
+}
+
+.inspector-item:last-child {
+  border-bottom: none;
+}
+
+/* Log button */
+.inspector-log-btn {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--white-70);
+  cursor: pointer;
+  transition: background var(--ease), color var(--ease), border-color var(--ease);
+}
+
+.inspector-log-btn:hover:not(:disabled) {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.inspector-log-btn:disabled { cursor: default; opacity: 0.5; }
+
+.inspector-log-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.spinner-icon {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Item info */
+.inspector-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.inspector-item-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inspector-item-action {
+  font-size: 0.76rem;
+  color: var(--white-40);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status pill */
+.inspector-status-pill {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.inspector-status-pill--ok {
+  background: rgba(18, 141, 147, 0.15);
+  color: #128D93;
+}
+
+.inspector-status-pill--due_soon {
+  background: rgba(201, 150, 12, 0.2);
+  color: var(--accent);
+}
+
+.inspector-status-pill--due,
+.inspector-status-pill--overdue {
+  background: rgba(255, 71, 87, 0.18);
+  color: #ff4757;
+  letter-spacing: 0.08em;
+}
+
+/* Learn button */
+.inspector-learn-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 2px;
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 150, 12, 0.4);
+  transition: color var(--ease), opacity var(--ease);
+}
+
+.inspector-learn-btn:hover { color: var(--accent-hover); }
+
+/* ── Footer ── */
+.inspector-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px var(--screen-pad) 8px;
+}
+
+.inspector-adjust-btn {
+  width: 100%;
+  max-width: 100%;
+}
+
+.inspector-reset-link {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--white-40);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.2);
+  padding: 6px;
+  transition: color var(--ease);
+}
+
+.inspector-reset-link:hover { color: var(--white-70); }

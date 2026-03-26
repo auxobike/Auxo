@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import AppHeader from '../components/AppHeader';
 import './AccountLandingScreen.css';
 
-export default function AccountLandingScreen({ athlete, hasConfiguredBikes }) {
+export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLogout }) {
   const ACTIONS = [
     { id: 'service-log', label: 'Add Service Log',    path: '/add-service-log' },
     { id: 'quiver',      label: 'Review Your Quiver', path: hasConfiguredBikes ? '/maintenance' : '/add-bike' },
@@ -14,7 +14,7 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes }) {
 
   return (
     <div className="screen landing-screen">
-      <AppHeader />
+      <AppHeader onLogout={onLogout} />
 
       <main className="landing-body">
         {/* Greeting */}

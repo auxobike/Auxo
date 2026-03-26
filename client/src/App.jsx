@@ -9,6 +9,8 @@ import StravaLinkScreen     from './screens/StravaLinkScreen';
 import AccountLandingScreen from './screens/AccountLandingScreen';
 import AddBikeScreen        from './screens/AddBikeScreen';
 import MaintenanceDashboard from './components/MaintenanceDashboard';
+import BikeInspector        from './screens/BikeInspector';
+import AddServiceLogScreen  from './screens/AddServiceLogScreen';
 
 import './styles/design-system.css';
 
@@ -79,7 +81,7 @@ export default function App() {
     return (
       <div style={{
         minHeight:      '100dvh',
-        background:     '#2a2800',
+        background:     '#2D2613',
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
@@ -150,7 +152,7 @@ export default function App() {
           path="/add-bike"
           element={
             <RequireStrava session={session}>
-              <AddBikeScreen bikes={bikes} />
+              <AddBikeScreen bikes={bikes} onLogout={handleLogout} />
             </RequireStrava>
           }
         />
@@ -158,7 +160,23 @@ export default function App() {
           path="/maintenance"
           element={
             <RequireStrava session={session}>
-              <MaintenanceDashboard />
+              <MaintenanceDashboard onLogout={handleLogout} />
+            </RequireStrava>
+          }
+        />
+        <Route
+          path="/maintenance/:bikeId"
+          element={
+            <RequireStrava session={session}>
+              <BikeInspector onLogout={handleLogout} />
+            </RequireStrava>
+          }
+        />
+        <Route
+          path="/add-service-log"
+          element={
+            <RequireStrava session={session}>
+              <AddServiceLogScreen onLogout={handleLogout} />
             </RequireStrava>
           }
         />

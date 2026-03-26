@@ -16,11 +16,6 @@ export default function LoginScreen() {
           <p className="login-tagline">Service Tracking for Bike Folks</p>
         </div>
 
-        {/* Decorative bike silhouette */}
-        <div className="login-hero" aria-hidden="true">
-          <div className="login-hero-ring" />
-        </div>
-
         {/* CTA buttons */}
         <div className="login-actions">
           <button

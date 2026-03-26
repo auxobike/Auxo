@@ -212,6 +212,42 @@ router.get('/configured', requireAuth, (req, res) => {
   res.json({ configuredBikeIds: ids, hasConfigured: ids.length > 0 });
 });
 
+// GET /api/maintenance/items/:bikeId
+// Returns ALL maintenance items for the bike's configured type — no config filtering,
+// no Strava call. Used by the service log form so every item is always selectable.
+router.get('/items/:bikeId', requireAuth, (req, res) => {
+  const { bikeId } = req.params;
+  const bikeData   = getBikeData(bikeId);
+
+  if (!bikeData?.bikeType) {
+    return res.status(400).json({ error: 'Bike not configured', needsSetup: true });
+  }
+
+  const rules = RULES[bikeData.bikeType];
+  if (!rules) return res.status(400).json({ error: 'Unknown bike type' });
+
+  const sections = rules.sections.map(section => ({
+    id:    section.id,
+    label: section.label,
+    items: section.items
+      .filter(item => {
+        // Mirror the padType and brakeType checks from filterItems so the service
+        // log dropdown shows only the brake variant that matches this bike's config.
+        // tubelessOnly is intentionally omitted — users can still log sealant service.
+        if (item.padType   && bikeData.padType   && item.padType   !== bikeData.padType)   return false;
+        if (item.brakeType && bikeData.brakeType && item.brakeType !== bikeData.brakeType) return false;
+        return true;
+      })
+      .map(item => ({
+        id:     item.id,
+        label:  item.label,
+        action: item.action,
+      })),
+  })).filter(s => s.items.length > 0);
+
+  res.json({ bikeId, bikeType: bikeData.bikeType, sections });
+});
+
 // GET /api/maintenance/rules
 // Returns the full rule set (used by the frontend to know available bike types)
 router.get('/rules', requireAuth, (req, res) => {

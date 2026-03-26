@@ -40,7 +40,127 @@ const COMPONENTS = [
   { id: 'wheel_set',      label: 'Wheel set' },
 ];
 
-export default function AddBikeScreen() {
+const MILEAGE_LABELS = {
+  brake_pads:     'Brake pad mileage',
+  brake_set:      'Brake set mileage',
+  chain:          'Chain mileage',
+  chain_ring:     'Chain ring mileage',
+  cassette:       'Cassette mileage',
+  tires:          'Tire mileage',
+  bottom_bracket: 'Bottom Bracket mileage',
+  drivetrain:     'Drive train mileage',
+  fork:           'Fork mileage',
+  head_set:       'Head set mileage',
+  suspension:     'Suspension mileage',
+  wheel_set:      'Wheel set mileage',
+};
+
+// ── MTB service interval sub-section ────────────────────────────────────────
+function IntervalSubField({ label, fieldId, state, onChange }) {
+  return (
+    <div className="interval-sub-field">
+      <p className="interval-sub-title">{label}</p>
+      <div className="interval-input-row">
+        <input
+          id={`${fieldId}-value`}
+          type="number"
+          min="1"
+          inputMode="numeric"
+          placeholder="30"
+          className="input-field interval-number-input"
+          value={state.value}
+          onChange={e => onChange({ ...state, value: e.target.value })}
+        />
+        <select
+          id={`${fieldId}-unit`}
+          className="interval-unit-select"
+          value={state.unit}
+          onChange={e => onChange({ ...state, unit: e.target.value })}
+        >
+          <option value="Hours">Hours</option>
+          <option value="Months">Months</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+// ── MTB component section (Fork or Rear Shock) ──────────────────────────────
+function ServiceIntervalSection({
+  componentKey,
+  title,
+  notePart,
+  setting,
+  onSettingChange,
+  lowerLeg,
+  onLowerLegChange,
+  fullService,
+  onFullServiceChange,
+}) {
+  return (
+    <div className="mtb-component-section">
+      <h3 className="mtb-section-title">{title}</h3>
+      <div className="mtb-section-divider" />
+
+      <p className="mtb-note">
+        <em>A note regarding your {notePart}:</em>
+      </p>
+      <p className="mtb-note-body">
+        Manufacturers recommend servicing your {notePart} every{' '}
+        <strong>30 hours</strong> of ride time. Would you like to customize your
+        service interval? You can change this later if you'd like.
+      </p>
+
+      <div className="interval-options">
+        <label className="interval-option">
+          <input
+            type="radio"
+            name={`${componentKey}-setting`}
+            className="interval-radio"
+            value="keep"
+            checked={setting === 'keep'}
+            onChange={() => onSettingChange('keep')}
+          />
+          <span className="interval-radio-visual" aria-hidden="true" />
+          <span className="interval-option-label">Keep this setting</span>
+        </label>
+
+        <label className="interval-option">
+          <input
+            type="radio"
+            name={`${componentKey}-setting`}
+            className="interval-radio"
+            value="change"
+            checked={setting === 'change'}
+            onChange={() => onSettingChange('change')}
+          />
+          <span className="interval-radio-visual" aria-hidden="true" />
+          <span className="interval-option-label">Change my interval</span>
+        </label>
+      </div>
+
+      {setting === 'change' && (
+        <div className="interval-sub">
+          <IntervalSubField
+            label="Lower Leg"
+            fieldId={`${componentKey}-lower`}
+            state={lowerLeg}
+            onChange={onLowerLegChange}
+          />
+          <IntervalSubField
+            label="Full Service"
+            fieldId={`${componentKey}-full`}
+            state={fullService}
+            onChange={onFullServiceChange}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main screen ──────────────────────────────────────────────────────────────
+export default function AddBikeScreen({ onLogout }) {
   const navigate = useNavigate();
   const [step,               setStep]               = useState(1);
   const [index,              setIndex]              = useState(0);
@@ -51,9 +171,19 @@ export default function AddBikeScreen() {
   const [bikesLoading,       setBikesLoading]       = useState(true);
   const [fetchError,         setFetchError]         = useState('');
   const [bikeId,             setBikeId]             = useState('');
+  const [padType,            setPadType]            = useState('');
+  const [brakeType,          setBrakeType]          = useState('');
   const [replacedComponents, setReplacedComponents] = useState(new Set());
+  const [componentMileage,   setComponentMileage]   = useState({});
 
-  // Always fetch bikes fresh on mount — don't rely on prop timing from App.jsx
+  // MTB notification settings
+  const [forkSetting,      setForkSetting]      = useState('keep');
+  const [forkLowerLeg,     setForkLowerLeg]     = useState({ value: '', unit: 'Hours' });
+  const [forkFullService,  setForkFullService]  = useState({ value: '', unit: 'Hours' });
+  const [shockSetting,     setShockSetting]     = useState('keep');
+  const [shockLowerLeg,    setShockLowerLeg]    = useState({ value: '', unit: 'Hours' });
+  const [shockFullService, setShockFullService] = useState({ value: '', unit: 'Hours' });
+
   useEffect(() => {
     api.getBikes()
       .then(data => {
@@ -68,13 +198,27 @@ export default function AddBikeScreen() {
       .finally(() => setBikesLoading(false));
   }, []);
 
-  const current = BIKES[index];
-  const total   = BIKES.length;
+  const current   = BIKES[index];
+  const total     = BIKES.length;
+  const isMtb     = current.type === 'mtb';
 
+  // Bike type carousel (step 1)
   function prev() { setIndex(i => (i - 1 + total) % total); }
   function next() { setIndex(i => (i + 1) % total); }
 
-  // Touch/swipe support
+  // Step 4 bike name carousel
+  const bikeListIndex = bikes.findIndex(b => b.id === bikeId);
+  function prevBike() {
+    const i = (bikeListIndex - 1 + bikes.length) % bikes.length;
+    setBikeId(bikes[i].id);
+  }
+  function nextBike() {
+    const i = (bikeListIndex + 1) % bikes.length;
+    setBikeId(bikes[i].id);
+  }
+  const selectedBike = bikes.find(b => b.id === bikeId);
+
+  // Touch/swipe support (step 1 only)
   const [touchStart, setTouchStart] = useState(null);
   function onTouchStart(e) { setTouchStart(e.touches[0].clientX); }
   function onTouchEnd(e) {
@@ -93,17 +237,67 @@ export default function AddBikeScreen() {
     });
   }
 
+  function setMileage(id, value) {
+    setComponentMileage(prev => ({ ...prev, [id]: value }));
+  }
+
+  const checkedComponents = COMPONENTS.filter(c => replacedComponents.has(c.id));
+
+  // Navigation helpers
+  function handleStep2Next() {
+    if (replacedComponents.size > 0) { setStep(3); return; }
+    if (isMtb)                       { setStep(4); return; }
+    handleAdd();
+  }
+
+  function handleStep3Next() {
+    if (isMtb) { setStep(4); return; }
+    handleAdd();
+  }
+
+  function handleStep4Back() {
+    setStep(replacedComponents.size > 0 ? 3 : 2);
+  }
+
   async function handleAdd() {
     if (!bikeId) return;
     setAdding(true);
     setAddError('');
+
+    const mileageBaselines = {};
+    for (const id of replacedComponents) {
+      const val = componentMileage[id];
+      if (val !== undefined && val !== '') {
+        mileageBaselines[id] = Number(val);
+      }
+    }
+
+    const mtbServiceIntervals = isMtb ? {
+      fork: forkSetting === 'keep'
+        ? { default: true }
+        : {
+            lowerLeg:    { value: Number(forkLowerLeg.value)    || 0, unit: forkLowerLeg.unit },
+            fullService: { value: Number(forkFullService.value) || 0, unit: forkFullService.unit },
+          },
+      rearShock: shockSetting === 'keep'
+        ? { default: true }
+        : {
+            lowerLeg:    { value: Number(shockLowerLeg.value)    || 0, unit: shockLowerLeg.unit },
+            fullService: { value: Number(shockFullService.value) || 0, unit: shockFullService.unit },
+          },
+    } : undefined;
+
     try {
       await api.configureBike(bikeId, {
-        bikeType: current.type,
+        bikeType:           current.type,
+        padType:            padType   || undefined,
+        brakeType:          brakeType || undefined,
         replacedComponents: [...replacedComponents],
+        mileageBaselines,
+        ...(mtbServiceIntervals && { mtbServiceIntervals }),
       });
       setSuccess(true);
-      setTimeout(() => navigate('/maintenance'), 1500);
+      setTimeout(() => navigate(`/maintenance/${bikeId}`), 1500);
     } catch (err) {
       setAddError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -113,11 +307,11 @@ export default function AddBikeScreen() {
 
   return (
     <div className="screen add-bike-screen">
-      <AppHeader />
+      <AppHeader onLogout={onLogout} />
 
-      {step === 1 ? (
+      {/* ── Step 1: Bike type + bike selector ── */}
+      {step === 1 && (
         <div className="add-bike-body">
-          {/* Bike type indicator dots */}
           <div className="bike-dots" aria-label="Bike type selector">
             {BIKES.map((b, i) => (
               <button
@@ -129,11 +323,9 @@ export default function AddBikeScreen() {
             ))}
           </div>
 
-          {/* Bike label */}
           <h2 className="section-heading add-bike-type-label">{current.label}</h2>
           <p className="add-bike-tagline text-muted">{current.tagline}</p>
 
-          {/* Carousel */}
           <div
             className="bike-carousel"
             onTouchStart={onTouchStart}
@@ -146,7 +338,6 @@ export default function AddBikeScreen() {
             </button>
 
             <div className="carousel-stage">
-              {/* Main bike image */}
               <div className="bike-image-wrap">
                 <img
                   key={current.type}
@@ -156,8 +347,6 @@ export default function AddBikeScreen() {
                   draggable={false}
                 />
               </div>
-
-              {/* Floating terrain below */}
               <div className={`terrain-wrap${current.type !== 'mtb' ? ' terrain-wrap--tarmac' : ''}`}>
                 <img
                   src={current.type === 'mtb' ? '/bikes/earth-stuff.png' : '/bikes/floating-tarmac.png'}
@@ -176,7 +365,6 @@ export default function AddBikeScreen() {
             </button>
           </div>
 
-          {/* Bike selector */}
           <div className="input-group bike-picker-group">
             <label className="input-label" htmlFor="bike-select">Select your bike</label>
             {bikesLoading ? (
@@ -202,8 +390,51 @@ export default function AddBikeScreen() {
               </select>
             )}
           </div>
+
+          {/* Brake pad type */}
+          <div className="input-group pad-type-group">
+            <span className="input-label">Brake Pad Type</span>
+            <div className="pad-type-picker">
+              {[
+                { value: 'resin', label: 'Resin'    },
+                { value: 'metal', label: 'Metallic' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pad-type-btn${padType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                  onClick={() => setPadType(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Brake system type */}
+          <div className="input-group pad-type-group">
+            <span className="input-label">Brake System Type</span>
+            <div className="pad-type-picker">
+              {[
+                { value: 'hydraulic',  label: 'Hydraulic' },
+                { value: 'mechanical', label: 'Mechanical' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pad-type-btn${brakeType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                  onClick={() => setBrakeType(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      ) : (
+      )}
+
+      {/* ── Step 2: Components checklist ── */}
+      {step === 2 && (
         <div className="add-bike-body components-body">
           <div className="components-heading">
             <h2 className="section-heading">Replaced any components?</h2>
@@ -226,7 +457,100 @@ export default function AddBikeScreen() {
         </div>
       )}
 
-      {/* Sticky bottom CTA */}
+      {/* ── Step 3: Mileage baselines ── */}
+      {step === 3 && (
+        <div className="add-bike-body mileage-body">
+          <div className="mileage-heading">
+            <h2 className="section-heading">Component details</h2>
+            <p className="mileage-intro-text">
+              We'll need some more information about your new components in order to suggest the right service intervals.
+            </p>
+          </div>
+          <div className="mileage-form">
+            {checkedComponents.map(c => (
+              <div key={c.id} className="input-group">
+                <label className="input-label" htmlFor={`mileage-${c.id}`}>
+                  {MILEAGE_LABELS[c.id]}
+                </label>
+                <input
+                  id={`mileage-${c.id}`}
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  placeholder="e.g. 500"
+                  className="input-field"
+                  value={componentMileage[c.id] ?? ''}
+                  onChange={e => setMileage(c.id, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 4: MTB notification settings ── */}
+      {step === 4 && (
+        <div className="add-bike-body mtb-settings-body">
+          {/* Header: bike type + name with carousel */}
+          <div className="mtb-step-header">
+            <p className="mtb-type-label">{current.label}</p>
+            {bikes.length > 0 && (
+              <div className="mtb-bike-nav">
+                <button
+                  className="carousel-arrow"
+                  onClick={prevBike}
+                  aria-label="Previous bike"
+                  disabled={bikes.length <= 1}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <span className="mtb-bike-nav-name">{selectedBike?.name ?? '—'}</span>
+                <button
+                  className="carousel-arrow"
+                  onClick={nextBike}
+                  aria-label="Next bike"
+                  disabled={bikes.length <= 1}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
+            )}
+            <h2 className="section-heading mtb-settings-title">
+              Customize your notification settings
+            </h2>
+          </div>
+
+          <ServiceIntervalSection
+            componentKey="fork"
+            title="Fork"
+            notePart="fork"
+            setting={forkSetting}
+            onSettingChange={setForkSetting}
+            lowerLeg={forkLowerLeg}
+            onLowerLegChange={setForkLowerLeg}
+            fullService={forkFullService}
+            onFullServiceChange={setForkFullService}
+          />
+
+          <ServiceIntervalSection
+            componentKey="rearShock"
+            title="Rear Shock"
+            notePart="rear shock"
+            setting={shockSetting}
+            onSettingChange={setShockSetting}
+            lowerLeg={shockLowerLeg}
+            onLowerLegChange={setShockLowerLeg}
+            fullService={shockFullService}
+            onFullServiceChange={setShockFullService}
+          />
+        </div>
+      )}
+
+      {/* ── Sticky bottom CTA ── */}
       <div className="add-bike-footer">
         {success && (
           <p className="add-bike-success">
@@ -236,12 +560,13 @@ export default function AddBikeScreen() {
         {addError && (
           <p className="add-bike-error">{addError}</p>
         )}
-        {step === 1 ? (
+
+        {step === 1 && (
           <>
             <button
               className="btn-pill btn-pill-gold"
               onClick={() => setStep(2)}
-              disabled={!bikeId || bikesLoading}
+              disabled={!bikeId || bikesLoading || !padType || !brakeType}
             >
               Next
             </button>
@@ -249,16 +574,48 @@ export default function AddBikeScreen() {
               Cancel
             </button>
           </>
-        ) : (
+        )}
+
+        {step === 2 && (
+          <>
+            <button
+              className="btn-pill btn-pill-gold"
+              onClick={handleStep2Next}
+              disabled={adding || success}
+            >
+              Next
+            </button>
+            <button className="auth-skip-btn" onClick={() => setStep(1)}>
+              Back
+            </button>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <button
+              className="btn-pill btn-pill-gold"
+              onClick={handleStep3Next}
+              disabled={adding || success}
+            >
+              Next
+            </button>
+            <button className="auth-skip-btn" onClick={() => setStep(2)}>
+              Back
+            </button>
+          </>
+        )}
+
+        {step === 4 && (
           <>
             <button
               className="btn-pill btn-pill-gold"
               onClick={handleAdd}
               disabled={adding || success}
             >
-              {adding ? 'Adding…' : 'Next'}
+              {adding ? 'Adding…' : 'Finish'}
             </button>
-            <button className="auth-skip-btn" onClick={() => setStep(1)}>
+            <button className="auth-skip-btn" onClick={handleStep4Back}>
               Back
             </button>
           </>

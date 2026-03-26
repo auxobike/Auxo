@@ -11,51 +11,46 @@ const BIKE_IMAGES = {
   gravel: '/bikes/gravel.png',
 };
 
-// ── SVG donut: red = critical (due/overdue), teal = alerts (due_soon) ──
+// ── SVG donut: three-segment ring always filling the full circle ──
+// Red = critical (due/overdue), gold = alerts (due_soon), teal = ok
 function DonutChart({ critical, alerts, totalItems }) {
   const r    = 36;
   const cx   = 44;
   const cy   = 44;
   const circ = 2 * Math.PI * r;
 
-  const critDash  = totalItems > 0 ? (critical / totalItems) * circ : 0;
-  const alertDash = totalItems > 0 ? (alerts   / totalItems) * circ : 0;
-  const allOk     = critical === 0 && alerts === 0;
+  const ok       = Math.max(0, totalItems - critical - alerts);
+  const critLen  = totalItems > 0 ? (critical / totalItems) * circ : 0;
+  const alertLen = totalItems > 0 ? (alerts   / totalItems) * circ : 0;
+  const okLen    = totalItems > 0 ? (ok       / totalItems) * circ : circ;
+
+  // Segments ordered: critical → alerts → ok, each starting where the previous ends.
+  // strokeDashoffset (negative) advances the dash pattern so the segment begins
+  // at the right position around the ring (12 o'clock origin via rotate(-90)).
+  const segments = [
+    { color: '#ff4757', len: critLen,  offset: 0 },
+    { color: '#c9960c', len: alertLen, offset: critLen },
+    { color: '#128D93', len: okLen,    offset: critLen + alertLen },
+  ];
 
   return (
     <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true">
-      {/* Background track */}
-      <circle cx={cx} cy={cy} r={r} fill="none"
-        stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
-
-      {/* All-good ring */}
-      {allOk && (
-        <circle cx={cx} cy={cy} r={r} fill="none"
-          stroke="#4ecdc4" strokeWidth="10"
-          transform="rotate(-90 44 44)" />
-      )}
-
-      {/* Alert segment — teal, starts after critical */}
-      {alerts > 0 && (
-        <circle cx={cx} cy={cy} r={r} fill="none"
-          stroke="#4ecdc4" strokeWidth="10"
-          strokeDasharray={`${alertDash} ${circ - alertDash}`}
-          strokeDashoffset={circ - critDash}
-          transform="rotate(-90 44 44)"
-          strokeLinecap="butt"
-        />
-      )}
-
-      {/* Critical segment — red, starts at 12 o'clock */}
-      {critical > 0 && (
-        <circle cx={cx} cy={cy} r={r} fill="none"
-          stroke="#ff4757" strokeWidth="10"
-          strokeDasharray={`${critDash} ${circ - critDash}`}
-          strokeDashoffset="0"
-          transform="rotate(-90 44 44)"
-          strokeLinecap="butt"
-        />
-      )}
+      {segments
+        .filter(s => s.len > 0)
+        .map(s => (
+          <circle
+            key={s.color}
+            cx={cx} cy={cy} r={r}
+            fill="none"
+            stroke={s.color}
+            strokeWidth="10"
+            strokeLinecap="butt"
+            strokeDasharray={`${s.len} ${circ - s.len}`}
+            strokeDashoffset={-s.offset}
+            transform="rotate(-90 44 44)"
+          />
+        ))
+      }
     </svg>
   );
 }
@@ -164,7 +159,7 @@ function BikeCard({ bike }) {
 }
 
 // ── Screen ──
-export default function MaintenanceDashboard() {
+export default function MaintenanceDashboard({ onLogout }) {
   const navigate = useNavigate();
   const [bikes,   setBikes]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,7 +184,7 @@ export default function MaintenanceDashboard() {
 
   return (
     <div className="screen quiver-screen">
-      <AppHeader />
+      <AppHeader onLogout={onLogout} />
 
       <div className="quiver-body">
 
