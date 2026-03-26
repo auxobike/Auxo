@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import './AdminShopsScreen.css';
 
-// Use same origin in prod (proxied in dev via vite config)
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const BASE_URL = import.meta.env.VITE_API_URL || '';
 
-async function adminFetch(path, key, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'x-admin-key':  key,
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-  });
-  return res;
+async function adminFetch(method, path, key, body) {
+  const opts = {
+    method,
+    credentials: 'include',
+    headers: { 'x-admin-key': key },
+  };
+  if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  return fetch(`${BASE_URL}${path}`, opts);
 }
 
 // ── Password gate ─────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ function PasswordGate({ onAuth }) {
     setLoading(true);
     setError('');
     try {
-      const res = await adminFetch('/api/admin/shops/verify', password);
+      const res = await adminFetch('GET', '/api/admin/shops/verify', password);
       if (res.ok) {
         onAuth(password);
       } else {
@@ -72,19 +72,16 @@ function AdminPanel({ apiKey }) {
   const [shops,   setShops]   = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Add-form state
   const [placeId,    setPlaceId]    = useState('');
   const [shopName,   setShopName]   = useState('');
   const [boostLevel, setBoostLevel] = useState('partner');
   const [addError,   setAddError]   = useState('');
   const [adding,     setAdding]     = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
-
-  // Removing state: Set of placeIds currently being removed
-  const [removing, setRemoving] = useState(new Set());
+  const [removing,   setRemoving]   = useState(new Set());
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/shops/featured`)
+    fetch(`${BASE_URL}/api/shops/featured`, { credentials: 'include' })
       .then(r => r.json())
       .then(setShops)
       .catch(() => {})
@@ -97,9 +94,10 @@ function AdminPanel({ apiKey }) {
     setAddError('');
     setAddSuccess(false);
     try {
-      const res = await adminFetch('/api/admin/shops/featured', apiKey, {
-        method: 'POST',
-        body:   JSON.stringify({ googlePlaceId: placeId.trim(), name: shopName.trim(), boostLevel }),
+      const res  = await adminFetch('POST', '/api/admin/shops/featured', apiKey, {
+        googlePlaceId: placeId.trim(),
+        name:          shopName.trim(),
+        boostLevel,
       });
       const data = await res.json();
       if (res.ok) {
@@ -122,24 +120,29 @@ function AdminPanel({ apiKey }) {
   async function handleRemove(googlePlaceId) {
     setRemoving(prev => new Set(prev).add(googlePlaceId));
     try {
-      const res = await adminFetch('/api/admin/shops/featured', apiKey, {
-        method: 'POST',
-        body:   JSON.stringify({ action: 'remove', googlePlaceId }),
+      const res  = await adminFetch('POST', '/api/admin/shops/featured', apiKey, {
+        action: 'remove',
+        googlePlaceId,
       });
       if (res.ok) {
         const data = await res.json();
         setShops(data.shops);
       }
     } catch {
-      // silently fail — UI stays as-is
+      // silently fail — list stays as-is
     } finally {
-      setRemoving(prev => { const s = new Set(prev); s.delete(googlePlaceId); return s; });
+      setRemoving(prev => {
+        const s = new Set(prev);
+        s.delete(googlePlaceId);
+        return s;
+      });
     }
   }
 
   return (
     <div className="admin-screen">
       <div className="admin-body">
+
         <div className="admin-heading">
           <p className="admin-heading-sub">Admin</p>
           <h1 className="admin-heading-main">Featured Shops</h1>
@@ -176,7 +179,7 @@ function AdminPanel({ apiKey }) {
           )}
         </section>
 
-        {/* ── Add shop form ── */}
+        {/* ── Add shop ── */}
         <section className="admin-section">
           <h2 className="admin-section-title">Add Shop</h2>
           <form onSubmit={handleAdd} className="admin-form">
@@ -214,12 +217,13 @@ function AdminPanel({ apiKey }) {
               </select>
             </div>
             {addError   && <p className="admin-error">{addError}</p>}
-            {addSuccess && <p className="admin-success">Shop added successfully.</p>}
+            {addSuccess && <p className="admin-success">Shop added.</p>}
             <button type="submit" className="admin-btn admin-btn--gold" disabled={adding}>
               {adding ? 'Adding…' : 'Add Shop'}
             </button>
           </form>
         </section>
+
       </div>
     </div>
   );
@@ -229,7 +233,6 @@ function AdminPanel({ apiKey }) {
 
 export default function AdminShopsScreen() {
   const [apiKey, setApiKey] = useState('');
-
   if (!apiKey) return <PasswordGate onAuth={setApiKey} />;
   return <AdminPanel apiKey={apiKey} />;
 }

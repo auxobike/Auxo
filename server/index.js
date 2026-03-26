@@ -23,7 +23,8 @@ app.use(cors({
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
-  credentials: true,
+  credentials:    true,
+  allowedHeaders: ['Content-Type', 'x-admin-key'],
 }));
 
 app.use(express.json());
