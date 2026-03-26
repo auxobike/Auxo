@@ -103,21 +103,58 @@
   transition: border-color var(--ease);
 }
 
-.book-card--top {
+/* Partner = gold border (premium tier) */
+.book-card--partner {
   border-top: 3px solid var(--accent);
   background: rgba(201, 150, 12, 0.05);
+}
+
+/* Featured = teal border */
+.book-card--featured {
+  border-top: 3px solid #128D93;
+  background: rgba(18, 141, 147, 0.04);
 }
 
 .book-card--selected {
   border-color: var(--accent);
 }
 
-/* Card header: name + pin button */
+/* Card header: name | badge + pin */
 .book-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.book-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Boost badges */
+.book-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.book-badge--partner {
+  background: rgba(201, 150, 12, 0.18);
+  color: var(--accent);
+  border: 1px solid rgba(201, 150, 12, 0.4);
+}
+
+.book-badge--featured {
+  background: rgba(18, 141, 147, 0.15);
+  color: #128D93;
+  border: 1px solid rgba(18, 141, 147, 0.35);
 }
 
 .book-card-name {
@@ -231,6 +268,10 @@
   background: rgba(0, 0, 0, 0.45);
   color: var(--white);
   border: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .book-contact-btn:hover {

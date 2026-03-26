@@ -56,4 +56,7 @@ export const api = {
     body: JSON.stringify(data),
   }),
   getServiceHistory: (bikeId, itemId) => apiFetch(`/api/maintenance/history/${bikeId}/${itemId}`),
+
+  // Shops
+  getFeaturedShops: () => apiFetch('/api/shops/featured'),
 };

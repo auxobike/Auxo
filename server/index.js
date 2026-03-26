@@ -6,6 +6,7 @@ const FileStore   = require('session-file-store')(session);
 const authRoutes        = require('./routes/auth');
 const stravaRoutes      = require('./routes/strava');
 const maintenanceRoutes = require('./routes/maintenance');
+const shopsRoutes       = require('./routes/shops');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -43,6 +44,7 @@ app.use(session({
 app.use('/auth', authRoutes);
 app.use('/api/strava', stravaRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api', shopsRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

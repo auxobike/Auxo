@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AppHeader from '../components/AppHeader';
+import { api } from '../api';
 import './BookServiceScreen.css';
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -16,6 +17,13 @@ const DARK_MAP_STYLE = [
   { featureType: 'transit',        stylers: [{ visibility: 'off' }] },
   { featureType: 'administrative', elementType: 'geometry',        stylers: [{ color: '#4a4530' }] },
 ];
+
+// Marker fill colors by boost level
+const MARKER_COLOR = {
+  partner:  '#c9960c', // gold
+  featured: '#128D93', // teal
+  organic:  '#c9960c', // gold (default)
+};
 
 function loadMapsAPI() {
   return new Promise((resolve, reject) => {
@@ -57,7 +65,7 @@ function PinIcon() {
   );
 }
 
-function ShopCard({ place, isTop, isSelected, service, onPin }) {
+function ShopCard({ place, boostLevel, isSelected, service, onPin }) {
   const [details, setDetails] = useState(null);
 
   useEffect(() => {
@@ -79,17 +87,27 @@ function ShopCard({ place, isTop, isSelected, service, onPin }) {
   const phone   = details?.formatted_phone_number || '';
   const website = details?.website || '';
 
-  let cardClass = 'book-card';
-  if (isTop)      cardClass += ' book-card--top';
-  if (isSelected) cardClass += ' book-card--selected';
+  const cardClass = [
+    'book-card',
+    boostLevel === 'partner'  && 'book-card--partner',
+    boostLevel === 'featured' && 'book-card--featured',
+    isSelected                && 'book-card--selected',
+  ].filter(Boolean).join(' ');
 
   return (
     <div className={cardClass} id={`shop-${place.place_id}`}>
       <div className="book-card-header">
         <h2 className="book-card-name">{place.name}</h2>
-        <button className="book-pin-btn" onClick={() => onPin(place.place_id)} aria-label="Show on map">
-          <PinIcon />
-        </button>
+        <div className="book-card-header-right">
+          {boostLevel && (
+            <span className={`book-badge book-badge--${boostLevel}`}>
+              {boostLevel === 'partner' ? 'Partner' : 'Featured'}
+            </span>
+          )}
+          <button className="book-pin-btn" onClick={() => onPin(place.place_id)} aria-label="Show on map">
+            <PinIcon />
+          </button>
+        </div>
       </div>
 
       {place.rating > 0 && (
@@ -114,12 +132,7 @@ function ShopCard({ place, isTop, isSelected, service, onPin }) {
         {website && (
           <div className="book-card-detail">
             <span className="book-card-detail-icon">🌐</span>
-            <a
-              href={website}
-              target="_blank"
-              rel="noreferrer"
-              className="book-card-link"
-            >
+            <a href={website} target="_blank" rel="noreferrer" className="book-card-link">
               {website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
             </a>
           </div>
@@ -134,7 +147,7 @@ function ShopCard({ place, isTop, isSelected, service, onPin }) {
 
       {phone && (
         <button
-          className="btn-pill btn-pill-dark book-contact-btn"
+          className="btn-pill book-contact-btn"
           onClick={() => { window.location.href = `tel:${phone}`; }}
         >
           Contact
@@ -159,6 +172,18 @@ export default function BookServiceScreen({ onLogout }) {
   const [pendingCenter, setPendingCenter] = useState(null);
   const [shops,         setShops]         = useState([]);
   const [selectedPin,   setSelectedPin]   = useState(null);
+  const [featuredMap,   setFeaturedMap]   = useState({}); // placeId -> boostLevel
+
+  // Fetch featured shops list (fire-and-forget — OK if it fails)
+  useEffect(() => {
+    api.getFeaturedShops()
+      .then(list => {
+        const map = {};
+        list.forEach(s => { map[s.googlePlaceId] = s.boostLevel; });
+        setFeaturedMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
   // Load Maps API on mount
   useEffect(() => {
@@ -189,11 +214,11 @@ export default function BookServiceScreen({ onLogout }) {
 
     if (!mapRef.current) {
       mapRef.current = new window.google.maps.Map(mapDivRef.current, {
-        center:          pendingCenter,
-        zoom:            13,
+        center:           pendingCenter,
+        zoom:             13,
         disableDefaultUI: true,
-        zoomControl:     true,
-        styles:          DARK_MAP_STYLE,
+        zoomControl:      true,
+        styles:           DARK_MAP_STYLE,
       });
     } else {
       mapRef.current.setCenter(pendingCenter);
@@ -211,11 +236,17 @@ export default function BookServiceScreen({ onLogout }) {
       { location: pendingCenter, radius: 8000, type: 'bicycle_store', keyword: 'bicycle' },
       (results, status) => {
         const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
-        const sorted = ok && results?.length
-          ? [...results].sort((a, b) => (b.rating || 0) - (a.rating || 0))
-          : [];
+        if (!ok || !results?.length) { setPhase('ready'); return; }
 
-        sorted.forEach((place, idx) => {
+        // Separate boosted from organic, sort each group by rating
+        const byRating = (a, b) => (b.rating || 0) - (a.rating || 0);
+        const boosted  = results.filter(p => featuredMap[p.place_id]).sort(byRating);
+        const organic  = results.filter(p => !featuredMap[p.place_id]).sort(byRating);
+        const ordered  = [...boosted, ...organic];
+
+        ordered.forEach((place, idx) => {
+          const boost      = featuredMap[place.place_id];
+          const fillColor  = MARKER_COLOR[boost] || MARKER_COLOR.organic;
           const marker = new window.google.maps.Marker({
             position: place.geometry.location,
             map:      mapRef.current,
@@ -227,11 +258,11 @@ export default function BookServiceScreen({ onLogout }) {
               fontSize:   '11px',
             },
             icon: {
-              path:        window.google.maps.SymbolPath.CIRCLE,
-              scale:       14,
-              fillColor:   '#c9960c',
-              fillOpacity: 1,
-              strokeColor: '#2D2613',
+              path:         window.google.maps.SymbolPath.CIRCLE,
+              scale:        14,
+              fillColor,
+              fillOpacity:  1,
+              strokeColor:  '#2D2613',
               strokeWeight: 2,
             },
           });
@@ -243,11 +274,11 @@ export default function BookServiceScreen({ onLogout }) {
           markersRef.current[place.place_id] = marker;
         });
 
-        setShops(sorted);
+        setShops(ordered);
         setPhase('ready');
       }
     );
-  }, [pendingCenter, mapsLoaded]);
+  }, [pendingCenter, mapsLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleManualSearch(e) {
     e.preventDefault();
@@ -338,11 +369,11 @@ export default function BookServiceScreen({ onLogout }) {
         {/* ── Shop cards ── */}
         {phase === 'ready' && shops.length > 0 && (
           <div className="book-shops">
-            {shops.map((place, idx) => (
+            {shops.map(place => (
               <ShopCard
                 key={place.place_id}
                 place={place}
-                isTop={idx === 0}
+                boostLevel={featuredMap[place.place_id] || null}
                 isSelected={selectedPin === place.place_id}
                 service={serviceRef.current}
                 onPin={highlightPin}
