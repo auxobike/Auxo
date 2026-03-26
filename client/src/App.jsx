@@ -12,6 +12,7 @@ import MaintenanceDashboard from './components/MaintenanceDashboard';
 import BikeInspector        from './screens/BikeInspector';
 import AddServiceLogScreen  from './screens/AddServiceLogScreen';
 import BookServiceScreen    from './screens/BookServiceScreen';
+import AdminShopsScreen    from './screens/AdminShopsScreen';
 
 import './styles/design-system.css';
 
@@ -190,6 +191,9 @@ export default function App() {
             </RequireStrava>
           }
         />
+
+        {/* ── Admin — password-protected within the component, no Strava required ── */}
+        <Route path="/admin/shops" element={<AdminShopsScreen />} />
 
         {/* Fallback */}
         <Route

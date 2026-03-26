@@ -31,6 +31,11 @@ router.get('/shops/featured', (req, res) => {
   res.json(readShops());
 });
 
+// GET /api/admin/shops/verify  — validates the admin key without side effects
+router.get('/admin/shops/verify', requireAdminKey, (req, res) => {
+  res.json({ ok: true });
+});
+
 // POST /api/admin/shops/featured  — admin only
 // Body: { action?: 'add'|'remove', googlePlaceId, name?, boostLevel? }
 // Omitting action (or action='add') upserts the shop.
