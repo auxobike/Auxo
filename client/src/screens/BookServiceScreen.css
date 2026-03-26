@@ -1,0 +1,276 @@
+/* ── Screen ── */
+.book-screen {
+  overflow: hidden;
+}
+
+/* ── Scrollable body ── */
+.book-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 40px;
+}
+
+/* ── Heading ── */
+.book-heading {
+  padding: 4px var(--screen-pad) 12px;
+  flex-shrink: 0;
+}
+
+.book-heading-main {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 16vw, 4.5rem);
+  line-height: 1;
+  color: var(--white);
+  letter-spacing: 0.02em;
+}
+
+.book-subheading {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* ── Manual location form ── */
+.book-location-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 var(--screen-pad) 16px;
+}
+
+/* ── Status / loading text ── */
+.book-status-text {
+  font-size: 0.9rem;
+  color: var(--white-70);
+  text-align: center;
+  padding: 24px var(--screen-pad);
+}
+
+.book-status-text--error {
+  color: #ff6b6b;
+}
+
+/* ── Map container ── */
+.book-map-wrap {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0 var(--screen-pad) 16px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.book-map {
+  width: 100%;
+  height: 240px;
+}
+
+.book-map-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(45, 38, 19, 0.75);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+/* ── Shop list ── */
+.book-shops {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 var(--screen-pad);
+}
+
+/* ── Shop card ── */
+.book-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color var(--ease);
+}
+
+.book-card--top {
+  border-top: 3px solid var(--accent);
+  background: rgba(201, 150, 12, 0.05);
+}
+
+.book-card--selected {
+  border-color: var(--accent);
+}
+
+/* Card header: name + pin button */
+.book-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.book-card-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  line-height: 1.2;
+  flex: 1;
+}
+
+.book-pin-btn {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--white-70);
+  cursor: pointer;
+  transition: background var(--ease), color var(--ease), border-color var(--ease);
+}
+
+.book-pin-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.book-pin-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Star rating row */
+.book-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.star-rating {
+  display: flex;
+  gap: 1px;
+}
+
+.star {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.star--full  { color: var(--accent); }
+.star--half  { color: var(--accent); opacity: 0.55; }
+.star--empty { color: var(--white-15); }
+
+.book-card-rating-num {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.book-card-review-count {
+  font-size: 0.8rem;
+  color: var(--white-40);
+}
+
+/* Address / website / phone */
+.book-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.book-card-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--white-70);
+  line-height: 1.45;
+}
+
+.book-card-detail-icon {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.book-card-detail-text {
+  flex: 1;
+}
+
+.book-card-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 150, 12, 0.35);
+  transition: color var(--ease);
+  word-break: break-all;
+  flex: 1;
+}
+
+.book-card-link:hover { color: var(--accent-hover); }
+
+/* Bike dropdown + schedule button */
+.book-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.book-bike-select {
+  font-size: 0.9rem;
+  padding: 12px 16px;
+}
+
+.book-bike-select option {
+  background: var(--bg-dark);
+  color: var(--white);
+}
+
+.book-schedule-btn {
+  max-width: 100%;
+}
+
+.book-schedule-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Scheduled success state */
+.book-card-scheduled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: rgba(18, 141, 147, 0.1);
+  border: 1px solid rgba(18, 141, 147, 0.35);
+  border-radius: var(--radius-input);
+  color: #128D93;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.book-card-scheduled svg {
+  width: 18px;
+  height: 18px;
+  stroke: #128D93;
+}

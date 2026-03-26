@@ -11,6 +11,7 @@ import AddBikeScreen        from './screens/AddBikeScreen';
 import MaintenanceDashboard from './components/MaintenanceDashboard';
 import BikeInspector        from './screens/BikeInspector';
 import AddServiceLogScreen  from './screens/AddServiceLogScreen';
+import BookServiceScreen    from './screens/BookServiceScreen';
 
 import './styles/design-system.css';
 
@@ -177,6 +178,15 @@ export default function App() {
           element={
             <RequireStrava session={session}>
               <AddServiceLogScreen onLogout={handleLogout} />
+            </RequireStrava>
+          }
+        />
+
+        <Route
+          path="/book-service"
+          element={
+            <RequireStrava session={session}>
+              <BookServiceScreen onLogout={handleLogout} />
             </RequireStrava>
           }
         />
