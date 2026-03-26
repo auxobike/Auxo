@@ -1,5 +1,7 @@
-// In dev, requests are proxied by Vite (same origin — no CORS, cookies work).
-// In production, set VITE_API_URL to your backend URL.
+// In dev, requests are proxied by Vite (vite.config.js proxy → localhost:3001).
+// In production, VITE_API_URL must be set as a build-time env var on the
+// frontend Railway service (e.g. https://auxo-server-production.up.railway.app).
+// Without it, all fetch calls resolve to the frontend origin and silently 404.
 const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 async function apiFetch(path, options = {}) {

@@ -29,6 +29,11 @@ app.use(cors({
 
 app.use(express.json());
 
+// Detect production by NODE_ENV OR by CLIENT_URL being an https address.
+// Railway does not set NODE_ENV automatically, so CLIENT_URL is the reliable signal.
+const isProduction = process.env.NODE_ENV === 'production'
+  || (process.env.CLIENT_URL || '').startsWith('https://');
+
 app.use(session({
   store: new FileStore({
     path:   './data/sessions',
@@ -39,7 +44,11 @@ app.use(session({
   secret:            process.env.SESSION_SECRET || 'dev-secret',
   resave:            false,
   saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 24 * 60 * 60 * 1000 },
+  cookie: {
+    secure:   isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge:   24 * 60 * 60 * 1000,
+  },
 }));
 
 app.use('/auth', authRoutes);
