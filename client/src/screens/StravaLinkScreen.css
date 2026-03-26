@@ -57,14 +57,19 @@
   flex-shrink: 0;
 }
 
-/* ── Button with Strava logo ── */
-.strava-btn {
+/* ── Official Strava connect button ── */
+.strava-connect-wrap {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 10px;
+  margin-top: 8px;
 }
 
-.strava-btn .strava-logo-icon {
-  color: #000;
+.strava-connect-btn {
+  height: 48px;
+  width: auto;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
 }
+
+.strava-connect-btn:hover { opacity: 0.85; }
+.strava-connect-btn:active { opacity: 0.7; }
