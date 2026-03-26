@@ -243,7 +243,7 @@ export default function BookServiceScreen({ onLogout }) {
 
     serviceRef.current = new window.google.maps.places.PlacesService(mapRef.current);
     serviceRef.current.nearbySearch(
-      { location: pendingCenter, radius: 8000, keyword: 'bike shop' },
+      { location: pendingCenter, radius: 8000, type: 'bicycle_store', keyword: 'bicycle' },
       (results, status) => {
         const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
         const sorted = ok && results?.length
