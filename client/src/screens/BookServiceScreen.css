@@ -224,53 +224,16 @@
 
 .book-card-link:hover { color: var(--accent-hover); }
 
-/* Bike dropdown + schedule button */
-.book-card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.book-bike-select {
-  font-size: 0.9rem;
-  padding: 12px 16px;
-}
-
-.book-bike-select option {
-  background: var(--bg-dark);
-  color: var(--white);
-}
-
-.book-schedule-btn {
+/* Contact button */
+.book-contact-btn {
   max-width: 100%;
-}
-
-.book-schedule-btn:disabled {
-  opacity: 0.38;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Scheduled success state */
-.book-card-scheduled {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px;
-  background: rgba(18, 141, 147, 0.1);
-  border: 1px solid rgba(18, 141, 147, 0.35);
-  border-radius: var(--radius-input);
-  color: #128D93;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.05em;
   margin-top: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--white);
+  border: 1px solid var(--border);
 }
 
-.book-card-scheduled svg {
-  width: 18px;
-  height: 18px;
-  stroke: #128D93;
+.book-contact-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: var(--white-40);
 }

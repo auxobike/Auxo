@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import AppHeader from '../components/AppHeader';
-import { api } from '../api';
 import './BookServiceScreen.css';
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -58,18 +57,8 @@ function PinIcon() {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-function ShopCard({ place, isTop, isSelected, service, onPin, bikes }) {
-  const [details,   setDetails]   = useState(null);
-  const [bikeId,    setBikeId]    = useState('');
-  const [scheduled, setScheduled] = useState(false);
+function ShopCard({ place, isTop, isSelected, service, onPin }) {
+  const [details, setDetails] = useState(null);
 
   useEffect(() => {
     if (!service) return;
@@ -143,31 +132,13 @@ function ShopCard({ place, isTop, isSelected, service, onPin, bikes }) {
         )}
       </div>
 
-      {scheduled ? (
-        <div className="book-card-scheduled">
-          <CheckIcon />
-          Scheduled!
-        </div>
-      ) : (
-        <div className="book-card-actions">
-          <select
-            className="input-field book-bike-select"
-            value={bikeId}
-            onChange={e => setBikeId(e.target.value)}
-          >
-            <option value="">Choose a bike…</option>
-            {bikes.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-          <button
-            className="btn-pill btn-pill-gold book-schedule-btn"
-            onClick={() => setScheduled(true)}
-            disabled={!bikeId}
-          >
-            Schedule
-          </button>
-        </div>
+      {phone && (
+        <button
+          className="btn-pill btn-pill-dark book-contact-btn"
+          onClick={() => { window.location.href = `tel:${phone}`; }}
+        >
+          Contact
+        </button>
       )}
     </div>
   );
@@ -188,12 +159,6 @@ export default function BookServiceScreen({ onLogout }) {
   const [pendingCenter, setPendingCenter] = useState(null);
   const [shops,         setShops]         = useState([]);
   const [selectedPin,   setSelectedPin]   = useState(null);
-  const [bikes,         setBikes]         = useState([]);
-
-  // Load Strava bikes for the dropdown
-  useEffect(() => {
-    api.getBikes().then(setBikes).catch(() => {});
-  }, []);
 
   // Load Maps API on mount
   useEffect(() => {
@@ -381,7 +346,6 @@ export default function BookServiceScreen({ onLogout }) {
                 isSelected={selectedPin === place.place_id}
                 service={serviceRef.current}
                 onPin={highlightPin}
-                bikes={bikes}
               />
             ))}
           </div>
