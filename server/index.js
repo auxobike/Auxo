@@ -14,18 +14,25 @@ const PORT = process.env.PORT || 3001;
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'https://auxo-production.up.railway.app',
+  'https://terrific-contentment-production-d90a.up.railway.app',
   ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, cb) => {
-    // Allow requests with no origin (e.g. server-to-server, curl)
+    // Allow requests with no origin (server-to-server, curl, mobile apps)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials:    true,
-  allowedHeaders: ['Content-Type', 'x-admin-key'],
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
+  exposedHeaders: ['Set-Cookie'],
+  methods:        ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+};
+
+// Handle preflight OPTIONS requests explicitly before any other middleware
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
