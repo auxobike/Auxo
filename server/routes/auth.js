@@ -88,6 +88,7 @@ router.post('/login', async (req, res) => {
 
 // GET /auth/strava — redirect to Strava authorization page
 router.get('/strava', (req, res) => {
+  console.log('[auth/strava] redirect_uri:', STRAVA_REDIRECT_URI);
   const params = new URLSearchParams({
     client_id:       STRAVA_CLIENT_ID,
     redirect_uri:    STRAVA_REDIRECT_URI,
