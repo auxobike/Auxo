@@ -6,6 +6,7 @@ export default function LoginScreen() {
 
   return (
     <div className="screen login-screen">
+      <div id="api-url" style={{ display: 'none' }}>{import.meta.env.VITE_API_URL}</div>
       {/* Background grain overlay */}
       <div className="login-bg-texture" aria-hidden="true" />
 
