@@ -8,9 +8,11 @@ const { findByEmail, findById, createUser, updateUser, publicUser } = require('.
 const {
   STRAVA_CLIENT_ID,
   STRAVA_CLIENT_SECRET,
-  STRAVA_REDIRECT_URI,
   CLIENT_URL,
 } = process.env;
+
+const STRAVA_REDIRECT_URI = process.env.STRAVA_REDIRECT_URI
+  || 'https://auxo-production-c329.up.railway.app/auth/strava/callback';
 
 const SALT_ROUNDS = 12;
 
