@@ -140,7 +140,12 @@ router.get('/strava/callback', async (req, res) => {
       req.session.userId = String(athlete.id);
     }
 
-    res.redirect(`${CLIENT_URL}/dashboard`);
+    // Save session to store before redirecting — ensures the cookie is fully
+    // persisted so the cross-domain client can read it on the next request.
+    req.session.save((saveErr) => {
+      if (saveErr) console.error('Session save error:', saveErr);
+      res.redirect(`${CLIENT_URL}/dashboard`);
+    });
   } catch (err) {
     console.error('Strava OAuth error:', err.response?.data || err.message);
     res.redirect(`${CLIENT_URL}?auth=error`);
