@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express     = require('express');
 const cors        = require('cors');
+const path        = require('path');
 const session     = require('express-session');
 const FileStore   = require('session-file-store')(session);
 const authRoutes        = require('./routes/auth');
@@ -36,10 +37,9 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// Detect production by NODE_ENV OR by CLIENT_URL being an https address.
-// Railway does not set NODE_ENV automatically, so CLIENT_URL is the reliable signal.
-const isProduction = process.env.NODE_ENV === 'production'
-  || (process.env.CLIENT_URL || '').startsWith('https://');
+// Now that frontend is served from the same domain as the backend,
+// we can use sameSite: 'lax' in production (no cross-domain cookies needed).
+const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(session({
   store: new FileStore({
@@ -53,7 +53,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure:   isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    sameSite: 'lax',
     maxAge:   24 * 60 * 60 * 1000,
   },
 }));
@@ -64,6 +64,13 @@ app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api', shopsRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+// Serve React client in production (must come after all API routes)
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(__dirname, '../client/dist');
+  app.use(express.static(clientDist));
+  app.get(/(.*)/,  (req, res) => res.sendFile(path.join(clientDist, 'index.html')));
+}
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
