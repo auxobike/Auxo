@@ -8,11 +8,13 @@ const { findByEmail, findById, createUser, updateUser, publicUser } = require('.
 const {
   STRAVA_CLIENT_ID,
   STRAVA_CLIENT_SECRET,
-  CLIENT_URL,
 } = process.env;
 
-const STRAVA_REDIRECT_URI = process.env.STRAVA_REDIRECT_URI
-  || 'https://auxo-production-c329.up.railway.app/auth/strava/callback';
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+// Hardcoded — not read from env to prevent misconfigured Railway vars from
+// overriding this with a bad value (e.g. the variable name in the value).
+const STRAVA_REDIRECT_URI = 'https://auxo-production-c329.up.railway.app/auth/strava/callback';
 
 const SALT_ROUNDS = 12;
 
