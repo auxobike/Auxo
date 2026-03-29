@@ -74,5 +74,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(PORT, () => {
+  console.log('[static] __dirname:', __dirname);
   console.log(`Server running on http://localhost:${PORT}`);
 });
