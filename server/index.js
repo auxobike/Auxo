@@ -67,7 +67,8 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Serve React client in production (must come after all API routes)
 if (process.env.NODE_ENV === 'production') {
-  const clientDist = path.join(__dirname, '../client/dist');
+  const clientDist = path.join(__dirname, '../../client/dist');
+  console.log('[static] serving client from:', clientDist);
   app.use(express.static(clientDist));
   app.get(/(.*)/,  (req, res) => res.sendFile(path.join(clientDist, 'index.html')));
 }
