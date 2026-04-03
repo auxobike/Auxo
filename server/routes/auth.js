@@ -18,6 +18,15 @@ const STRAVA_REDIRECT_URI = 'https://auxo-production-c329.up.railway.app/auth/st
 
 const SALT_ROUNDS = 12;
 
+// One-time-use code guard — Strava codes are single-use; a second attempt
+// with the same code (or a reissued code from a duplicate OAuth flow) will
+// fail with 'Authorization Error'. Track seen codes and reject duplicates.
+const usedCodes = new Set();
+function markCodeUsed(code) {
+  usedCodes.add(code);
+  setTimeout(() => usedCodes.delete(code), 5 * 60 * 1000); // expire after 5 min
+}
+
 // ── Email/password auth ───────────────────────────────────────────────────────
 
 // POST /auth/register
@@ -103,7 +112,7 @@ router.get('/strava', (req, res) => {
     client_id:       STRAVA_CLIENT_ID,
     redirect_uri:    STRAVA_REDIRECT_URI,
     response_type:   'code',
-    approval_prompt: 'force',
+    approval_prompt: 'auto',
     scope:           'read,profile:read_all,activity:read_all',
   });
   const stravaUrl = `https://www.strava.com/oauth/authorize?${params}`;
@@ -141,6 +150,12 @@ router.get('/strava/callback', async (req, res) => {
     console.log('[callback] auth error from Strava, redirecting to /?auth=error');
     return res.redirect('/?auth=error');
   }
+
+  if (usedCodes.has(code)) {
+    console.log('[callback] duplicate code detected — already used, redirecting to /dashboard');
+    return res.redirect('/dashboard');
+  }
+  markCodeUsed(code);
 
   try {
     const tokenParams = {
