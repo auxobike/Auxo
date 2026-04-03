@@ -92,7 +92,13 @@ router.post('/login', async (req, res) => {
 
 // GET /auth/strava — redirect to Strava authorization page
 router.get('/strava', (req, res) => {
+  console.log('[auth/strava] hit — sessionID:', req.sessionID);
+  console.log('[auth/strava] session state:', {
+    userId:     req.session.userId,
+    hasAthlete: !!req.session.athlete,
+  });
   console.log('[auth/strava] redirect_uri:', STRAVA_REDIRECT_URI);
+
   const params = new URLSearchParams({
     client_id:       STRAVA_CLIENT_ID,
     redirect_uri:    STRAVA_REDIRECT_URI,
@@ -100,7 +106,15 @@ router.get('/strava', (req, res) => {
     approval_prompt: 'force',
     scope:           'read,profile:read_all,activity:read_all',
   });
-  res.redirect(`https://www.strava.com/oauth/authorize?${params}`);
+  const stravaUrl = `https://www.strava.com/oauth/authorize?${params}`;
+
+  // Save the session to disk before leaving for Strava so the userId from
+  // email/password login is guaranteed to be persisted when the callback hits.
+  req.session.save((err) => {
+    if (err) console.error('[auth/strava] session.save() error:', err);
+    else console.log('[auth/strava] session saved, redirecting to Strava');
+    res.redirect(stravaUrl);
+  });
 });
 
 // GET /auth/strava/callback

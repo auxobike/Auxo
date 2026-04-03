@@ -2,6 +2,7 @@ require('dotenv').config();
 const express     = require('express');
 const cors        = require('cors');
 const path        = require('path');
+const fs          = require('fs');
 const session     = require('express-session');
 const FileStore   = require('session-file-store')(session);
 const authRoutes        = require('./routes/auth');
@@ -11,6 +12,11 @@ const shopsRoutes       = require('./routes/shops');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Railway (and most PaaS) terminate TLS at a proxy and forward HTTP internally.
+// Without this, Express won't trust X-Forwarded-* headers and cookie behaviour
+// can be unpredictable in production.
+app.set('trust proxy', 1);
 
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
@@ -44,17 +50,24 @@ app.use(express.json());
 // we can use sameSite: 'lax' in production (no cross-domain cookies needed).
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Ensure the sessions directory exists before FileStore tries to use it.
+// Using an absolute path avoids ambiguity about cwd inside the container.
+const SESSION_DIR = path.join(__dirname, 'data/sessions');
+fs.mkdirSync(SESSION_DIR, { recursive: true });
+console.log('[session] store path:', SESSION_DIR);
+
 app.use(session({
   store: new FileStore({
-    path:   './data/sessions',
-    ttl:    86400,  // 1 day in seconds
-    reapInterval: 3600, // clean up expired sessions every hour
-    logFn: () => {},    // silence verbose file-store logs
+    path:         SESSION_DIR,
+    ttl:          86400,       // 1 day in seconds
+    reapInterval: 3600,        // clean up expired sessions every hour
+    logFn:        () => {},    // silence verbose file-store logs
   }),
   secret:            process.env.SESSION_SECRET || 'dev-secret',
   resave:            false,
   saveUninitialized: false,
   cookie: {
+    httpOnly: true,
     secure:   isProduction,
     sameSite: 'lax',
     maxAge:   24 * 60 * 60 * 1000,
