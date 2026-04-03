@@ -134,12 +134,21 @@ router.get('/strava/callback', async (req, res) => {
   }
 
   try {
-    const response = await axios.post('https://www.strava.com/oauth/token', {
+    const tokenParams = {
       client_id:     STRAVA_CLIENT_ID,
       client_secret: STRAVA_CLIENT_SECRET,
       code,
+      redirect_uri:  STRAVA_REDIRECT_URI,
       grant_type:    'authorization_code',
+    };
+    console.log('[callback] token exchange params:', {
+      client_id:    tokenParams.client_id,
+      redirect_uri: tokenParams.redirect_uri,
+      grant_type:   tokenParams.grant_type,
+      code_length:  code?.length,
     });
+
+    const response = await axios.post('https://www.strava.com/oauth/token', tokenParams);
 
     const { access_token, refresh_token, expires_at, athlete } = response.data;
     console.log('[callback] token exchange success — athlete id:', athlete?.id);
