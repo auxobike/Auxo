@@ -157,27 +157,32 @@ router.get('/strava/callback', async (req, res) => {
   }
   markCodeUsed(code);
 
-  try {
-    const tokenParams = {
-      client_id:     STRAVA_CLIENT_ID,
-      client_secret: STRAVA_CLIENT_SECRET,
-      code,
-      redirect_uri:  STRAVA_REDIRECT_URI,
-      grant_type:    'authorization_code',
-    };
-    console.log('[callback] token exchange params:', {
-      client_id:             tokenParams.client_id,
-      redirect_uri:          tokenParams.redirect_uri,
-      grant_type:            tokenParams.grant_type,
-      code_length:           code?.length,
-      client_secret_length:  (process.env.STRAVA_CLIENT_SECRET || '').length,
-    });
+  // Real body sent to Strava — contains the actual client_secret.
+  const requestBody = new URLSearchParams({
+    client_id:     STRAVA_CLIENT_ID,
+    client_secret: STRAVA_CLIENT_SECRET,
+    code,
+    redirect_uri:  STRAVA_REDIRECT_URI,
+    grant_type:    'authorization_code',
+  });
 
+  // Separate object used only for logging — client_secret replaced with its length.
+  const logBody = new URLSearchParams({
+    client_id:     STRAVA_CLIENT_ID,
+    client_secret: `[length:${(STRAVA_CLIENT_SECRET || '').length}]`,
+    code,
+    redirect_uri:  STRAVA_REDIRECT_URI,
+    grant_type:    'authorization_code',
+  });
+
+  console.log('[callback] token exchange — POST https://www.strava.com/oauth/token');
+  console.log('[callback] request body:', logBody.toString());
+
+  try {
     // Strava requires application/x-www-form-urlencoded, not JSON.
-    // Passing a URLSearchParams object makes axios set the correct Content-Type.
     const response = await axios.post(
       'https://www.strava.com/oauth/token',
-      new URLSearchParams(tokenParams),
+      requestBody,
     );
 
     const { access_token, refresh_token, expires_at, athlete } = response.data;
@@ -216,17 +221,8 @@ router.get('/strava/callback', async (req, res) => {
       res.redirect('/dashboard');
     });
   } catch (err) {
-    // Build a redacted copy of the encoded body for logging
-    const redactedBody = new URLSearchParams({
-      client_id:     STRAVA_CLIENT_ID,
-      client_secret: `[length:${(STRAVA_CLIENT_SECRET || '').length}]`,
-      code,
-      redirect_uri:  STRAVA_REDIRECT_URI,
-      grant_type:    'authorization_code',
-    }).toString();
-
     console.error('[callback] Strava OAuth error — POST https://www.strava.com/oauth/token');
-    console.error('[callback] request body:', redactedBody);
+    console.error('[callback] request body sent:', logBody.toString());
     console.error('[callback] response status:', err.response?.status);
     console.error('[callback] response headers:', err.response?.headers);
     console.error('[callback] response data:', JSON.stringify(err.response?.data));
