@@ -107,8 +107,16 @@ router.get('/strava', (req, res) => {
 router.get('/strava/callback', async (req, res) => {
   const { code, error } = req.query;
 
+  console.log('[callback] hit — sessionID:', req.sessionID);
+  console.log('[callback] query:', req.query);
+  console.log('[callback] session before token exchange:', {
+    userId: req.session.userId,
+    hasAthlete: !!req.session.athlete,
+  });
+
   if (error || !code) {
-    return res.redirect(`${CLIENT_URL}?auth=error`);
+    console.log('[callback] auth error from Strava, redirecting to /?auth=error');
+    return res.redirect('/?auth=error');
   }
 
   try {
@@ -120,6 +128,7 @@ router.get('/strava/callback', async (req, res) => {
     });
 
     const { access_token, refresh_token, expires_at, athlete } = response.data;
+    console.log('[callback] token exchange success — athlete id:', athlete?.id);
 
     // Store tokens in session
     req.session.athlete       = athlete;
@@ -140,15 +149,22 @@ router.get('/strava/callback', async (req, res) => {
       req.session.userId = String(athlete.id);
     }
 
-    // Save session to store before redirecting — ensures the cookie is fully
-    // persisted so the cross-domain client can read it on the next request.
+    console.log('[callback] session after update — userId:', req.session.userId, 'sessionID:', req.sessionID);
+    console.log('[callback] calling session.save()...');
+
+    // Save session to store before redirecting — redirect is relative so the
+    // browser stays on the same domain and the session cookie is sent back.
     req.session.save((saveErr) => {
-      if (saveErr) console.error('Session save error:', saveErr);
-      res.redirect(`${CLIENT_URL}/dashboard`);
+      if (saveErr) {
+        console.error('[callback] session.save() error:', saveErr);
+      } else {
+        console.log('[callback] session.save() succeeded — redirecting to /dashboard');
+      }
+      res.redirect('/dashboard');
     });
   } catch (err) {
-    console.error('Strava OAuth error:', err.response?.data || err.message);
-    res.redirect(`${CLIENT_URL}?auth=error`);
+    console.error('[callback] Strava OAuth error:', err.response?.data || err.message);
+    res.redirect('/?auth=error');
   }
 });
 
