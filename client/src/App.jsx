@@ -195,6 +195,11 @@ export default function App() {
         {/* ── Admin — password-protected within the component, no Strava required ── */}
         <Route path="/admin/shops" element={<AdminShopsScreen />} />
 
+        {/* Strava OAuth callback — handled server-side, but this route prevents
+            the catch-all below from matching and re-triggering the OAuth flow
+            if React Router sees the URL before the server redirect completes. */}
+        <Route path="/auth/strava/callback" element={null} />
+
         {/* Fallback */}
         <Route
           path="*"

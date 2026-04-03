@@ -124,9 +124,18 @@ router.get('/strava/callback', async (req, res) => {
   console.log('[callback] hit — sessionID:', req.sessionID);
   console.log('[callback] query:', req.query);
   console.log('[callback] session before token exchange:', {
-    userId: req.session.userId,
-    hasAthlete: !!req.session.athlete,
+    userId:          req.session.userId,
+    hasAthlete:      !!req.session.athlete,
+    hasAccessToken:  !!req.session.access_token,
   });
+
+  // Guard: if the session already has a token this is a duplicate request
+  // (e.g. browser retry or client-side router re-navigation). The first
+  // request already exchanged the code — codes are single-use, so skip.
+  if (req.session.access_token) {
+    console.log('[callback] duplicate hit — session already has access_token, redirecting to /dashboard');
+    return res.redirect('/dashboard');
+  }
 
   if (error || !code) {
     console.log('[callback] auth error from Strava, redirecting to /?auth=error');
