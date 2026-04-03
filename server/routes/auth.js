@@ -173,7 +173,12 @@ router.get('/strava/callback', async (req, res) => {
       client_secret_length:  (process.env.STRAVA_CLIENT_SECRET || '').length,
     });
 
-    const response = await axios.post('https://www.strava.com/oauth/token', tokenParams);
+    // Strava requires application/x-www-form-urlencoded, not JSON.
+    // Passing a URLSearchParams object makes axios set the correct Content-Type.
+    const response = await axios.post(
+      'https://www.strava.com/oauth/token',
+      new URLSearchParams(tokenParams),
+    );
 
     const { access_token, refresh_token, expires_at, athlete } = response.data;
     console.log('[callback] token exchange success — athlete id:', athlete?.id);
