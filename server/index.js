@@ -16,12 +16,15 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'https://auxo-production.up.railway.app',
   'https://terrific-contentment-production-d90a.up.railway.app',
-  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+  'https://auxo-production-c329.up.railway.app',
+  ...(process.env.CLIENT_URL  ? [process.env.CLIENT_URL]  : []),
+  ...(process.env.SERVER_URL  ? [process.env.SERVER_URL]  : []),
+  ...(process.env.RAILWAY_PUBLIC_DOMAIN ? [`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`] : []),
 ];
 
 const corsOptions = {
   origin: (origin, cb) => {
-    // Allow requests with no origin (server-to-server, curl, mobile apps)
+    // No origin = same-origin request (browser omits it) or server-to-server — always allow
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
