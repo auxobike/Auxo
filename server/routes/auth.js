@@ -216,7 +216,21 @@ router.get('/strava/callback', async (req, res) => {
       res.redirect('/dashboard');
     });
   } catch (err) {
-    console.error('[callback] Strava OAuth error:', err.response?.data || err.message);
+    // Build a redacted copy of the encoded body for logging
+    const redactedBody = new URLSearchParams({
+      client_id:     STRAVA_CLIENT_ID,
+      client_secret: `[length:${(STRAVA_CLIENT_SECRET || '').length}]`,
+      code,
+      redirect_uri:  STRAVA_REDIRECT_URI,
+      grant_type:    'authorization_code',
+    }).toString();
+
+    console.error('[callback] Strava OAuth error — POST https://www.strava.com/oauth/token');
+    console.error('[callback] request body:', redactedBody);
+    console.error('[callback] response status:', err.response?.status);
+    console.error('[callback] response headers:', err.response?.headers);
+    console.error('[callback] response data:', JSON.stringify(err.response?.data));
+    console.error('[callback] error message:', err.message);
     res.redirect('/?auth=error');
   }
 });
