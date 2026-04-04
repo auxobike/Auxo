@@ -25,6 +25,19 @@ const MARKER_COLOR = {
   organic:  '#c9960c', // gold (default)
 };
 
+// Promisified wrapper around PlacesService.getDetails
+function fetchPlaceDetails(service, placeId) {
+  return new Promise((resolve, reject) => {
+    service.getDetails(
+      { placeId, fields: ['place_id', 'name', 'geometry', 'rating', 'user_ratings_total', 'vicinity'] },
+      (result, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK) resolve(result);
+        else reject(new Error(status));
+      },
+    );
+  });
+}
+
 function loadMapsAPI() {
   return new Promise((resolve, reject) => {
     if (window.google?.maps?.places) { resolve(); return; }
@@ -160,10 +173,11 @@ function ShopCard({ place, boostLevel, isSelected, service, onPin }) {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function BookServiceScreen({ onLogout }) {
-  const mapDivRef  = useRef(null);
-  const mapRef     = useRef(null);
-  const markersRef = useRef({});
-  const serviceRef = useRef(null);
+  const mapDivRef       = useRef(null);
+  const mapRef          = useRef(null);
+  const markersRef      = useRef({});
+  const serviceRef      = useRef(null);
+  const featuredListRef = useRef([]); // raw list from API, used inside effects
 
   // phase: 'locating' | 'manual' | 'searching' | 'ready' | 'error'
   const [phase,         setPhase]         = useState('locating');
@@ -179,6 +193,7 @@ export default function BookServiceScreen({ onLogout }) {
   useEffect(() => {
     api.getFeaturedShops()
       .then(list => {
+        featuredListRef.current = list;           // store for use in pendingCenter effect
         const map = {};
         list.forEach(s => { map[s.googlePlaceId] = s.boostLevel; });
         setFeaturedMap(map);
@@ -244,31 +259,58 @@ export default function BookServiceScreen({ onLogout }) {
     setSelectedPin(null);
 
     serviceRef.current = new window.google.maps.places.PlacesService(mapRef.current);
-    console.log('[BookService] running nearbySearch at', pendingCenter);
-    serviceRef.current.nearbySearch(
-      { location: pendingCenter, radius: 16000, type: 'bicycle_store', keyword: 'bicycle repair shop' },
-      (results, status) => {
-        console.log('[BookService] nearbySearch status:', status, '| results:', results?.length ?? 0);
-        const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
-        if (!ok || !results?.length) { setPhase('ready'); return; }
 
-        // Filter out shops focused on electric bikes, scooters, or mopeds
+    // Capture ref values so the async callbacks below use a consistent snapshot
+    const service    = serviceRef.current;
+    const featured   = featuredListRef.current;   // [{ googlePlaceId, boostLevel, name }]
+    const featMap    = featuredMap;               // placeId -> boostLevel (from state closure)
+
+    console.log('[BookService] running nearbySearch at', pendingCenter);
+
+    service.nearbySearch(
+      { location: pendingCenter, radius: 16000, type: 'bicycle_store', keyword: 'bicycle repair shop' },
+      async (results, status) => {
+        console.log('[BookService] nearbySearch status:', status, '| results:', results?.length ?? 0);
+
+        // Start from whatever the nearby search returned (may be empty)
+        const nearbyResults = (status === window.google.maps.places.PlacesServiceStatus.OK && results)
+          ? results
+          : [];
+
+        // Filter out non-featured shops with irrelevant names
         const EXCLUDE = /electric|e-bike|ebike|scooter|moped/i;
-        const filtered = results.filter(p =>
-          featuredMap[p.place_id] || !EXCLUDE.test(p.name),
+        const filtered = nearbyResults.filter(p =>
+          featMap[p.place_id] || !EXCLUDE.test(p.name),
         );
 
-        // Score by rating, with a small bonus for shops that have enough reviews
-        // to make the rating meaningful (more than 10).
-        const score = p => (p.rating || 0) + (p.user_ratings_total > 10 ? 0.1 : 0);
-        const byScore = (a, b) => score(b) - score(a);
+        // Fetch full details for any featured shop not already in the results
+        const nearbyIds      = new Set(filtered.map(p => p.place_id));
+        const missingFeatured = featured.filter(s => !nearbyIds.has(s.googlePlaceId));
 
-        const boosted = filtered.filter(p =>  featuredMap[p.place_id]).sort(byScore);
-        const organic = filtered.filter(p => !featuredMap[p.place_id]).sort(byScore);
+        console.log('[BookService] featured shops missing from nearby:', missingFeatured.map(s => s.googlePlaceId));
+
+        const fetchedDetails = await Promise.all(
+          missingFeatured.map(s =>
+            fetchPlaceDetails(service, s.googlePlaceId).catch(err => {
+              console.warn('[BookService] getDetails failed for', s.googlePlaceId, err.message);
+              return null;
+            }),
+          ),
+        );
+
+        const allResults = [...filtered, ...fetchedDetails.filter(Boolean)];
+
+        if (!allResults.length) { setPhase('ready'); return; }
+
+        // Score by rating; featured shops always sort to the top
+        const score   = p => (p.rating || 0) + (p.user_ratings_total > 10 ? 0.1 : 0);
+        const byScore = (a, b) => score(b) - score(a);
+        const boosted = allResults.filter(p =>  featMap[p.place_id]).sort(byScore);
+        const organic = allResults.filter(p => !featMap[p.place_id]).sort(byScore);
         const ordered = [...boosted, ...organic];
 
         ordered.forEach((place, idx) => {
-          const boost      = featuredMap[place.place_id];
+          const boost      = featMap[place.place_id];
           const fillColor  = MARKER_COLOR[boost] || MARKER_COLOR.organic;
           const marker = new window.google.maps.Marker({
             position: place.geometry.location,
@@ -299,7 +341,7 @@ export default function BookServiceScreen({ onLogout }) {
 
         setShops(ordered);
         setPhase('ready');
-      }
+      },
     );
   }, [pendingCenter, mapsLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
