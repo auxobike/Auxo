@@ -254,7 +254,9 @@ export default function BookServiceScreen({ onLogout }) {
 
         // Filter out shops focused on electric bikes, scooters, or mopeds
         const EXCLUDE = /electric|e-bike|ebike|scooter|moped/i;
-        const filtered = results.filter(p => !EXCLUDE.test(p.name));
+        const filtered = results.filter(p =>
+          featuredMap[p.place_id] || !EXCLUDE.test(p.name),
+        );
 
         // Score by rating, with a small bonus for shops that have enough reviews
         // to make the rating meaningful (more than 10).
