@@ -261,6 +261,30 @@
 
 .book-card-link:hover { color: var(--accent-hover); }
 
+/* Search This Area overlay button */
+.book-search-area-btn {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #000;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  transition: opacity var(--ease);
+}
+
+.book-search-area-btn:hover { opacity: 0.88; }
+
 /* Contact button */
 .book-contact-btn {
   max-width: 100%;

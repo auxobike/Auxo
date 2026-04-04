@@ -173,6 +173,7 @@ export default function BookServiceScreen({ onLogout }) {
   const [shops,         setShops]         = useState([]);
   const [selectedPin,   setSelectedPin]   = useState(null);
   const [featuredMap,   setFeaturedMap]   = useState({}); // placeId -> boostLevel
+  const [mapMoved,      setMapMoved]      = useState(false);
 
   // Fetch featured shops list (fire-and-forget — OK if it fails)
   useEffect(() => {
@@ -218,6 +219,8 @@ export default function BookServiceScreen({ onLogout }) {
   useEffect(() => {
     if (!pendingCenter || !mapsLoaded || !mapDivRef.current) return;
 
+    setMapMoved(false); // reset whenever a new search kicks off
+
     if (!mapRef.current) {
       mapRef.current = new window.google.maps.Map(mapDivRef.current, {
         center:           pendingCenter,
@@ -226,6 +229,9 @@ export default function BookServiceScreen({ onLogout }) {
         zoomControl:      true,
         styles:           DARK_MAP_STYLE,
       });
+      // Show "Search This Area" when user pans or zooms
+      mapRef.current.addListener('dragend',      () => setMapMoved(true));
+      mapRef.current.addListener('zoom_changed', () => setMapMoved(true));
     } else {
       mapRef.current.setCenter(pendingCenter);
       mapRef.current.setZoom(13);
@@ -325,6 +331,14 @@ export default function BookServiceScreen({ onLogout }) {
     });
   }
 
+  function handleSearchThisArea() {
+    if (!mapRef.current) return;
+    const c = mapRef.current.getCenter();
+    setMapMoved(false);
+    setPhase('searching');
+    setPendingCenter({ lat: c.lat(), lng: c.lng() });
+  }
+
   function highlightPin(placeId) {
     setSelectedPin(placeId);
     const marker = markersRef.current[placeId];
@@ -387,6 +401,11 @@ export default function BookServiceScreen({ onLogout }) {
             <div ref={mapDivRef} className="book-map" />
             {phase === 'searching' && (
               <div className="book-map-overlay">Finding nearby shops…</div>
+            )}
+            {mapMoved && phase === 'ready' && (
+              <button className="book-search-area-btn" onClick={handleSearchThisArea}>
+                Search This Area
+              </button>
             )}
           </div>
         )}
