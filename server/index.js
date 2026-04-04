@@ -3,6 +3,7 @@ const express       = require('express');
 const cors          = require('cors');
 const path          = require('path');
 const cookieSession = require('cookie-session');
+const migrate       = require('./migrate');
 const authRoutes        = require('./routes/auth');
 const stravaRoutes      = require('./routes/strava');
 const maintenanceRoutes = require('./routes/maintenance');
@@ -83,6 +84,13 @@ if (process.env.NODE_ENV === 'production') {
   app.get(/(.*)/,  (req, res) => res.sendFile(path.join(clientDist, 'index.html')));
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+migrate()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('[migrate] failed, aborting startup:', err.message);
+    process.exit(1);
+  });

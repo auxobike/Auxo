@@ -42,13 +42,13 @@ router.post('/register', async (req, res) => {
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
-  if (findByEmail(email)) {
+  if (await findByEmail(email)) {
     return res.status(409).json({ error: 'An account with that email already exists.' });
   }
 
   try {
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = createUser({ email, passwordHash });
+    const user = await createUser({ email, passwordHash });
 
     req.session.userId = user.id;
     req.session.user   = publicUser(user);
@@ -68,7 +68,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
 
-  const user = findByEmail(email);
+  const user = await findByEmail(email);
   if (!user) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
@@ -201,12 +201,12 @@ router.get('/strava/callback', async (req, res) => {
 
     // If logged in via email/password, persist Strava tokens to the user record
     if (req.session.userId) {
-      updateUser(req.session.userId, {
+      await updateUser(req.session.userId, {
         stravaLinked: true,
         stravaId:     String(athlete.id),
         stravaTokens: { access_token, refresh_token, expires_at, athlete },
       });
-      req.session.user = publicUser(findById(req.session.userId));
+      req.session.user = publicUser(await findById(req.session.userId));
     } else {
       // Strava-only login: store athlete id as the session identifier
       req.session.userId = String(athlete.id);
@@ -259,9 +259,9 @@ router.post('/refresh', async (req, res) => {
 
     // Keep persisted tokens up to date
     if (req.session.userId) {
-      const user = findById(req.session.userId);
+      const user = await findById(req.session.userId);
       if (user?.stravaLinked) {
-        updateUser(req.session.userId, {
+        await updateUser(req.session.userId, {
           stravaTokens: { ...user.stravaTokens, access_token, refresh_token, expires_at },
         });
       }
@@ -277,7 +277,7 @@ router.post('/refresh', async (req, res) => {
 // ── Session info ──────────────────────────────────────────────────────────────
 
 // GET /auth/me
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   console.log('[me] session keys:', req.session ? Object.keys(req.session) : 'NO SESSION');
   console.log('[me] session state:', {
     hasAthlete:     !!req.session?.athlete,
@@ -291,7 +291,7 @@ router.get('/me', (req, res) => {
     return res.status(401).json({ authenticated: false });
   }
 
-  const user         = req.session.userId ? findById(req.session.userId) : null;
+  const user         = req.session.userId ? await findById(req.session.userId) : null;
   const stravaLinked = !!req.session.access_token;
   const athlete      = req.session.athlete || null;
 

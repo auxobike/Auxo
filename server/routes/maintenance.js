@@ -85,7 +85,7 @@ function filterItems(items, bikeData) {
 // Returns full maintenance status for a bike, including per-item due/ok/overdue state.
 router.get('/status/:bikeId', requireAuth, async (req, res) => {
   const { bikeId } = req.params;
-  const bikeData   = getBikeData(bikeId);
+  const bikeData   = await getBikeData(bikeId);
 
   if (!bikeData?.bikeType) {
     return res.status(400).json({ error: 'Bike not configured', needsSetup: true });
@@ -151,7 +151,7 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
 
 // PUT /api/maintenance/bikes/:bikeId
 // Configure a bike: bikeType, padType, brakeType, isTubeless, replacedComponents
-router.put('/bikes/:bikeId', requireAuth, (req, res) => {
+router.put('/bikes/:bikeId', requireAuth, async (req, res) => {
   const { bikeId } = req.params;
   const { bikeType, padType, brakeType, isTubeless, replacedComponents } = req.body;
 
@@ -159,7 +159,7 @@ router.put('/bikes/:bikeId', requireAuth, (req, res) => {
     return res.status(400).json({ error: `Invalid bikeType. Must be one of: ${Object.keys(RULES).join(', ')}` });
   }
 
-  const updated = setBikeConfig(bikeId, { bikeType, padType, brakeType, isTubeless, replacedComponents });
+  const updated = await setBikeConfig(bikeId, { bikeType, padType, brakeType, isTubeless, replacedComponents });
   res.json(updated);
 });
 
@@ -172,7 +172,7 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
   try {
     const [stravaState, bikeData] = await Promise.all([
       fetchStravaState(bikeId, req.session.access_token),
-      Promise.resolve(getBikeData(bikeId)),
+      getBikeData(bikeId),
     ]);
 
     const entry = {
@@ -188,10 +188,10 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
     // Increment chain replacement counter when the chain is replaced
     if (itemId === 'chain_replace') {
       const newCount = (bikeData?.chainReplacements || 0) + 1;
-      setBikeConfig(bikeId, { chainReplacements: newCount });
+      await setBikeConfig(bikeId, { chainReplacements: newCount });
     }
 
-    const log = logService(bikeId, itemId, entry);
+    const log = await logService(bikeId, itemId, entry);
     res.json({ success: true, log });
   } catch (err) {
     console.error('Log service error:', err.message);
@@ -200,24 +200,24 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
 });
 
 // GET /api/maintenance/history/:bikeId/:itemId
-router.get('/history/:bikeId/:itemId', requireAuth, (req, res) => {
+router.get('/history/:bikeId/:itemId', requireAuth, async (req, res) => {
   const { bikeId, itemId } = req.params;
-  res.json(getServiceHistory(bikeId, itemId));
+  res.json(await getServiceHistory(bikeId, itemId));
 });
 
 // GET /api/maintenance/configured
 // Returns the IDs of bikes that have been configured with a bikeType (no Strava call needed).
-router.get('/configured', requireAuth, (req, res) => {
-  const ids = getConfiguredBikeIds();
+router.get('/configured', requireAuth, async (req, res) => {
+  const ids = await getConfiguredBikeIds();
   res.json({ configuredBikeIds: ids, hasConfigured: ids.length > 0 });
 });
 
 // GET /api/maintenance/items/:bikeId
 // Returns ALL maintenance items for the bike's configured type — no config filtering,
 // no Strava call. Used by the service log form so every item is always selectable.
-router.get('/items/:bikeId', requireAuth, (req, res) => {
+router.get('/items/:bikeId', requireAuth, async (req, res) => {
   const { bikeId } = req.params;
-  const bikeData   = getBikeData(bikeId);
+  const bikeData   = await getBikeData(bikeId);
 
   if (!bikeData?.bikeType) {
     return res.status(400).json({ error: 'Bike not configured', needsSetup: true });

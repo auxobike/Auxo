@@ -1,57 +1,67 @@
-const fs   = require('fs');
-const path = require('path');
+const pool = require('../db');
 
-const DATA_PATH = path.join(__dirname, '../data/users.json');
-
-function load() {
-  try {
-    if (!fs.existsSync(DATA_PATH)) return { users: [] };
-    return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
-  } catch {
-    return { users: [] };
-  }
-}
-
-function save(data) {
-  fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true });
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
-}
-
-function findByEmail(email) {
-  const { users } = load();
-  return users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
-}
-
-function findById(id) {
-  const { users } = load();
-  return users.find(u => u.id === id) || null;
-}
-
-function createUser({ email, passwordHash }) {
-  const data = load();
-  const user = {
-    id:           crypto.randomUUID(),
-    email:        email.toLowerCase().trim(),
-    passwordHash,
-    stravaLinked: false,
-    stravaId:     null,
-    createdAt:    new Date().toISOString(),
+// Map a DB row (snake_case) to the JS object shape the rest of the app expects.
+function rowToUser(row) {
+  if (!row) return null;
+  return {
+    id:           row.id,
+    email:        row.email,
+    passwordHash: row.password_hash,
+    stravaLinked: row.strava_linked,
+    stravaId:     row.strava_id,
+    stravaTokens: row.strava_tokens,   // already parsed by pg (JSONB column)
+    createdAt:    row.created_at,
   };
-  data.users.push(user);
-  save(data);
-  return user;
 }
 
-function updateUser(id, fields) {
-  const data = load();
-  const idx  = data.users.findIndex(u => u.id === id);
-  if (idx === -1) return null;
-  data.users[idx] = { ...data.users[idx], ...fields };
-  save(data);
-  return data.users[idx];
+async function findByEmail(email) {
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE lower(email) = lower($1) LIMIT 1',
+    [email],
+  );
+  return rowToUser(rows[0]);
 }
 
-// Return a user object safe to expose to the client (no passwordHash)
+async function findById(id) {
+  if (!id) return null;
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE id = $1 LIMIT 1',
+    [id],
+  );
+  return rowToUser(rows[0]);
+}
+
+async function createUser({ email, passwordHash }) {
+  const id = crypto.randomUUID();
+  const { rows } = await pool.query(
+    `INSERT INTO users (id, email, password_hash)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [id, email.toLowerCase().trim(), passwordHash],
+  );
+  return rowToUser(rows[0]);
+}
+
+async function updateUser(id, fields) {
+  const setClauses = [];
+  const values     = [];
+  let   i          = 1;
+
+  if ('stravaLinked' in fields) { setClauses.push(`strava_linked = $${i++}`); values.push(fields.stravaLinked); }
+  if ('stravaId'     in fields) { setClauses.push(`strava_id     = $${i++}`); values.push(fields.stravaId); }
+  if ('stravaTokens' in fields) { setClauses.push(`strava_tokens = $${i++}`); values.push(fields.stravaTokens); }
+
+  if (!setClauses.length) return findById(id);
+
+  values.push(id);
+  const { rows } = await pool.query(
+    `UPDATE users SET ${setClauses.join(', ')} WHERE id = $${i} RETURNING *`,
+    values,
+  );
+  return rowToUser(rows[0]);
+}
+
+// Return a user object safe to expose to the client (no passwordHash).
 function publicUser(user) {
   if (!user) return null;
   const { passwordHash, ...pub } = user;

@@ -1,60 +1,57 @@
-const fs   = require('fs');
-const path = require('path');
+const pool = require('../db');
 
-const DATA_PATH = path.join(__dirname, '../data/maintenance-data.json');
-
-function load() {
-  try {
-    if (!fs.existsSync(DATA_PATH)) return { bikes: {} };
-    return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
-  } catch {
-    return { bikes: {} };
-  }
+async function getBikeData(bikeId) {
+  const { rows } = await pool.query(
+    'SELECT data FROM bike_data WHERE bike_id = $1 LIMIT 1',
+    [bikeId],
+  );
+  return rows[0]?.data ?? null;
 }
 
-function save(data) {
-  fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true });
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+// Shallow-merge fields into the bike's JSONB data (same semantics as the
+// old JSON-file version: new fields win, existing fields are preserved).
+async function setBikeConfig(bikeId, config) {
+  const { rows } = await pool.query(
+    `INSERT INTO bike_data (bike_id, data)
+     VALUES ($1, $2::jsonb)
+     ON CONFLICT (bike_id) DO UPDATE
+       SET data = bike_data.data || $2::jsonb
+     RETURNING data`,
+    [bikeId, JSON.stringify(config)],
+  );
+  return rows[0].data;
 }
 
-function getBikeData(bikeId) {
-  return load().bikes[bikeId] || null;
+async function logService(bikeId, itemId, entry) {
+  const current = await getBikeData(bikeId) ?? {};
+
+  const serviceLogs                = current.serviceLogs    ?? {};
+  const serviceHistory             = current.serviceHistory ?? {};
+  serviceLogs[itemId]              = { ...(serviceLogs[itemId] ?? {}), ...entry };
+  serviceHistory[itemId]           = serviceHistory[itemId] ?? [];
+  serviceHistory[itemId].push({ ...entry, loggedAt: new Date().toISOString() });
+
+  const updated = { ...current, serviceLogs, serviceHistory };
+
+  await pool.query(
+    `INSERT INTO bike_data (bike_id, data)
+     VALUES ($1, $2::jsonb)
+     ON CONFLICT (bike_id) DO UPDATE SET data = $2::jsonb`,
+    [bikeId, JSON.stringify(updated)],
+  );
+  return serviceLogs[itemId];
 }
 
-function setBikeConfig(bikeId, config) {
-  const data = load();
-  data.bikes[bikeId] = { ...(data.bikes[bikeId] || {}), ...config };
-  save(data);
-  return data.bikes[bikeId];
+async function getServiceHistory(bikeId, itemId) {
+  const bike = await getBikeData(bikeId);
+  return bike?.serviceHistory?.[itemId] ?? [];
 }
 
-function logService(bikeId, itemId, entry) {
-  const data = load();
-  const bike = data.bikes[bikeId] = data.bikes[bikeId] || {};
-  bike.serviceLogs    = bike.serviceLogs    || {};
-  bike.serviceHistory = bike.serviceHistory || {};
-
-  // Current log (latest state)
-  bike.serviceLogs[itemId] = { ...(bike.serviceLogs[itemId] || {}), ...entry };
-
-  // Append to history
-  bike.serviceHistory[itemId] = bike.serviceHistory[itemId] || [];
-  bike.serviceHistory[itemId].push({ ...entry, loggedAt: new Date().toISOString() });
-
-  save(data);
-  return bike.serviceLogs[itemId];
-}
-
-function getServiceHistory(bikeId, itemId) {
-  const bike = getBikeData(bikeId);
-  return bike?.serviceHistory?.[itemId] || [];
-}
-
-function getConfiguredBikeIds() {
-  const data = load();
-  return Object.entries(data.bikes)
-    .filter(([, bike]) => bike?.bikeType)
-    .map(([id]) => id);
+async function getConfiguredBikeIds() {
+  const { rows } = await pool.query(
+    `SELECT bike_id FROM bike_data WHERE data->>'bikeType' IS NOT NULL`,
+  );
+  return rows.map(r => r.bike_id);
 }
 
 module.exports = { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds };
