@@ -1,8 +1,6 @@
 const express = require('express');
 const axios   = require('axios');
 const bcrypt  = require('bcrypt');
-const fs      = require('fs');
-const path    = require('path');
 const router  = express.Router();
 
 const { findByEmail, findById, createUser, updateUser, publicUser } = require('../utils/userStore');
@@ -119,13 +117,9 @@ router.get('/strava', (req, res) => {
   });
   const stravaUrl = `https://www.strava.com/oauth/authorize?${params}`;
 
-  // Save the session to disk before leaving for Strava so the userId from
-  // email/password login is guaranteed to be persisted when the callback hits.
-  req.session.save((err) => {
-    if (err) console.error('[auth/strava] session.save() error:', err);
-    else console.log('[auth/strava] session saved, redirecting to Strava');
-    res.redirect(stravaUrl);
-  });
+  // cookie-session writes automatically with the response — no save() needed.
+  console.log('[auth/strava] session userId at OAuth start:', req.session.userId);
+  res.redirect(stravaUrl);
 });
 
 // GET /auth/strava/callback
@@ -190,8 +184,17 @@ router.get('/strava/callback', async (req, res) => {
     const { access_token, refresh_token, expires_at, athlete } = response.data;
     console.log('[callback] token exchange success — athlete id:', athlete?.id);
 
-    // Store tokens in session
-    req.session.athlete       = athlete;
+    // Store only the fields the client actually uses — keeps the cookie small.
+    // Full athlete data (bikes, shoes, clubs, etc.) would push it over 4 KB.
+    req.session.athlete = {
+      id:                   athlete.id,
+      firstname:            athlete.firstname,
+      lastname:             athlete.lastname,
+      profile:              athlete.profile,
+      profile_medium:       athlete.profile_medium,
+      username:             athlete.username,
+      measurement_preference: athlete.measurement_preference,
+    };
     req.session.access_token  = access_token;
     req.session.refresh_token = refresh_token;
     req.session.expires_at    = expires_at;
@@ -209,28 +212,15 @@ router.get('/strava/callback', async (req, res) => {
       req.session.userId = String(athlete.id);
     }
 
-    console.log('[callback] session after update — userId:', req.session.userId, 'sessionID:', req.sessionID);
-    console.log('[callback] calling session.save()...');
-
-    // Save session to store before redirecting — redirect is relative so the
-    // browser stays on the same domain and the session cookie is sent back.
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        console.error('[callback] session.save() error:', saveErr);
-      } else {
-        const sessionFile = path.join(__dirname, '../data/sessions', req.sessionID + '.json');
-        const fileExists  = fs.existsSync(sessionFile);
-        console.log('[callback] session.save() succeeded');
-        console.log('[callback] sessionID:', req.sessionID);
-        console.log('[callback] session file on disk:', fileExists, '—', sessionFile);
-        console.log('[callback] session data written:', {
-          userId:         req.session.userId,
-          hasAthlete:     !!req.session.athlete,
-          hasAccessToken: !!req.session.access_token,
-        });
-      }
-      res.redirect('/dashboard');
+    // cookie-session writes the session into the Set-Cookie header automatically
+    // when the response is sent — no explicit save() call needed.
+    console.log('[callback] session set — userId:', req.session.userId);
+    console.log('[callback] session contents:', {
+      hasAthlete:     !!req.session.athlete,
+      hasAccessToken: !!req.session.access_token,
+      userId:         req.session.userId,
     });
+    res.redirect('/dashboard');
   } catch (err) {
     console.error('[callback] Strava OAuth error — POST https://www.strava.com/oauth/token');
     console.error('[callback] request body sent:', logBody.toString());
@@ -301,7 +291,8 @@ router.get('/me', (req, res) => {
 
 // POST /auth/logout
 router.post('/logout', (req, res) => {
-  req.session.destroy(() => res.json({ success: true }));
+  req.session = null; // cookie-session: setting to null clears the cookie
+  res.json({ success: true });
 });
 
 module.exports = router;

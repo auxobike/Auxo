@@ -1,10 +1,8 @@
 require('dotenv').config();
-const express     = require('express');
-const cors        = require('cors');
-const path        = require('path');
-const fs          = require('fs');
-const session     = require('express-session');
-const FileStore   = require('session-file-store')(session);
+const express       = require('express');
+const cors          = require('cors');
+const path          = require('path');
+const cookieSession = require('cookie-session');
 const authRoutes        = require('./routes/auth');
 const stravaRoutes      = require('./routes/strava');
 const maintenanceRoutes = require('./routes/maintenance');
@@ -46,36 +44,26 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// Now that frontend is served from the same domain as the backend,
-// we can use sameSite: 'lax' in production (no cross-domain cookies needed).
+// Session is stored entirely in a signed cookie — no server-side store needed.
+// This survives Railway container restarts because the data lives in the browser.
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Ensure the sessions directory exists before FileStore tries to use it.
-// Using an absolute path avoids ambiguity about cwd inside the container.
-const SESSION_DIR = path.join(__dirname, 'data/sessions');
-fs.mkdirSync(SESSION_DIR, { recursive: true });
-console.log('[session] store path:', SESSION_DIR);
-
 const sessionCookieConfig = {
+  name:     'session',
+  keys:     [process.env.SESSION_SECRET || 'dev-secret'],
   httpOnly: true,
   secure:   isProduction,
   sameSite: 'lax',
-  maxAge:   24 * 60 * 60 * 1000,
+  maxAge:   24 * 60 * 60 * 1000, // 1 day
 };
-console.log('[session] cookie config:', sessionCookieConfig);
+console.log('[session] cookie-session config:', {
+  httpOnly: sessionCookieConfig.httpOnly,
+  secure:   sessionCookieConfig.secure,
+  sameSite: sessionCookieConfig.sameSite,
+  maxAge:   sessionCookieConfig.maxAge,
+});
 
-app.use(session({
-  store: new FileStore({
-    path:         SESSION_DIR,
-    ttl:          86400,       // 1 day in seconds
-    reapInterval: 3600,        // clean up expired sessions every hour
-    logFn:        () => {},    // silence verbose file-store logs
-  }),
-  secret:            process.env.SESSION_SECRET || 'dev-secret',
-  resave:            false,
-  saveUninitialized: false,
-  cookie:            sessionCookieConfig,
-}));
+app.use(cookieSession(sessionCookieConfig));
 
 app.use('/auth', authRoutes);
 app.use('/api/strava', stravaRoutes);
