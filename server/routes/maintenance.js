@@ -308,11 +308,14 @@ router.get('/summary', requireAuth, async (req, res) => {
     let lastRide = null;
     if (req.session.access_token) {
       try {
+        const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'MountainBikeRide', 'GravelRide']);
         const actRes = await axios.get('https://www.strava.com/api/v3/athlete/activities', {
           headers: { Authorization: `Bearer ${req.session.access_token}` },
-          params: { per_page: 1 },
+          params: { per_page: 10 },
         });
-        const latest = actRes.data[0];
+        const latest = actRes.data.find(
+          a => RIDE_TYPES.has(a.sport_type) && !a.sport_type.includes('EBike'),
+        );
         if (latest?.start_date_local) {
           lastRide = latest.start_date_local.split('T')[0]; // YYYY-MM-DD
         }
