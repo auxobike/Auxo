@@ -23,6 +23,11 @@ async function migrate() {
     )
   `);
 
+  // Add preferences column to existing users tables (idempotent)
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB NOT NULL DEFAULT '{}'
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS featured_shops (
       google_place_id TEXT PRIMARY KEY,

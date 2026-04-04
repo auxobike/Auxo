@@ -54,4 +54,9 @@ async function getConfiguredBikeIds() {
   return rows.map(r => r.bike_id);
 }
 
-module.exports = { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds };
+async function deleteBikeData(bikeIds) {
+  if (!bikeIds?.length) return;
+  await pool.query('DELETE FROM bike_data WHERE bike_id = ANY($1)', [bikeIds]);
+}
+
+module.exports = { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds, deleteBikeData };

@@ -61,6 +61,17 @@ export const api = {
   getServiceHistory: (bikeId, itemId) => apiFetch(`/api/maintenance/history/${bikeId}/${itemId}`),
   getSummary: () => apiFetch('/api/maintenance/summary'),
 
+  // Profile / account management
+  changePassword: (currentPassword, newPassword, confirm) => apiFetch('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword, confirm }),
+  }),
+  updatePreferences: (prefs) => apiFetch('/auth/preferences', {
+    method: 'PUT',
+    body: JSON.stringify(prefs),
+  }),
+  deleteAccount: () => apiFetch('/auth/account', { method: 'DELETE' }),
+
   // Shops
   getFeaturedShops: () => apiFetch('/api/shops/featured'),
 };

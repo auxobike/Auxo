@@ -3,8 +3,8 @@ const axios   = require('axios');
 const bcrypt  = require('bcrypt');
 const router  = express.Router();
 
-const { findByEmail, findById, createUser, updateUser, publicUser } = require('../utils/userStore');
-const { getConfiguredBikeIds } = require('../utils/store');
+const { findByEmail, findById, createUser, updateUser, deleteUser, publicUser } = require('../utils/userStore');
+const { getConfiguredBikeIds, deleteBikeData } = require('../utils/store');
 
 const {
   STRAVA_CLIENT_ID,
@@ -313,6 +313,82 @@ router.get('/me', async (req, res) => {
 router.post('/logout', (req, res) => {
   req.session = null; // cookie-session: setting to null clears the cookie
   res.json({ success: true });
+});
+
+// POST /auth/change-password
+router.post('/change-password', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const { currentPassword, newPassword, confirm } = req.body;
+  if (!currentPassword || !newPassword || !confirm) {
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
+  if (newPassword !== confirm) {
+    return res.status(400).json({ error: 'Passwords do not match.' });
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  try {
+    const user = await findById(req.session.userId);
+    if (!user?.passwordHash) {
+      return res.status(400).json({ error: 'No password set for this account.' });
+    }
+    const match = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!match) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+    const newHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await updateUser(req.session.userId, { passwordHash: newHash });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Change password error:', err.message);
+    res.status(500).json({ error: 'Failed to change password.' });
+  }
+});
+
+// PUT /auth/preferences
+router.put('/preferences', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const { warnThreshold } = req.body;
+  const VALID = [5, 10, 15, 20];
+  if (!VALID.includes(Number(warnThreshold))) {
+    return res.status(400).json({ error: `warnThreshold must be one of: ${VALID.join(', ')}` });
+  }
+
+  try {
+    const user = await findById(req.session.userId);
+    const updated = await updateUser(req.session.userId, {
+      preferences: { ...(user?.preferences ?? {}), warnThreshold: Number(warnThreshold) },
+    });
+    res.json({ success: true, preferences: updated.preferences });
+  } catch (err) {
+    console.error('Update preferences error:', err.message);
+    res.status(500).json({ error: 'Failed to save preferences.' });
+  }
+});
+
+// DELETE /auth/account
+router.delete('/account', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  try {
+    const user = await findById(req.session.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    // Delete bike data for all known Strava bikes belonging to this athlete
+    const bikeIds = user.stravaTokens?.athlete?.bikes?.map(b => b.id) ?? [];
+    await deleteBikeData(bikeIds);
+    await deleteUser(req.session.userId);
+
+    req.session = null;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete account error:', err.message);
+    res.status(500).json({ error: 'Failed to delete account.' });
+  }
 });
 
 module.exports = router;

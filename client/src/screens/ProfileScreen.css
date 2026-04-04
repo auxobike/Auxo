@@ -1,0 +1,266 @@
+.profile-screen {
+  background:
+    radial-gradient(ellipse 90% 35% at 50% -5%, rgba(201, 150, 12, 0.10) 0%, transparent 65%),
+    var(--bg);
+}
+
+.profile-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 4px var(--screen-pad) 48px;
+  gap: 28px;
+}
+
+/* ── Page heading ── */
+.profile-heading {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  line-height: 1;
+  padding-top: 4px;
+}
+
+/* ── Section card ── */
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+}
+
+.profile-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--white-40);
+}
+
+/* ── Strava athlete row ── */
+.profile-athlete {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.profile-avatar-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--white-40);
+  flex-shrink: 0;
+}
+
+.profile-athlete-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-athlete-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-athlete-username {
+  font-size: 0.82rem;
+  color: var(--white-40);
+}
+
+/* ── Info row (label + value) ── */
+.profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-info-label {
+  font-size: 0.85rem;
+  color: var(--white-70);
+}
+
+.profile-info-value {
+  font-size: 0.85rem;
+  color: var(--white-40);
+  text-align: right;
+}
+
+/* ── Field inputs ── */
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-field label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--white-40);
+}
+
+.profile-field input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color var(--ease);
+}
+
+.profile-field input:focus {
+  border-color: var(--accent);
+}
+
+/* ── Notification preference ── */
+.profile-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-pref-label {
+  font-size: 0.88rem;
+  color: var(--white-70);
+  flex: 1;
+}
+
+.profile-pref-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--ease);
+  min-width: 80px;
+  text-align: center;
+}
+
+.profile-pref-select:focus {
+  border-color: var(--accent);
+}
+
+/* ── Feedback messages ── */
+.profile-msg {
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.profile-msg.success {
+  background: rgba(80, 200, 80, 0.12);
+  color: #6ddb6d;
+  border: 1px solid rgba(80, 200, 80, 0.25);
+}
+
+.profile-msg.error {
+  background: rgba(220, 60, 60, 0.12);
+  color: #e87070;
+  border: 1px solid rgba(220, 60, 60, 0.25);
+}
+
+/* ── Strava note ── */
+.profile-note {
+  font-size: 0.78rem;
+  color: var(--white-40);
+  line-height: 1.5;
+}
+
+/* ── Danger zone ── */
+.profile-danger-btn {
+  background: rgba(200, 40, 40, 0.12);
+  border: 1px solid rgba(200, 40, 40, 0.35);
+  border-radius: var(--radius-pill);
+  color: #e87070;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background var(--ease), border-color var(--ease);
+  width: 100%;
+}
+
+.profile-danger-btn:hover {
+  background: rgba(200, 40, 40, 0.22);
+  border-color: rgba(200, 40, 40, 0.55);
+}
+
+.profile-confirm-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-confirm-text {
+  font-size: 0.85rem;
+  color: var(--white-70);
+  line-height: 1.5;
+}
+
+.profile-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-confirm-actions button {
+  flex: 1;
+  padding: 11px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity var(--ease);
+}
+
+.profile-confirm-actions button:disabled {
+  opacity: 0.5;
+}
+
+.profile-confirm-cancel {
+  background: var(--bg-input);
+  color: var(--white-70);
+}
+
+.profile-confirm-delete {
+  background: rgba(200, 40, 40, 0.75);
+  color: #fff;
+}

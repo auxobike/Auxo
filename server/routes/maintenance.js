@@ -5,6 +5,7 @@ const requireAuth             = require('../middleware/requireAuth');
 const RULES                   = require('../data/maintenanceRules');
 const { getItemStatus, getBikeSummary } = require('../utils/maintenanceCalculator');
 const { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds } = require('../utils/store');
+const { findById }            = require('../utils/userStore');
 
 const router = express.Router();
 
@@ -95,7 +96,12 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
   if (!rules) return res.status(400).json({ error: 'Unknown bike type' });
 
   try {
-    const stravaState = await fetchStravaState(bikeId, req.session.access_token);
+    const [stravaState, currentUser] = await Promise.all([
+      fetchStravaState(bikeId, req.session.access_token),
+      req.session.userId ? findById(req.session.userId) : null,
+    ]);
+
+    const warnFraction = ((currentUser?.preferences?.warnThreshold ?? 10) / 100);
 
     const bikeState = {
       currentMileage:   stravaState.currentMileage,
@@ -125,7 +131,7 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
         return {
           ...item,
           serviceLog,
-          status: getItemStatus(item, serviceLog, bikeState),
+          status: getItemStatus(item, serviceLog, bikeState, { warnFraction }),
         };
       }),
     })).filter(s => s.items.length > 0);
@@ -253,8 +259,12 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
 // Used by AccountLandingScreen to populate the quick-stats strip.
 router.get('/summary', requireAuth, async (req, res) => {
   try {
-    const bikeIds = await getConfiguredBikeIds();
-    const bikeCount = bikeIds.length;
+    const [bikeIds, currentUser] = await Promise.all([
+      getConfiguredBikeIds(),
+      req.session.userId ? findById(req.session.userId) : null,
+    ]);
+    const bikeCount    = bikeIds.length;
+    const warnFraction = ((currentUser?.preferences?.warnThreshold ?? 10) / 100);
 
     // Fetch maintenance status for each configured bike in parallel.
     // We need a Strava token — if the session has one, use it; otherwise skip counts.
@@ -292,7 +302,7 @@ router.get('/summary', requireAuth, async (req, res) => {
             for (const item of filterItems(section.items, bikeData)) {
               const existingLog = bikeData.serviceLogs?.[item.id] || null;
               const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
-              const status = getItemStatus(item, serviceLog, bikeState);
+              const { status } = getItemStatus(item, serviceLog, bikeState, { warnFraction });
               if (status === 'due' || status === 'overdue') count++;
             }
           }

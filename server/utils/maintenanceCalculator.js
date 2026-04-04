@@ -17,18 +17,18 @@ function daysBetween(isoDateStr, today = new Date()) {
   return Math.floor((today - past) / (1000 * 60 * 60 * 24));
 }
 
-function milesStatus(milesSince, threshold) {
-  if (milesSince >= threshold * 1.15) return STATUS.OVERDUE;
-  if (milesSince >= threshold)        return STATUS.DUE;
-  if (milesSince >= threshold * 0.85) return STATUS.DUE_SOON;
+function milesStatus(milesSince, threshold, warnFraction = 0.10) {
+  if (milesSince >= threshold * 1.15)               return STATUS.OVERDUE;
+  if (milesSince >= threshold)                       return STATUS.DUE;
+  if (milesSince >= threshold * (1 - warnFraction)) return STATUS.DUE_SOON;
   return STATUS.OK;
 }
 
-function daysStatus(daysSince, threshold) {
-  if (daysSince === null)              return STATUS.DUE; // never serviced
-  if (daysSince > threshold * 1.15)   return STATUS.OVERDUE;
-  if (daysSince >= threshold)          return STATUS.DUE;
-  if (daysSince >= threshold - 14)     return STATUS.DUE_SOON;
+function daysStatus(daysSince, threshold, warnFraction = 0.10) {
+  if (daysSince === null)                             return STATUS.DUE; // never serviced
+  if (daysSince > threshold * 1.15)                  return STATUS.OVERDUE;
+  if (daysSince >= threshold)                         return STATUS.DUE;
+  if (daysSince >= threshold * (1 - warnFraction))   return STATUS.DUE_SOON;
   return STATUS.OK;
 }
 
@@ -37,7 +37,8 @@ function daysStatus(daysSince, threshold) {
 // serviceLog — stored log { lastServiceDate, lastServiceMileage, lastServiceRideCount,
 //                           lastServiceHours, lastChainReplacements, userInterval }
 // bikeState  — { currentMileage, currentRideCount, rideHours, chainReplacements }
-function getItemStatus(rule, serviceLog, bikeState) {
+function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
+  const warnFraction = opts.warnFraction ?? 0.10;
   const { trigger } = rule;
   const log = serviceLog || {};
   const state = bikeState || {};
@@ -69,7 +70,7 @@ function getItemStatus(rule, serviceLog, bikeState) {
         : (trigger.thenEvery || trigger.every);
       const remaining = Math.max(0, threshold - milesSince);
       return {
-        status: milesStatus(milesSince, threshold),
+        status: milesStatus(milesSince, threshold, warnFraction),
         milesSince: Math.round(milesSince),
         threshold,
         remaining: Math.round(remaining),
@@ -80,7 +81,7 @@ function getItemStatus(rule, serviceLog, bikeState) {
       const threshold = trigger.every;
       const remaining = Math.max(0, threshold - ridesSince);
       let status = STATUS.OK;
-      if (ridesSince >= threshold)     status = STATUS.DUE;
+      if (ridesSince >= threshold)          status = STATUS.DUE;
       else if (ridesSince >= threshold - 1) status = STATUS.DUE_SOON;
       return { status, ridesSince, threshold, remaining };
     }
@@ -90,7 +91,7 @@ function getItemStatus(rule, serviceLog, bikeState) {
       const d = daysSince !== null ? daysSince : Infinity;
       const remaining = Math.max(0, threshold - (d === Infinity ? threshold : d));
       return {
-        status: daysStatus(daysSince, threshold),
+        status: daysStatus(daysSince, threshold, warnFraction),
         daysSince: daysSince !== null ? daysSince : null,
         threshold,
         remaining,
@@ -98,8 +99,8 @@ function getItemStatus(rule, serviceLog, bikeState) {
     }
 
     case 'miles_or_days': {
-      const mStat = milesStatus(milesSince, trigger.miles);
-      const dStat = daysStatus(daysSince, trigger.days);
+      const mStat = milesStatus(milesSince, trigger.miles, warnFraction);
+      const dStat = daysStatus(daysSince, trigger.days, warnFraction);
       return {
         status: worstStatus(mStat, dStat),
         milesSince: Math.round(milesSince),
@@ -115,18 +116,18 @@ function getItemStatus(rule, serviceLog, bikeState) {
       const threshold = trigger.every;
       const remaining = Math.max(0, threshold - chainsSince);
       let status = STATUS.OK;
-      if (chainsSince >= threshold)         status = STATUS.DUE;
+      if (chainsSince >= threshold)          status = STATUS.DUE;
       else if (chainsSince >= threshold - 1) status = STATUS.DUE_SOON;
       return { status, chainsSince, threshold, remaining };
     }
 
     case 'hours_or_days': {
       const hoursThreshold = userInterval || trigger.hours;
-      const hStat = hoursSince >= hoursThreshold * 1.15 ? STATUS.OVERDUE
-                  : hoursSince >= hoursThreshold         ? STATUS.DUE
-                  : hoursSince >= hoursThreshold * 0.85  ? STATUS.DUE_SOON
+      const hStat = hoursSince >= hoursThreshold * 1.15               ? STATUS.OVERDUE
+                  : hoursSince >= hoursThreshold                       ? STATUS.DUE
+                  : hoursSince >= hoursThreshold * (1 - warnFraction)  ? STATUS.DUE_SOON
                   : STATUS.OK;
-      const dStat = daysStatus(daysSince, trigger.days);
+      const dStat = daysStatus(daysSince, trigger.days, warnFraction);
       return {
         status: worstStatus(hStat, dStat),
         hoursSince: Math.round(hoursSince * 10) / 10,
@@ -141,9 +142,9 @@ function getItemStatus(rule, serviceLog, bikeState) {
 
     case 'hours_user_defined': {
       const interval = userInterval || trigger.suggestedMin;
-      const hStat = hoursSince >= interval * 1.15 ? STATUS.OVERDUE
-                  : hoursSince >= interval          ? STATUS.DUE
-                  : hoursSince >= interval * 0.85   ? STATUS.DUE_SOON
+      const hStat = hoursSince >= interval * 1.15              ? STATUS.OVERDUE
+                  : hoursSince >= interval                      ? STATUS.DUE
+                  : hoursSince >= interval * (1 - warnFraction) ? STATUS.DUE_SOON
                   : STATUS.OK;
       return {
         status: hStat,

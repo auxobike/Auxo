@@ -10,6 +10,7 @@ function rowToUser(row) {
     stravaLinked: row.strava_linked,
     stravaId:     row.strava_id,
     stravaTokens: row.strava_tokens,   // already parsed by pg (JSONB column)
+    preferences:  row.preferences ?? {},
     createdAt:    row.created_at,
   };
 }
@@ -47,9 +48,11 @@ async function updateUser(id, fields) {
   const values     = [];
   let   i          = 1;
 
-  if ('stravaLinked' in fields) { setClauses.push(`strava_linked = $${i++}`); values.push(fields.stravaLinked); }
-  if ('stravaId'     in fields) { setClauses.push(`strava_id     = $${i++}`); values.push(fields.stravaId); }
-  if ('stravaTokens' in fields) { setClauses.push(`strava_tokens = $${i++}`); values.push(fields.stravaTokens); }
+  if ('stravaLinked'  in fields) { setClauses.push(`strava_linked  = $${i++}`); values.push(fields.stravaLinked); }
+  if ('stravaId'      in fields) { setClauses.push(`strava_id     = $${i++}`); values.push(fields.stravaId); }
+  if ('stravaTokens'  in fields) { setClauses.push(`strava_tokens = $${i++}`); values.push(fields.stravaTokens); }
+  if ('passwordHash'  in fields) { setClauses.push(`password_hash = $${i++}`); values.push(fields.passwordHash); }
+  if ('preferences'   in fields) { setClauses.push(`preferences   = $${i++}`); values.push(JSON.stringify(fields.preferences)); }
 
   if (!setClauses.length) return findById(id);
 
@@ -68,4 +71,8 @@ function publicUser(user) {
   return pub;
 }
 
-module.exports = { findByEmail, findById, createUser, updateUser, publicUser };
+async function deleteUser(id) {
+  await pool.query('DELETE FROM users WHERE id = $1', [id]);
+}
+
+module.exports = { findByEmail, findById, createUser, updateUser, deleteUser, publicUser };
