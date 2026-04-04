@@ -162,6 +162,7 @@ function ServiceIntervalSection({
 // ── Main screen ──────────────────────────────────────────────────────────────
 export default function AddBikeScreen({ onLogout }) {
   const navigate = useNavigate();
+  // Steps: 1=bike type/brakes, 2=MTB suspension type, 3=components, 4=mileage, 5=MTB notifications
   const [step,               setStep]               = useState(1);
   const [index,              setIndex]              = useState(0);
   const [adding,             setAdding]             = useState(false);
@@ -173,6 +174,7 @@ export default function AddBikeScreen({ onLogout }) {
   const [bikeId,             setBikeId]             = useState('');
   const [padType,            setPadType]            = useState('');
   const [brakeType,          setBrakeType]          = useState('');
+  const [suspensionType,     setSuspensionType]     = useState('');
   const [replacedComponents, setReplacedComponents] = useState(new Set());
   const [componentMileage,   setComponentMileage]   = useState({});
 
@@ -244,19 +246,27 @@ export default function AddBikeScreen({ onLogout }) {
   const checkedComponents = COMPONENTS.filter(c => replacedComponents.has(c.id));
 
   // Navigation helpers
-  function handleStep2Next() {
-    if (replacedComponents.size > 0) { setStep(3); return; }
-    if (isMtb)                       { setStep(4); return; }
-    handleAdd();
+  // Step 1 → 2 (MTB) or 3 (others)
+  function handleStep1Next() {
+    setStep(isMtb ? 2 : 3);
   }
 
+  // Step 3 (components) → 4 (mileage) or 5 (MTB notifications) or finish
   function handleStep3Next() {
-    if (isMtb) { setStep(4); return; }
+    if (replacedComponents.size > 0) { setStep(4); return; }
+    if (isMtb)                       { setStep(5); return; }
     handleAdd();
   }
 
-  function handleStep4Back() {
-    setStep(replacedComponents.size > 0 ? 3 : 2);
+  // Step 4 (mileage) → 5 (MTB notifications) or finish
+  function handleStep4Next() {
+    if (isMtb) { setStep(5); return; }
+    handleAdd();
+  }
+
+  // Step 5 back → 4 (mileage) or 3 (components)
+  function handleStep5Back() {
+    setStep(replacedComponents.size > 0 ? 4 : 3);
   }
 
   async function handleAdd() {
@@ -272,6 +282,7 @@ export default function AddBikeScreen({ onLogout }) {
       }
     }
 
+    const isFullSuspension = suspensionType === 'full_suspension';
     const mtbServiceIntervals = isMtb ? {
       fork: forkSetting === 'keep'
         ? { default: true }
@@ -279,19 +290,22 @@ export default function AddBikeScreen({ onLogout }) {
             lowerLeg:    { value: Number(forkLowerLeg.value)    || 0, unit: forkLowerLeg.unit },
             fullService: { value: Number(forkFullService.value) || 0, unit: forkFullService.unit },
           },
-      rearShock: shockSetting === 'keep'
-        ? { default: true }
-        : {
-            lowerLeg:    { value: Number(shockLowerLeg.value)    || 0, unit: shockLowerLeg.unit },
-            fullService: { value: Number(shockFullService.value) || 0, unit: shockFullService.unit },
-          },
+      ...(isFullSuspension && {
+        rearShock: shockSetting === 'keep'
+          ? { default: true }
+          : {
+              lowerLeg:    { value: Number(shockLowerLeg.value)    || 0, unit: shockLowerLeg.unit },
+              fullService: { value: Number(shockFullService.value) || 0, unit: shockFullService.unit },
+            },
+      }),
     } : undefined;
 
     try {
       await api.configureBike(bikeId, {
         bikeType:           current.type,
-        padType:            padType   || undefined,
-        brakeType:          brakeType || undefined,
+        padType:            padType        || undefined,
+        brakeType:          brakeType      || undefined,
+        suspensionType:     suspensionType || undefined,
         replacedComponents: [...replacedComponents],
         mileageBaselines,
         ...(mtbServiceIntervals && { mtbServiceIntervals }),
@@ -398,6 +412,7 @@ export default function AddBikeScreen({ onLogout }) {
               {[
                 { value: 'resin', label: 'Resin'    },
                 { value: 'metal', label: 'Metallic' },
+                ...(isMtb ? [{ value: 'oem', label: 'OEM' }] : []),
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -433,8 +448,37 @@ export default function AddBikeScreen({ onLogout }) {
         </div>
       )}
 
-      {/* ── Step 2: Components checklist ── */}
+      {/* ── Step 2: MTB suspension type (MTB only) ── */}
       {step === 2 && (
+        <div className="add-bike-body">
+          <h2 className="section-heading" style={{ marginBottom: 8 }}>
+            What type of MTB do you have?
+          </h2>
+          <p className="add-bike-tagline text-muted" style={{ marginBottom: 24 }}>
+            This determines which suspension components we track for you.
+          </p>
+          <div className="input-group pad-type-group">
+            <div className="pad-type-picker">
+              {[
+                { value: 'hardtail',        label: 'Hardtail' },
+                { value: 'full_suspension', label: 'Full Suspension' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pad-type-btn${suspensionType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                  onClick={() => setSuspensionType(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 3: Components checklist ── */}
+      {step === 3 && (
         <div className="add-bike-body components-body">
           <div className="components-heading">
             <h2 className="section-heading">Replaced any components?</h2>
@@ -457,8 +501,8 @@ export default function AddBikeScreen({ onLogout }) {
         </div>
       )}
 
-      {/* ── Step 3: Mileage baselines ── */}
-      {step === 3 && (
+      {/* ── Step 4: Mileage baselines ── */}
+      {step === 4 && (
         <div className="add-bike-body mileage-body">
           <div className="mileage-heading">
             <h2 className="section-heading">Component details</h2>
@@ -488,8 +532,8 @@ export default function AddBikeScreen({ onLogout }) {
         </div>
       )}
 
-      {/* ── Step 4: MTB notification settings ── */}
-      {step === 4 && (
+      {/* ── Step 5: MTB notification settings ── */}
+      {step === 5 && (
         <div className="add-bike-body mtb-settings-body">
           {/* Header: bike type + name with carousel */}
           <div className="mtb-step-header">
@@ -536,17 +580,19 @@ export default function AddBikeScreen({ onLogout }) {
             onFullServiceChange={setForkFullService}
           />
 
-          <ServiceIntervalSection
-            componentKey="rearShock"
-            title="Rear Shock"
-            notePart="rear shock"
-            setting={shockSetting}
-            onSettingChange={setShockSetting}
-            lowerLeg={shockLowerLeg}
-            onLowerLegChange={setShockLowerLeg}
-            fullService={shockFullService}
-            onFullServiceChange={setShockFullService}
-          />
+          {suspensionType === 'full_suspension' && (
+            <ServiceIntervalSection
+              componentKey="rearShock"
+              title="Rear Shock"
+              notePart="rear shock"
+              setting={shockSetting}
+              onSettingChange={setShockSetting}
+              lowerLeg={shockLowerLeg}
+              onLowerLegChange={setShockLowerLeg}
+              fullService={shockFullService}
+              onFullServiceChange={setShockFullService}
+            />
+          )}
         </div>
       )}
 
@@ -565,7 +611,7 @@ export default function AddBikeScreen({ onLogout }) {
           <>
             <button
               className="btn-pill btn-pill-gold"
-              onClick={() => setStep(2)}
+              onClick={handleStep1Next}
               disabled={!bikeId || bikesLoading || !padType || !brakeType}
             >
               Next
@@ -580,8 +626,8 @@ export default function AddBikeScreen({ onLogout }) {
           <>
             <button
               className="btn-pill btn-pill-gold"
-              onClick={handleStep2Next}
-              disabled={adding || success}
+              onClick={() => setStep(3)}
+              disabled={!suspensionType}
             >
               Next
             </button>
@@ -600,7 +646,7 @@ export default function AddBikeScreen({ onLogout }) {
             >
               Next
             </button>
-            <button className="auth-skip-btn" onClick={() => setStep(2)}>
+            <button className="auth-skip-btn" onClick={() => setStep(isMtb ? 2 : 1)}>
               Back
             </button>
           </>
@@ -610,12 +656,27 @@ export default function AddBikeScreen({ onLogout }) {
           <>
             <button
               className="btn-pill btn-pill-gold"
+              onClick={handleStep4Next}
+              disabled={adding || success}
+            >
+              Next
+            </button>
+            <button className="auth-skip-btn" onClick={() => setStep(3)}>
+              Back
+            </button>
+          </>
+        )}
+
+        {step === 5 && (
+          <>
+            <button
+              className="btn-pill btn-pill-gold"
               onClick={handleAdd}
               disabled={adding || success}
             >
               {adding ? 'Adding…' : 'Finish'}
             </button>
-            <button className="auth-skip-btn" onClick={handleStep4Back}>
+            <button className="auth-skip-btn" onClick={handleStep5Back}>
               Back
             </button>
           </>

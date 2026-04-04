@@ -73,9 +73,12 @@ function getBaselineItemIds(replacedComponents) {
 // Apply per-bike config filters to rules items
 function filterItems(items, bikeData) {
   return items.filter(item => {
-    if (item.padType   && bikeData.padType   && item.padType   !== bikeData.padType)   return false;
+    // OEM pad type means we have no information about pad type — show all brake pad items.
+    if (item.padType && bikeData.padType && bikeData.padType !== 'oem' && item.padType !== bikeData.padType) return false;
     if (item.brakeType && bikeData.brakeType && item.brakeType !== bikeData.brakeType) return false;
     if (item.tubelessOnly && !bikeData.isTubeless) return false;
+    // Rear shock items are only shown for full suspension bikes.
+    if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
     return true;
   });
 }
@@ -237,11 +240,11 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
     label: section.label,
     items: section.items
       .filter(item => {
-        // Mirror the padType and brakeType checks from filterItems so the service
-        // log dropdown shows only the brake variant that matches this bike's config.
+        // Mirror filterItems logic so the service log dropdown matches the bike's config.
         // tubelessOnly is intentionally omitted — users can still log sealant service.
-        if (item.padType   && bikeData.padType   && item.padType   !== bikeData.padType)   return false;
+        if (item.padType && bikeData.padType && bikeData.padType !== 'oem' && item.padType !== bikeData.padType) return false;
         if (item.brakeType && bikeData.brakeType && item.brakeType !== bikeData.brakeType) return false;
+        if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
         return true;
       })
       .map(item => ({

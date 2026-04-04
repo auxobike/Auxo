@@ -107,9 +107,9 @@ const RULES = {
           { id: 'fork_pressure',          label: 'Fork',               action: 'Check air pressure',      trigger: { type: 'days', every: 30 } },
           { id: 'fork_lower_service',     label: 'Fork Lower Legs',    action: 'Service',                 trigger: { type: 'hours_user_defined', suggestedMin: 30, suggestedMax: 100 } },
           { id: 'fork_full_service',      label: 'Fork',               action: 'Full service',            trigger: { type: 'hours_or_days', hours: 100, days: 365 } },
-          { id: 'rear_shock_pressure',    label: 'Rear Shock',         action: 'Check air pressure',      trigger: { type: 'days', every: 30 } },
-          { id: 'rear_shock_air_service', label: 'Rear Shock Air Can', action: 'Service',                 trigger: { type: 'hours_user_defined', suggestedMin: 30, suggestedMax: 100 } },
-          { id: 'rear_shock_full_service',label: 'Rear Shock',         action: 'Full service (damper/can)',trigger: { type: 'hours_or_days', hours: 100, days: 365 } },
+          { id: 'rear_shock_pressure',    label: 'Rear Shock',         action: 'Check air pressure',      suspensionType: 'full_suspension', trigger: { type: 'days', every: 30 } },
+          { id: 'rear_shock_air_service', label: 'Rear Shock Air Can', action: 'Service',                 suspensionType: 'full_suspension', trigger: { type: 'hours_user_defined', suggestedMin: 30, suggestedMax: 100 } },
+          { id: 'rear_shock_full_service',label: 'Rear Shock',         action: 'Full service (damper/can)',suspensionType: 'full_suspension', trigger: { type: 'hours_or_days', hours: 100, days: 365 } },
         ],
       },
       {
