@@ -220,6 +220,12 @@ router.get('/strava/callback', async (req, res) => {
       hasAccessToken: !!req.session.access_token,
       userId:         req.session.userId,
     });
+
+    // Log the approximate serialized session size so we can confirm it fits
+    // in the ~4 KB cookie limit and that the cookie is being written.
+    const sessionBytes = Buffer.byteLength(JSON.stringify(req.session), 'utf8');
+    console.log('[callback] session payload ~bytes:', sessionBytes, '(limit ~3900 before base64)');
+
     res.redirect('/dashboard');
   } catch (err) {
     console.error('[callback] Strava OAuth error — POST https://www.strava.com/oauth/token');
@@ -272,8 +278,16 @@ router.post('/refresh', async (req, res) => {
 
 // GET /auth/me
 router.get('/me', (req, res) => {
+  console.log('[me] session keys:', req.session ? Object.keys(req.session) : 'NO SESSION');
+  console.log('[me] session state:', {
+    hasAthlete:     !!req.session?.athlete,
+    hasAccessToken: !!req.session?.access_token,
+    userId:         req.session?.userId,
+  });
+
   // Must have either a Strava athlete or an email/password user in session
-  if (!req.session.athlete && !req.session.userId) {
+  if (!req.session?.athlete && !req.session?.userId) {
+    console.log('[me] → 401 unauthenticated — session empty or missing');
     return res.status(401).json({ authenticated: false });
   }
 
@@ -281,6 +295,7 @@ router.get('/me', (req, res) => {
   const stravaLinked = user ? user.stravaLinked : !!req.session.athlete;
   const athlete      = req.session.athlete || null;
 
+  console.log('[me] → 200 authenticated — stravaLinked:', stravaLinked, '| hasUser:', !!user);
   res.json({
     authenticated: true,
     athlete,
