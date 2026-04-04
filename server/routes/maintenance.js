@@ -70,12 +70,32 @@ function getBaselineItemIds(replacedComponents) {
   return ids;
 }
 
+// Normalize road/gravel pad types to the values used in maintenance rule items.
+// MTB values (resin, metal, oem) pass through unchanged.
+const PAD_TYPE_NORM = {
+  carbon:        'resin',   // carbon rim pads → resin-style intervals
+  cork:          'resin',   // cork/rubber compound → resin-style intervals
+  wet_weather:   'resin',   // wet-weather pads → resin-style intervals
+  hard_compound: 'metal',   // hard compound → metal-style intervals
+  semi_metallic: 'metal',   // semi-metallic → metal-style intervals
+};
+
+// Normalize road/gravel brake types to the values used in maintenance rule items.
+// MTB values (hydraulic, mechanical) pass through unchanged.
+const BRAKE_TYPE_NORM = {
+  disc:       'hydraulic', // disc (hydraulic actuation assumed) → hydraulic bleed applies
+  cantilever: 'rim',       // cantilever → same maintenance items as rim
+};
+
 // Apply per-bike config filters to rules items
 function filterItems(items, bikeData) {
+  const effectivePadType   = PAD_TYPE_NORM[bikeData.padType]   ?? bikeData.padType;
+  const effectiveBrakeType = BRAKE_TYPE_NORM[bikeData.brakeType] ?? bikeData.brakeType;
+
   return items.filter(item => {
-    // OEM pad type means we have no information about pad type — show all brake pad items.
-    if (item.padType && bikeData.padType && bikeData.padType !== 'oem' && item.padType !== bikeData.padType) return false;
-    if (item.brakeType && bikeData.brakeType && item.brakeType !== bikeData.brakeType) return false;
+    // OEM pad type means pad material is unknown — show all brake pad items.
+    if (item.padType && effectivePadType && effectivePadType !== 'oem' && item.padType !== effectivePadType) return false;
+    if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
     if (item.tubelessOnly && !bikeData.isTubeless) return false;
     // Rear shock items are only shown for full suspension bikes.
     if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
@@ -255,8 +275,10 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
       .filter(item => {
         // Mirror filterItems logic so the service log dropdown matches the bike's config.
         // tubelessOnly is intentionally omitted — users can still log sealant service.
-        if (item.padType && bikeData.padType && bikeData.padType !== 'oem' && item.padType !== bikeData.padType) return false;
-        if (item.brakeType && bikeData.brakeType && item.brakeType !== bikeData.brakeType) return false;
+        const effectivePadType   = PAD_TYPE_NORM[bikeData.padType]    ?? bikeData.padType;
+        const effectiveBrakeType = BRAKE_TYPE_NORM[bikeData.brakeType] ?? bikeData.brakeType;
+        if (item.padType && effectivePadType && effectivePadType !== 'oem' && item.padType !== effectivePadType) return false;
+        if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
         if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
         return true;
       })

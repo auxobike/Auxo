@@ -175,6 +175,13 @@
   color: var(--accent);
 }
 
+.add-brake-note {
+  font-size: 0.82rem;
+  color: var(--accent);
+  padding: 6px 4px;
+  opacity: 0.85;
+}
+
 .input-field option {
   background: var(--bg-dark);
   color: var(--white);

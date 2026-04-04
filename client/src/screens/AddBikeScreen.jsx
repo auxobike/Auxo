@@ -174,6 +174,7 @@ export default function AddBikeScreen({ onLogout }) {
   const [bikeId,             setBikeId]             = useState('');
   const [padType,            setPadType]            = useState('');
   const [brakeType,          setBrakeType]          = useState('');
+  const [rimMaterial,        setRimMaterial]        = useState('');
   const [suspensionType,     setSuspensionType]     = useState('');
   const [replacedComponents, setReplacedComponents] = useState(new Set());
   const [componentMileage,   setComponentMileage]   = useState({});
@@ -185,6 +186,14 @@ export default function AddBikeScreen({ onLogout }) {
   const [shockSetting,     setShockSetting]     = useState('keep');
   const [shockLowerLeg,    setShockLowerLeg]    = useState({ value: '', unit: 'Hours' });
   const [shockFullService, setShockFullService] = useState({ value: '', unit: 'Hours' });
+
+  // Reset brake selections whenever the bike type changes in the carousel
+  useEffect(() => {
+    setPadType('');
+    setBrakeType('');
+    setRimMaterial('');
+    setSuspensionType('');
+  }, [index]);
 
   useEffect(() => {
     api.getBikes()
@@ -306,6 +315,7 @@ export default function AddBikeScreen({ onLogout }) {
         bikeType:           current.type,
         padType:            padType        || undefined,
         brakeType:          brakeType      || undefined,
+        rimMaterial:        rimMaterial    || undefined,
         suspensionType:     suspensionType || undefined,
         replacedComponents: [...replacedComponents],
         mileageBaselines,
@@ -406,46 +416,159 @@ export default function AddBikeScreen({ onLogout }) {
             )}
           </div>
 
-          {/* Brake pad type */}
-          <div className="input-group pad-type-group">
-            <span className="input-label">Brake Pad Type</span>
-            <div className="pad-type-picker">
-              {[
-                { value: 'resin', label: 'Resin'    },
-                { value: 'metal', label: 'Metallic' },
-                ...(isMtb ? [{ value: 'oem', label: 'OEM' }] : []),
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  className={`pad-type-btn${padType === opt.value ? ' pad-type-btn--selected' : ''}`}
-                  onClick={() => setPadType(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* ── Brake configuration ── */}
+          {isMtb ? (
+            <>
+              {/* MTB: simple pad type + system type */}
+              <div className="input-group pad-type-group">
+                <span className="input-label">Brake Pad Type</span>
+                <div className="pad-type-picker">
+                  {[
+                    { value: 'resin', label: 'Resin'    },
+                    { value: 'metal', label: 'Metallic' },
+                    { value: 'oem',   label: 'OEM'      },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`pad-type-btn${padType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                      onClick={() => setPadType(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Brake system type */}
-          <div className="input-group pad-type-group">
-            <span className="input-label">Brake System Type</span>
-            <div className="pad-type-picker">
-              {[
-                { value: 'hydraulic',  label: 'Hydraulic' },
-                { value: 'mechanical', label: 'Mechanical' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  className={`pad-type-btn${brakeType === opt.value ? ' pad-type-btn--selected' : ''}`}
-                  onClick={() => setBrakeType(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
+              <div className="input-group pad-type-group">
+                <span className="input-label">Brake System Type</span>
+                <div className="pad-type-picker">
+                  {[
+                    { value: 'hydraulic',  label: 'Hydraulic'  },
+                    { value: 'mechanical', label: 'Mechanical' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`pad-type-btn${brakeType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                      onClick={() => setBrakeType(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Road / Gravel: cascading brake questions */}
+              <div className="input-group pad-type-group">
+                <span className="input-label">Brake Type</span>
+                <div className="pad-type-picker">
+                  {[
+                    { value: 'rim',        label: 'Rim Brakes'        },
+                    { value: 'disc',       label: 'Disc Brakes'       },
+                    { value: 'cantilever', label: 'Cantilever Brakes' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`pad-type-btn${brakeType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                      onClick={() => {
+                        setBrakeType(opt.value);
+                        setRimMaterial('');
+                        setPadType('');
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Disc: pad compound */}
+              {brakeType === 'disc' && (
+                <div className="input-group pad-type-group">
+                  <span className="input-label">Pad Compound</span>
+                  <div className="pad-type-picker">
+                    {[
+                      { value: 'resin',         label: 'Resin'         },
+                      { value: 'metal',         label: 'Metallic'      },
+                      { value: 'semi_metallic', label: 'Semi-Metallic' },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`pad-type-btn${padType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                        onClick={() => setPadType(opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rim / Cantilever: rim material first */}
+              {(brakeType === 'rim' || brakeType === 'cantilever') && (
+                <div className="input-group pad-type-group">
+                  <span className="input-label">Wheel Rim Material</span>
+                  <div className="pad-type-picker">
+                    {[
+                      { value: 'carbon', label: 'Carbon' },
+                      { value: 'alloy',  label: 'Alloy'  },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`pad-type-btn${rimMaterial === opt.value ? ' pad-type-btn--selected' : ''}`}
+                        onClick={() => {
+                          setRimMaterial(opt.value);
+                          if (opt.value === 'carbon') {
+                            setPadType('carbon');
+                          } else {
+                            setPadType('');
+                          }
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Carbon rims: auto note */}
+              {rimMaterial === 'carbon' && (
+                <p className="add-brake-note">
+                  Carbon-specific pads selected automatically.
+                </p>
+              )}
+
+              {/* Alloy rims: pad sub-selection */}
+              {rimMaterial === 'alloy' && (
+                <div className="input-group pad-type-group">
+                  <span className="input-label">Pad Type</span>
+                  <div className="pad-type-picker">
+                    {[
+                      { value: 'cork',          label: 'Cork / Rubber'  },
+                      { value: 'wet_weather',   label: 'Wet Weather'    },
+                      { value: 'hard_compound', label: 'Hard Compound'  },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`pad-type-btn${padType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                        onClick={() => setPadType(opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -613,7 +736,16 @@ export default function AddBikeScreen({ onLogout }) {
             <button
               className="btn-pill btn-pill-gold"
               onClick={handleStep1Next}
-              disabled={!bikeId || bikesLoading || !padType || !brakeType}
+              disabled={
+                !bikeId || bikesLoading ||
+                (isMtb
+                  ? (!padType || !brakeType)
+                  : (!brakeType ||
+                     (brakeType === 'disc' && !padType) ||
+                     ((brakeType === 'rim' || brakeType === 'cantilever') &&
+                      (!rimMaterial || (rimMaterial === 'alloy' && !padType))))
+                )
+              }
             >
               Next
             </button>
