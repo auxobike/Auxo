@@ -35,9 +35,9 @@ export const api = {
     body: JSON.stringify({ email, password }),
   }),
   connectStrava: () => {
-    // Hard redirect must go directly to the backend (not through the Vite proxy)
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    window.location.href = `${backendUrl}/auth/strava`;
+    // Relative path works in both dev (Vite proxies /auth → localhost:3001)
+    // and production (same domain, Express handles /auth directly).
+    window.location.href = '/auth/strava';
   },
 
   // Strava
