@@ -56,6 +56,14 @@ const SESSION_DIR = path.join(__dirname, 'data/sessions');
 fs.mkdirSync(SESSION_DIR, { recursive: true });
 console.log('[session] store path:', SESSION_DIR);
 
+const sessionCookieConfig = {
+  httpOnly: true,
+  secure:   isProduction,
+  sameSite: 'lax',
+  maxAge:   24 * 60 * 60 * 1000,
+};
+console.log('[session] cookie config:', sessionCookieConfig);
+
 app.use(session({
   store: new FileStore({
     path:         SESSION_DIR,
@@ -66,12 +74,7 @@ app.use(session({
   secret:            process.env.SESSION_SECRET || 'dev-secret',
   resave:            false,
   saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure:   isProduction,
-    sameSite: 'lax',
-    maxAge:   24 * 60 * 60 * 1000,
-  },
+  cookie:            sessionCookieConfig,
 }));
 
 app.use('/auth', authRoutes);

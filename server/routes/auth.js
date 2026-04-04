@@ -1,6 +1,8 @@
 const express = require('express');
 const axios   = require('axios');
 const bcrypt  = require('bcrypt');
+const fs      = require('fs');
+const path    = require('path');
 const router  = express.Router();
 
 const { findByEmail, findById, createUser, updateUser, publicUser } = require('../utils/userStore');
@@ -216,7 +218,16 @@ router.get('/strava/callback', async (req, res) => {
       if (saveErr) {
         console.error('[callback] session.save() error:', saveErr);
       } else {
-        console.log('[callback] session.save() succeeded — redirecting to /dashboard');
+        const sessionFile = path.join(__dirname, '../data/sessions', req.sessionID + '.json');
+        const fileExists  = fs.existsSync(sessionFile);
+        console.log('[callback] session.save() succeeded');
+        console.log('[callback] sessionID:', req.sessionID);
+        console.log('[callback] session file on disk:', fileExists, '—', sessionFile);
+        console.log('[callback] session data written:', {
+          userId:         req.session.userId,
+          hasAthlete:     !!req.session.athlete,
+          hasAccessToken: !!req.session.access_token,
+        });
       }
       res.redirect('/dashboard');
     });
