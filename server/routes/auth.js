@@ -292,7 +292,7 @@ router.get('/me', (req, res) => {
   }
 
   const user         = req.session.userId ? findById(req.session.userId) : null;
-  const stravaLinked = user ? user.stravaLinked : !!req.session.athlete;
+  const stravaLinked = !!req.session.access_token;
   const athlete      = req.session.athlete || null;
 
   console.log('[me] → 200 authenticated — stravaLinked:', stravaLinked, '| hasUser:', !!user);
