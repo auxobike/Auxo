@@ -101,7 +101,7 @@ router.post('/login', async (req, res) => {
 
 // GET /auth/strava — redirect to Strava authorization page
 router.get('/strava', (req, res) => {
-  console.log('[auth/strava] hit — sessionID:', req.sessionID);
+  console.log('[auth/strava] hit — userId in session:', req.session.userId);
   console.log('[auth/strava] session state:', {
     userId:     req.session.userId,
     hasAthlete: !!req.session.athlete,
@@ -126,7 +126,7 @@ router.get('/strava', (req, res) => {
 router.get('/strava/callback', async (req, res) => {
   const { code, error } = req.query;
 
-  console.log('[callback] hit — sessionID:', req.sessionID);
+  console.log('[callback] hit — userId in session:', req.session.userId);
   console.log('[callback] query:', req.query);
   console.log('[callback] session before token exchange:', {
     userId:          req.session.userId,

@@ -57,10 +57,11 @@ const sessionCookieConfig = {
   maxAge:   24 * 60 * 60 * 1000, // 1 day
 };
 console.log('[session] cookie-session config:', {
-  httpOnly: sessionCookieConfig.httpOnly,
-  secure:   sessionCookieConfig.secure,
-  sameSite: sessionCookieConfig.sameSite,
-  maxAge:   sessionCookieConfig.maxAge,
+  httpOnly:              sessionCookieConfig.httpOnly,
+  secure:                sessionCookieConfig.secure,
+  sameSite:              sessionCookieConfig.sameSite,
+  maxAge:                sessionCookieConfig.maxAge,
+  SESSION_SECRET_length: (process.env.SESSION_SECRET || '').length, // 0 = not set in Railway
 });
 
 app.use(cookieSession(sessionCookieConfig));
