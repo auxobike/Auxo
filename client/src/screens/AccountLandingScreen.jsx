@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '../components/AppHeader';
+import { api } from '../api';
 import './AccountLandingScreen.css';
 
 export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLogout }) {
@@ -11,6 +13,11 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
   ];
   const navigate = useNavigate();
   const firstname = athlete?.firstname || 'Rider';
+
+  const [summary, setSummary] = useState(null);
+  useEffect(() => {
+    api.getSummary().then(setSummary).catch(() => {});
+  }, []);
 
   return (
     <div className="screen landing-screen">
@@ -42,17 +49,27 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
         <div className="landing-stats">
           <div className="stat-pill">
             <span className="stat-label">Bikes</span>
-            <span className="stat-value text-accent">—</span>
+            <span className="stat-value text-accent">
+              {summary ? summary.bikeCount : '—'}
+            </span>
           </div>
           <div className="stat-divider" />
           <div className="stat-pill">
             <span className="stat-label">Items due</span>
-            <span className="stat-value text-accent">—</span>
+            <span className="stat-value text-accent">
+              {summary ? summary.itemsDue : '—'}
+            </span>
           </div>
           <div className="stat-divider" />
           <div className="stat-pill">
             <span className="stat-label">Last ride</span>
-            <span className="stat-value text-accent">—</span>
+            <span className="stat-value text-accent">
+              {summary
+                ? summary.lastRide
+                  ? new Date(summary.lastRide + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  : '—'
+                : '—'}
+            </span>
           </div>
         </div>
       </main>

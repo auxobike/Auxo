@@ -4,6 +4,7 @@ const bcrypt  = require('bcrypt');
 const router  = express.Router();
 
 const { findByEmail, findById, createUser, updateUser, publicUser } = require('../utils/userStore');
+const { getConfiguredBikeIds } = require('../utils/store');
 
 const {
   STRAVA_CLIENT_ID,
@@ -226,7 +227,11 @@ router.get('/strava/callback', async (req, res) => {
     const sessionBytes = Buffer.byteLength(JSON.stringify(req.session), 'utf8');
     console.log('[callback] session payload ~bytes:', sessionBytes, '(limit ~3900 before base64)');
 
-    res.redirect('/dashboard');
+    // New users (no configured bikes) go to /add-bike; returning users go to /dashboard.
+    const configuredIds = await getConfiguredBikeIds();
+    const redirectTo = configuredIds.length === 0 ? '/add-bike' : '/dashboard';
+    console.log('[callback] configured bikes:', configuredIds.length, '→ redirecting to', redirectTo);
+    res.redirect(redirectTo);
   } catch (err) {
     console.error('[callback] Strava OAuth error — POST https://www.strava.com/oauth/token');
     console.error('[callback] request body sent:', logBody.toString());

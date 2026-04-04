@@ -248,6 +248,86 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
   res.json({ bikeId, bikeType: bikeData.bikeType, sections });
 });
 
+// GET /api/maintenance/summary
+// Returns bikeCount, itemsDue (due+overdue across all bikes), and lastRide date.
+// Used by AccountLandingScreen to populate the quick-stats strip.
+router.get('/summary', requireAuth, async (req, res) => {
+  try {
+    const bikeIds = await getConfiguredBikeIds();
+    const bikeCount = bikeIds.length;
+
+    // Fetch maintenance status for each configured bike in parallel.
+    // We need a Strava token — if the session has one, use it; otherwise skip counts.
+    let itemsDue = 0;
+    if (req.session.access_token && bikeCount > 0) {
+      const results = await Promise.allSettled(
+        bikeIds.map(async bikeId => {
+          const [bikeData, stravaState] = await Promise.all([
+            getBikeData(bikeId),
+            fetchStravaState(bikeId, req.session.access_token),
+          ]);
+          if (!bikeData?.bikeType) return 0;
+          const rules = RULES[bikeData.bikeType];
+          if (!rules) return 0;
+
+          const bikeState = {
+            currentMileage:    stravaState.currentMileage,
+            currentRideCount:  stravaState.currentRideCount,
+            rideHours:         stravaState.rideHours,
+            chainReplacements: bikeData.chainReplacements || 0,
+          };
+
+          const baselineItemIds = getBaselineItemIds(bikeData.replacedComponents);
+          const baselineLog = baselineItemIds.size > 0 ? {
+            lastServiceDate:       new Date().toISOString().split('T')[0],
+            lastServiceMileage:    Math.round(stravaState.currentMileage),
+            lastServiceRideCount:  stravaState.currentRideCount,
+            lastServiceHours:      Math.round(stravaState.rideHours * 10) / 10,
+            lastChainReplacements: bikeData.chainReplacements || 0,
+            baseline: true,
+          } : null;
+
+          let count = 0;
+          for (const section of rules.sections) {
+            for (const item of filterItems(section.items, bikeData)) {
+              const existingLog = bikeData.serviceLogs?.[item.id] || null;
+              const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
+              const status = getItemStatus(item, serviceLog, bikeState);
+              if (status === 'due' || status === 'overdue') count++;
+            }
+          }
+          return count;
+        }),
+      );
+      for (const r of results) {
+        if (r.status === 'fulfilled') itemsDue += r.value;
+      }
+    }
+
+    // Last ride — fetch only the most recent activity
+    let lastRide = null;
+    if (req.session.access_token) {
+      try {
+        const actRes = await axios.get('https://www.strava.com/api/v3/athlete/activities', {
+          headers: { Authorization: `Bearer ${req.session.access_token}` },
+          params: { per_page: 1 },
+        });
+        const latest = actRes.data[0];
+        if (latest?.start_date_local) {
+          lastRide = latest.start_date_local.split('T')[0]; // YYYY-MM-DD
+        }
+      } catch (e) {
+        console.error('[summary] last ride fetch error:', e.message);
+      }
+    }
+
+    res.json({ bikeCount, itemsDue, lastRide });
+  } catch (err) {
+    console.error('[summary] error:', err.message);
+    res.status(500).json({ error: 'Failed to load summary' });
+  }
+});
+
 // GET /api/maintenance/rules
 // Returns the full rule set (used by the frontend to know available bike types)
 router.get('/rules', requireAuth, (req, res) => {
