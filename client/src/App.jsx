@@ -13,7 +13,8 @@ import BikeInspector        from './screens/BikeInspector';
 import AddServiceLogScreen  from './screens/AddServiceLogScreen';
 import BookServiceScreen    from './screens/BookServiceScreen';
 import AdminShopsScreen    from './screens/AdminShopsScreen';
-import ProfileScreen       from './screens/ProfileScreen';
+import ProfileScreen             from './screens/ProfileScreen';
+import ServiceIntervalsScreen   from './screens/ServiceIntervalsScreen';
 
 import './styles/design-system.css';
 
@@ -172,6 +173,14 @@ export default function App() {
           element={
             <RequireStrava session={session}>
               <BikeInspector onLogout={handleLogout} />
+            </RequireStrava>
+          }
+        />
+        <Route
+          path="/maintenance/:bikeId/intervals"
+          element={
+            <RequireStrava session={session}>
+              <ServiceIntervalsScreen onLogout={handleLogout} />
             </RequireStrava>
           }
         />

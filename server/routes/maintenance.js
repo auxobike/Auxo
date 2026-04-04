@@ -154,7 +154,10 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
         return {
           ...item,
           serviceLog,
-          status: getItemStatus(item, serviceLog, bikeState, { warnFraction }),
+          status: getItemStatus(item, serviceLog, bikeState, {
+            warnFraction,
+            customInterval: bikeData.customIntervals?.[item.id] ?? null,
+          }),
         };
       }),
     })).filter(s => s.items.length > 0);
@@ -175,6 +178,27 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Maintenance status error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch maintenance status' });
+  }
+});
+
+// PUT /api/maintenance/bikes/:bikeId/intervals
+// Save custom interval overrides for individual maintenance items.
+// Body: { intervals: { [itemId]: { value: N, unit: string } } }
+// Replaces the entire customIntervals map on the bike record.
+router.put('/bikes/:bikeId/intervals', requireAuth, async (req, res) => {
+  const { bikeId }    = req.params;
+  const { intervals } = req.body;
+
+  if (!intervals || typeof intervals !== 'object') {
+    return res.status(400).json({ error: 'intervals object is required' });
+  }
+
+  try {
+    const updated = await setBikeConfig(bikeId, { customIntervals: intervals });
+    res.json({ success: true, customIntervals: updated.customIntervals ?? {} });
+  } catch (err) {
+    console.error('[intervals] PUT error:', err.message);
+    res.status(500).json({ error: 'Failed to save intervals.' });
   }
 });
 
@@ -283,13 +307,19 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
         return true;
       })
       .map(item => ({
-        id:     item.id,
-        label:  item.label,
-        action: item.action,
+        id:      item.id,
+        label:   item.label,
+        action:  item.action,
+        trigger: item.trigger,
       })),
   })).filter(s => s.items.length > 0);
 
-  res.json({ bikeId, bikeType: bikeData.bikeType, sections });
+  res.json({
+    bikeId,
+    bikeType:        bikeData.bikeType,
+    sections,
+    customIntervals: bikeData.customIntervals ?? {},
+  });
 });
 
 // GET /api/maintenance/summary
@@ -340,7 +370,10 @@ router.get('/summary', requireAuth, async (req, res) => {
             for (const item of filterItems(section.items, bikeData)) {
               const existingLog = bikeData.serviceLogs?.[item.id] || null;
               const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
-              const { status } = getItemStatus(item, serviceLog, bikeState, { warnFraction });
+              const { status } = getItemStatus(item, serviceLog, bikeState, {
+                warnFraction,
+                customInterval: bikeData.customIntervals?.[item.id] ?? null,
+              });
               if (status === 'due' || status === 'overdue') count++;
             }
           }

@@ -38,7 +38,8 @@ function daysStatus(daysSince, threshold, warnFraction = 0.10) {
 //                           lastServiceHours, lastChainReplacements, userInterval }
 // bikeState  — { currentMileage, currentRideCount, rideHours, chainReplacements }
 function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
-  const warnFraction = opts.warnFraction ?? 0.10;
+  const warnFraction    = opts.warnFraction  ?? 0.10;
+  const customInterval  = opts.customInterval ?? null; // { value, unit } from bikeData.customIntervals
   const { trigger } = rule;
   const log = serviceLog || {};
   const state = bikeState || {};
@@ -63,11 +64,12 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
 
   switch (trigger.type) {
     case 'miles': {
-      // If never serviced and firstAt is set, use firstAt; otherwise use every / thenEvery
+      // Custom interval overrides the rule; firstAt only applies if never serviced
       const hasBeenServiced = !!lastDate;
-      const threshold = (!hasBeenServiced && trigger.firstAt)
+      const ruleDefault = (!hasBeenServiced && trigger.firstAt)
         ? trigger.firstAt
         : (trigger.thenEvery || trigger.every);
+      const threshold = (customInterval?.unit === 'miles') ? customInterval.value : ruleDefault;
       const remaining = Math.max(0, threshold - milesSince);
       return {
         status: milesStatus(milesSince, threshold, warnFraction),
@@ -78,7 +80,7 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
     }
 
     case 'rides': {
-      const threshold = trigger.every;
+      const threshold = (customInterval?.unit === 'rides') ? customInterval.value : trigger.every;
       const remaining = Math.max(0, threshold - ridesSince);
       let status = STATUS.OK;
       if (ridesSince >= threshold)          status = STATUS.DUE;
@@ -87,7 +89,7 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
     }
 
     case 'days': {
-      const threshold = trigger.every;
+      const threshold = (customInterval?.unit === 'days') ? customInterval.value : trigger.every;
       const d = daysSince !== null ? daysSince : Infinity;
       const remaining = Math.max(0, threshold - (d === Infinity ? threshold : d));
       return {
@@ -99,21 +101,23 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
     }
 
     case 'miles_or_days': {
-      const mStat = milesStatus(milesSince, trigger.miles, warnFraction);
-      const dStat = daysStatus(daysSince, trigger.days, warnFraction);
+      const milesThresh = (customInterval?.unit === 'miles') ? customInterval.value : trigger.miles;
+      const daysThresh  = (customInterval?.unit === 'days')  ? customInterval.value : trigger.days;
+      const mStat = milesStatus(milesSince, milesThresh, warnFraction);
+      const dStat = daysStatus(daysSince, daysThresh, warnFraction);
       return {
         status: worstStatus(mStat, dStat),
         milesSince: Math.round(milesSince),
-        milesThreshold: trigger.miles,
-        milesRemaining: Math.max(0, Math.round(trigger.miles - milesSince)),
+        milesThreshold: milesThresh,
+        milesRemaining: Math.max(0, Math.round(milesThresh - milesSince)),
         daysSince,
-        daysThreshold: trigger.days,
-        daysRemaining: daysSince !== null ? Math.max(0, trigger.days - daysSince) : 0,
+        daysThreshold: daysThresh,
+        daysRemaining: daysSince !== null ? Math.max(0, daysThresh - daysSince) : 0,
       };
     }
 
     case 'chain_replacements': {
-      const threshold = trigger.every;
+      const threshold = (customInterval?.unit === 'chains') ? customInterval.value : trigger.every;
       const remaining = Math.max(0, threshold - chainsSince);
       let status = STATUS.OK;
       if (chainsSince >= threshold)          status = STATUS.DUE;
@@ -122,7 +126,9 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
     }
 
     case 'hours_or_days': {
-      const hoursThreshold = userInterval || trigger.hours;
+      // custom interval > log userInterval > rule default
+      const hoursThreshold = (customInterval?.unit === 'hours') ? customInterval.value
+                           : (userInterval || trigger.hours);
       const hStat = hoursSince >= hoursThreshold * 1.15               ? STATUS.OVERDUE
                   : hoursSince >= hoursThreshold                       ? STATUS.DUE
                   : hoursSince >= hoursThreshold * (1 - warnFraction)  ? STATUS.DUE_SOON
@@ -136,12 +142,13 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
         daysSince,
         daysThreshold: trigger.days,
         daysRemaining: daysSince !== null ? Math.max(0, trigger.days - daysSince) : 0,
-        isUserDefined: !!userInterval,
+        isUserDefined: !!(customInterval || userInterval),
       };
     }
 
     case 'hours_user_defined': {
-      const interval = userInterval || trigger.suggestedMin;
+      const interval = (customInterval?.unit === 'hours') ? customInterval.value
+                     : (userInterval || trigger.suggestedMin);
       const hStat = hoursSince >= interval * 1.15              ? STATUS.OVERDUE
                   : hoursSince >= interval                      ? STATUS.DUE
                   : hoursSince >= interval * (1 - warnFraction) ? STATUS.DUE_SOON
@@ -151,7 +158,7 @@ function getItemStatus(rule, serviceLog, bikeState, opts = {}) {
         hoursSince: Math.round(hoursSince * 10) / 10,
         interval,
         remaining: Math.max(0, Math.round((interval - hoursSince) * 10) / 10),
-        isUserDefined: !!userInterval,
+        isUserDefined: !!(customInterval || userInterval),
         suggestedMin: trigger.suggestedMin,
         suggestedMax: trigger.suggestedMax,
       };

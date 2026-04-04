@@ -322,7 +322,7 @@ export default function AddBikeScreen({ onLogout }) {
         ...(mtbServiceIntervals && { mtbServiceIntervals }),
       });
       setSuccess(true);
-      setTimeout(() => navigate(`/maintenance/${bikeId}`), 1500);
+      setTimeout(() => navigate(`/maintenance/${bikeId}/intervals`), 1500);
     } catch (err) {
       setAddError(err.message || 'Something went wrong. Please try again.');
     } finally {
