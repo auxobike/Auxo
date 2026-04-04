@@ -188,8 +188,14 @@ export default function BookServiceScreen({ onLogout }) {
   // Load Maps API on mount
   useEffect(() => {
     loadMapsAPI()
-      .then(() => setMapsLoaded(true))
-      .catch(() => setPhase('error'));
+      .then(() => {
+        console.log('[BookService] Maps API loaded');
+        setMapsLoaded(true);
+      })
+      .catch(err => {
+        console.error('[BookService] Maps API load failed:', err);
+        setPhase('error');
+      });
   }, []);
 
   // Request GPS once Maps API is ready
@@ -232,9 +238,11 @@ export default function BookServiceScreen({ onLogout }) {
     setSelectedPin(null);
 
     serviceRef.current = new window.google.maps.places.PlacesService(mapRef.current);
+    console.log('[BookService] running nearbySearch at', pendingCenter);
     serviceRef.current.nearbySearch(
       { location: pendingCenter, radius: 8000, type: 'bicycle_store', keyword: 'bicycle' },
       (results, status) => {
+        console.log('[BookService] nearbySearch status:', status, '| results:', results?.length ?? 0);
         const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
         if (!ok || !results?.length) { setPhase('ready'); return; }
 
@@ -282,13 +290,30 @@ export default function BookServiceScreen({ onLogout }) {
 
   function handleManualSearch(e) {
     e.preventDefault();
-    if (!manualQuery.trim() || !mapsLoaded) return;
+    console.log('[BookService] search tapped — query:', manualQuery, '| mapsLoaded:', mapsLoaded, '| phase:', phase);
+
+    if (!manualQuery.trim()) {
+      console.log('[BookService] empty query, returning');
+      return;
+    }
+    if (!mapsLoaded) {
+      console.log('[BookService] Maps API not loaded yet, returning');
+      return;
+    }
+
     const geocoder = new window.google.maps.Geocoder();
+    console.log('[BookService] geocoding:', manualQuery);
     geocoder.geocode({ address: manualQuery }, (results, status) => {
+      console.log('[BookService] geocode status:', status, '| results:', results?.length ?? 0);
       if (status === 'OK' && results[0]) {
         const loc = results[0].geometry.location;
+        const center = { lat: loc.lat(), lng: loc.lng() };
+        console.log('[BookService] geocode success — center:', center);
         setPhase('searching');
-        setPendingCenter({ lat: loc.lat(), lng: loc.lng() });
+        setPendingCenter(center);
+      } else {
+        console.error('[BookService] geocode failed — status:', status);
+        setPhase('manual');
       }
     });
   }
