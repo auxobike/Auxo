@@ -99,6 +99,8 @@ function filterItems(items, bikeData) {
     if (item.tubelessOnly && !bikeData.isTubeless) return false;
     // Rear shock items are only shown for full suspension bikes.
     if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
+    // Wire/housing replacement is irrelevant for electronic shifting.
+    if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
     return true;
   });
 }
@@ -216,16 +218,19 @@ router.delete('/bikes/:bikeId', requireAuth, async (req, res) => {
 });
 
 // PUT /api/maintenance/bikes/:bikeId
-// Configure a bike: bikeType, padType, brakeType, isTubeless, replacedComponents
+// Configure a bike. Accepts any subset of config fields and merges them into
+// the existing bike record (JSONB merge). Known fields include: bikeType,
+// padType, brakeType, rimMaterial, suspensionType, shiftingType, isTubeless,
+// replacedComponents, mileageBaselines, mtbServiceIntervals.
 router.put('/bikes/:bikeId', requireAuth, async (req, res) => {
-  const { bikeId } = req.params;
-  const { bikeType, padType, brakeType, isTubeless, replacedComponents } = req.body;
+  const { bikeId }  = req.params;
+  const { bikeType } = req.body;
 
   if (bikeType && !RULES[bikeType]) {
     return res.status(400).json({ error: `Invalid bikeType. Must be one of: ${Object.keys(RULES).join(', ')}` });
   }
 
-  const updated = await setBikeConfig(bikeId, { bikeType, padType, brakeType, isTubeless, replacedComponents });
+  const updated = await setBikeConfig(bikeId, req.body);
   res.json(updated);
 });
 
@@ -304,6 +309,7 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
         if (item.padType && effectivePadType && effectivePadType !== 'oem' && item.padType !== effectivePadType) return false;
         if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
         if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
+        if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
         return true;
       })
       .map(item => ({

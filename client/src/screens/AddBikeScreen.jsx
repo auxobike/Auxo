@@ -176,6 +176,8 @@ export default function AddBikeScreen({ onLogout }) {
   const [brakeType,          setBrakeType]          = useState('');
   const [rimMaterial,        setRimMaterial]        = useState('');
   const [suspensionType,     setSuspensionType]     = useState('');
+  const [shiftingType,       setShiftingType]       = useState('');  // 'mechanical' | 'electronic'
+  const [isTubeless,         setIsTubeless]         = useState(null); // null | true | false
   const [replacedComponents, setReplacedComponents] = useState(new Set());
   const [componentMileage,   setComponentMileage]   = useState({});
 
@@ -193,6 +195,8 @@ export default function AddBikeScreen({ onLogout }) {
     setBrakeType('');
     setRimMaterial('');
     setSuspensionType('');
+    setShiftingType('');
+    setIsTubeless(null);
   }, [index]);
 
   useEffect(() => {
@@ -317,6 +321,8 @@ export default function AddBikeScreen({ onLogout }) {
         brakeType:          brakeType      || undefined,
         rimMaterial:        rimMaterial    || undefined,
         suspensionType:     suspensionType || undefined,
+        shiftingType:       shiftingType   || undefined,
+        isTubeless:         isTubeless !== null ? isTubeless : undefined,
         replacedComponents: [...replacedComponents],
         mileageBaselines,
         ...(mtbServiceIntervals && { mtbServiceIntervals }),
@@ -414,6 +420,46 @@ export default function AddBikeScreen({ onLogout }) {
                 ))}
               </select>
             )}
+          </div>
+
+          {/* ── Shifting type ── */}
+          <div className="input-group pad-type-group">
+            <span className="input-label">Shifting Type</span>
+            <div className="pad-type-picker">
+              {[
+                { value: 'mechanical', label: 'Mechanical' },
+                { value: 'electronic', label: 'Electronic' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pad-type-btn${shiftingType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                  onClick={() => setShiftingType(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Tire setup ── */}
+          <div className="input-group pad-type-group">
+            <span className="input-label">Tire Setup</span>
+            <div className="pad-type-picker">
+              {[
+                { value: true,  label: 'Tubeless'    },
+                { value: false, label: 'With Tubes'  },
+              ].map(opt => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  className={`pad-type-btn${isTubeless === opt.value ? ' pad-type-btn--selected' : ''}`}
+                  onClick={() => setIsTubeless(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── Brake configuration ── */}
@@ -738,6 +784,7 @@ export default function AddBikeScreen({ onLogout }) {
               onClick={handleStep1Next}
               disabled={
                 !bikeId || bikesLoading ||
+                !shiftingType || isTubeless === null ||
                 (isMtb
                   ? (!padType || !brakeType)
                   : (!brakeType ||
