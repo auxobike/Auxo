@@ -240,17 +240,24 @@ export default function BookServiceScreen({ onLogout }) {
     serviceRef.current = new window.google.maps.places.PlacesService(mapRef.current);
     console.log('[BookService] running nearbySearch at', pendingCenter);
     serviceRef.current.nearbySearch(
-      { location: pendingCenter, radius: 8000, type: 'bicycle_store', keyword: 'bicycle' },
+      { location: pendingCenter, radius: 16000, type: 'bicycle_store', keyword: 'bicycle repair shop' },
       (results, status) => {
         console.log('[BookService] nearbySearch status:', status, '| results:', results?.length ?? 0);
         const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
         if (!ok || !results?.length) { setPhase('ready'); return; }
 
-        // Separate boosted from organic, sort each group by rating
-        const byRating = (a, b) => (b.rating || 0) - (a.rating || 0);
-        const boosted  = results.filter(p => featuredMap[p.place_id]).sort(byRating);
-        const organic  = results.filter(p => !featuredMap[p.place_id]).sort(byRating);
-        const ordered  = [...boosted, ...organic];
+        // Filter out shops focused on electric bikes, scooters, or mopeds
+        const EXCLUDE = /electric|e-bike|ebike|scooter|moped/i;
+        const filtered = results.filter(p => !EXCLUDE.test(p.name));
+
+        // Score by rating, with a small bonus for shops that have enough reviews
+        // to make the rating meaningful (more than 10).
+        const score = p => (p.rating || 0) + (p.user_ratings_total > 10 ? 0.1 : 0);
+        const byScore = (a, b) => score(b) - score(a);
+
+        const boosted = filtered.filter(p =>  featuredMap[p.place_id]).sort(byScore);
+        const organic = filtered.filter(p => !featuredMap[p.place_id]).sort(byScore);
+        const ordered = [...boosted, ...organic];
 
         ordered.forEach((place, idx) => {
           const boost      = featuredMap[place.place_id];
