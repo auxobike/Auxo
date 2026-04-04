@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(grep -n \"useEffect\\\\|useSearchParams\\\\|location\\\\|navigate\\\\|window.location\" /Users/deanngarcia/Documents/_BIZ/Auxo/client/src/screens/*.jsx)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }
