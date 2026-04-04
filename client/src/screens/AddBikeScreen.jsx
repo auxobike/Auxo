@@ -203,6 +203,7 @@ export default function AddBikeScreen({ onLogout }) {
   const current   = BIKES[index];
   const total     = BIKES.length;
   const isMtb     = current.type === 'mtb';
+  console.log('[AddBikeScreen] version: MTB-suspension-update, isMtb:', current?.type === 'mtb');
 
   // Bike type carousel (step 1)
   function prev() { setIndex(i => (i - 1 + total) % total); }
