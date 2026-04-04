@@ -151,11 +151,13 @@ export default function BikeInspector({ onLogout }) {
   const { bikeId }  = useParams();
   const navigate    = useNavigate();
 
-  const [statusData,    setStatusData]    = useState(null);
-  const [loadingStatus, setLoadingStatus] = useState(true);
-  const [error,         setError]         = useState(null);
-  const [bikes,         setBikes]         = useState([]);
-  const [loggingItems,  setLoggingItems]  = useState(new Set());
+  const [statusData,       setStatusData]       = useState(null);
+  const [loadingStatus,    setLoadingStatus]    = useState(true);
+  const [error,            setError]            = useState(null);
+  const [bikes,            setBikes]            = useState([]);
+  const [loggingItems,     setLoggingItems]     = useState(new Set());
+  const [showForgetConfirm, setShowForgetConfirm] = useState(false);
+  const [forgetting,        setForgetting]        = useState(false);
 
   // Bike list for prev/next nav
   useEffect(() => {
@@ -176,6 +178,18 @@ export default function BikeInspector({ onLogout }) {
   }, [bikeId]);
 
   useEffect(() => { loadStatus(); }, [loadStatus]);
+
+  async function handleForgetBike() {
+    setForgetting(true);
+    try {
+      await api.deleteBike(bikeId);
+      navigate('/maintenance', { replace: true });
+    } catch (err) {
+      console.error('[BikeInspector] forget bike failed:', err.message);
+      setForgetting(false);
+      setShowForgetConfirm(false);
+    }
+  }
 
   async function handleLog(itemId) {
     setLoggingItems(prev => new Set(prev).add(itemId));
@@ -317,6 +331,38 @@ export default function BikeInspector({ onLogout }) {
           <button className="inspector-reset-link">
             Reset All Service Intervals
           </button>
+
+          {!showForgetConfirm ? (
+            <button
+              className="inspector-reset-link inspector-forget-link"
+              onClick={() => setShowForgetConfirm(true)}
+            >
+              Forget this bike
+            </button>
+          ) : (
+            <div className="inspector-forget-confirm">
+              <p className="inspector-forget-confirm-text">
+                Are you sure? This will remove all maintenance data for{' '}
+                <strong>{bikeName}</strong>.
+              </p>
+              <div className="inspector-forget-confirm-actions">
+                <button
+                  className="inspector-forget-cancel"
+                  onClick={() => setShowForgetConfirm(false)}
+                  disabled={forgetting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="inspector-forget-delete"
+                  onClick={handleForgetBike}
+                  disabled={forgetting}
+                >
+                  {forgetting ? 'Removing…' : 'Yes, Forget'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

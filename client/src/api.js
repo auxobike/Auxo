@@ -60,6 +60,7 @@ export const api = {
   }),
   getServiceHistory: (bikeId, itemId) => apiFetch(`/api/maintenance/history/${bikeId}/${itemId}`),
   getSummary: () => apiFetch('/api/maintenance/summary'),
+  deleteBike: (bikeId) => apiFetch(`/api/maintenance/bikes/${bikeId}`, { method: 'DELETE' }),
 
   // Profile / account management
   changePassword: (currentPassword, newPassword, confirm) => apiFetch('/auth/change-password', {

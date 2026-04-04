@@ -4,7 +4,7 @@ const axios   = require('axios');
 const requireAuth             = require('../middleware/requireAuth');
 const RULES                   = require('../data/maintenanceRules');
 const { getItemStatus, getBikeSummary } = require('../utils/maintenanceCalculator');
-const { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds } = require('../utils/store');
+const { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds, deleteBikeData } = require('../utils/store');
 const { findById }            = require('../utils/userStore');
 
 const router = express.Router();
@@ -155,6 +155,19 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Maintenance status error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch maintenance status' });
+  }
+});
+
+// DELETE /api/maintenance/bikes/:bikeId
+// Remove all maintenance data for a bike.
+router.delete('/bikes/:bikeId', requireAuth, async (req, res) => {
+  const { bikeId } = req.params;
+  try {
+    await deleteBikeData([bikeId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[maintenance] delete bike error:', err.message);
+    res.status(500).json({ error: 'Failed to remove bike data.' });
   }
 });
 
