@@ -182,10 +182,10 @@ export default function EditBikeSettingsScreen({ onLogout }) {
           <Picker
             label="Brake Pad Type"
             options={[
-              { value: 'resin',   label: 'Resin'    },
-              { value: 'metal',   label: 'Metallic' },
-              { value: 'oem',     label: 'OEM'      },
-              { value: 'unknown', label: 'Not sure' },
+              { value: 'resin',         label: 'Resin'         },
+              { value: 'metal',         label: 'Metallic'      },
+              { value: 'semi_metallic', label: 'Semi-Metallic' },
+              { value: 'unknown',       label: 'Not sure'      },
             ]}
             value={padType}
             onChange={setPadType}

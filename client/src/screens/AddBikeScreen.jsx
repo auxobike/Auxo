@@ -470,10 +470,10 @@ export default function AddBikeScreen({ onLogout }) {
                 <span className="input-label">Brake Pad Type</span>
                 <div className="pad-type-picker">
                   {[
-                    { value: 'resin',   label: 'Resin'     },
-                    { value: 'metal',   label: 'Metallic'  },
-                    { value: 'oem',     label: 'OEM'       },
-                    { value: 'unknown', label: 'Not sure'  },
+                    { value: 'resin',         label: 'Resin'         },
+                    { value: 'metal',         label: 'Metallic'      },
+                    { value: 'semi_metallic', label: 'Semi-Metallic' },
+                    { value: 'unknown',       label: 'Not sure'      },
                   ].map(opt => (
                     <button
                       key={opt.value}

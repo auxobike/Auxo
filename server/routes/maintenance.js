@@ -90,6 +90,8 @@ const PAD_TYPE_NORM = {
   wet_weather:   'resin',   // wet-weather pads → resin-style intervals
   hard_compound: 'metal',   // hard compound → metal-style intervals
   semi_metallic: 'metal',   // semi-metallic → metal-style intervals
+  oem:           'metal',   // legacy OEM value (now stored as semi_metallic) → metal intervals
+  unknown:       'metal',   // "not sure" → conservative metal-style intervals
 };
 
 // Normalize road/gravel brake types to the values used in maintenance rule items.
@@ -105,8 +107,7 @@ function filterItems(items, bikeData) {
   const effectiveBrakeType = BRAKE_TYPE_NORM[bikeData.brakeType] ?? bikeData.brakeType;
 
   return items.filter(item => {
-    // OEM / unknown pad type means pad material is unknown — show all brake pad items.
-    if (item.padType && effectivePadType && effectivePadType !== 'oem' && effectivePadType !== 'unknown' && item.padType !== effectivePadType) return false;
+    if (item.padType && effectivePadType && item.padType !== effectivePadType) return false;
     if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
     if (item.tubelessOnly && !bikeData.isTubeless) return false;
     // Rear shock items are only shown for full suspension bikes.
@@ -366,7 +367,7 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
         // tubelessOnly is intentionally omitted — users can still log sealant service.
         const effectivePadType   = PAD_TYPE_NORM[bikeData.padType]    ?? bikeData.padType;
         const effectiveBrakeType = BRAKE_TYPE_NORM[bikeData.brakeType] ?? bikeData.brakeType;
-        if (item.padType && effectivePadType && effectivePadType !== 'oem' && effectivePadType !== 'unknown' && item.padType !== effectivePadType) return false;
+        if (item.padType && effectivePadType && item.padType !== effectivePadType) return false;
         if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
         if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
         if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
