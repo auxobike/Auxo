@@ -271,7 +271,7 @@ const LINKED_ITEMS = {
   brake_metal_replace:    ['brake_metal_clean', 'brake_metal_check', 'brake_metal_inspect'],
   chain_replace:          ['chain_clean', 'chain_check'],
   chainring_replace:      ['chainring_check'],
-  tire_replace:           ['sealant_add'],
+  tires_check:            ['sealant_add'],
   fork_full_service:      ['fork_pressure', 'fork_lower_service'],
   rear_shock_full_service:['rear_shock_pressure', 'rear_shock_air_service'],
 };
