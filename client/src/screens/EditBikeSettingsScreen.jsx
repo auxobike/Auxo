@@ -135,6 +135,7 @@ export default function EditBikeSettingsScreen({ onLogout }) {
               { value: 'resin',         label: 'Resin'         },
               { value: 'metal',         label: 'Metallic'      },
               { value: 'semi_metallic', label: 'Semi-Metallic' },
+              { value: 'unknown',       label: 'Not sure'      },
             ]}
             value={padType}
             onChange={setPadType}
@@ -169,6 +170,7 @@ export default function EditBikeSettingsScreen({ onLogout }) {
               { value: 'cork',          label: 'Cork / Rubber' },
               { value: 'wet_weather',   label: 'Wet Weather'   },
               { value: 'hard_compound', label: 'Hard Compound' },
+              { value: 'unknown',       label: 'Not sure'      },
             ]}
             value={padType}
             onChange={setPadType}
@@ -180,9 +182,10 @@ export default function EditBikeSettingsScreen({ onLogout }) {
           <Picker
             label="Brake Pad Type"
             options={[
-              { value: 'resin', label: 'Resin'    },
-              { value: 'metal', label: 'Metallic' },
-              { value: 'oem',   label: 'OEM'      },
+              { value: 'resin',   label: 'Resin'    },
+              { value: 'metal',   label: 'Metallic' },
+              { value: 'oem',     label: 'OEM'      },
+              { value: 'unknown', label: 'Not sure' },
             ]}
             value={padType}
             onChange={setPadType}

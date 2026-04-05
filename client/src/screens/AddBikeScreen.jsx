@@ -470,9 +470,10 @@ export default function AddBikeScreen({ onLogout }) {
                 <span className="input-label">Brake Pad Type</span>
                 <div className="pad-type-picker">
                   {[
-                    { value: 'resin', label: 'Resin'    },
-                    { value: 'metal', label: 'Metallic' },
-                    { value: 'oem',   label: 'OEM'      },
+                    { value: 'resin',   label: 'Resin'     },
+                    { value: 'metal',   label: 'Metallic'  },
+                    { value: 'oem',     label: 'OEM'       },
+                    { value: 'unknown', label: 'Not sure'  },
                   ].map(opt => (
                     <button
                       key={opt.value}
@@ -541,6 +542,7 @@ export default function AddBikeScreen({ onLogout }) {
                       { value: 'resin',         label: 'Resin'         },
                       { value: 'metal',         label: 'Metallic'      },
                       { value: 'semi_metallic', label: 'Semi-Metallic' },
+                      { value: 'unknown',       label: 'Not sure'      },
                     ].map(opt => (
                       <button
                         key={opt.value}
@@ -600,6 +602,7 @@ export default function AddBikeScreen({ onLogout }) {
                       { value: 'cork',          label: 'Cork / Rubber'  },
                       { value: 'wet_weather',   label: 'Wet Weather'    },
                       { value: 'hard_compound', label: 'Hard Compound'  },
+                      { value: 'unknown',       label: 'Not sure'       },
                     ].map(opt => (
                       <button
                         key={opt.value}

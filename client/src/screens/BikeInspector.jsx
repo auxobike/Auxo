@@ -158,6 +158,7 @@ export default function BikeInspector({ onLogout }) {
   const [loggingItems,     setLoggingItems]     = useState(new Set());
   const [showForgetConfirm, setShowForgetConfirm] = useState(false);
   const [forgetting,        setForgetting]        = useState(false);
+  const [logError,          setLogError]          = useState(null);
 
   // Bike list for prev/next nav
   useEffect(() => {
@@ -192,12 +193,14 @@ export default function BikeInspector({ onLogout }) {
   }
 
   async function handleLog(itemId) {
+    setLogError(null);
     setLoggingItems(prev => new Set(prev).add(itemId));
     try {
       await api.logService(bikeId, itemId);
       await loadStatus();
     } catch (err) {
       console.error('[BikeInspector] log service failed:', err.message);
+      setLogError(err.message || 'Failed to log service. Please try again.');
     } finally {
       setLoggingItems(prev => {
         const next = new Set(prev);
@@ -319,6 +322,13 @@ export default function BikeInspector({ onLogout }) {
             />
           ))}
         </div>
+
+        {logError && (
+          <div className="inspector-log-error">
+            <p>{logError}</p>
+            <button onClick={() => setLogError(null)}>Dismiss</button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="inspector-footer">

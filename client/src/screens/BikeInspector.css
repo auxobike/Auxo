@@ -418,3 +418,33 @@
   background: rgba(200, 40, 40, 0.75);
   color: #fff;
 }
+
+.inspector-log-error {
+  margin: 0 var(--screen-pad);
+  padding: 10px 14px;
+  background: rgba(200, 40, 40, 0.15);
+  border: 1px solid rgba(200, 40, 40, 0.40);
+  border-radius: var(--radius-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inspector-log-error p {
+  margin: 0;
+  font-size: 0.83rem;
+  color: #f87171;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.inspector-log-error button {
+  background: none;
+  border: none;
+  color: rgba(248, 113, 113, 0.7);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex-shrink: 0;
+}

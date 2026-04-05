@@ -16,15 +16,27 @@ const METERS_PER_MILE = 1609.34;
 // Fetch current mileage, ride count, and ride hours for a bike from Strava.
 // Returns approximations based on the 200 most recent activities.
 async function fetchStravaState(bikeId, accessToken) {
-  const [gearRes, actRes] = await Promise.all([
-    axios.get(`https://www.strava.com/api/v3/gear/${bikeId}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    }),
-    axios.get('https://www.strava.com/api/v3/athlete/activities', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      params: { per_page: 200 },
-    }),
-  ]);
+  if (!accessToken) {
+    throw new Error('No Strava access token in session — user may need to re-link Strava');
+  }
+
+  let gearRes, actRes;
+  try {
+    [gearRes, actRes] = await Promise.all([
+      axios.get(`https://www.strava.com/api/v3/gear/${bikeId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }),
+      axios.get('https://www.strava.com/api/v3/athlete/activities', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: { per_page: 200 },
+      }),
+    ]);
+  } catch (err) {
+    const status  = err.response?.status;
+    const detail  = err.response?.data?.message || err.message;
+    console.error('[fetchStravaState] Strava API error — bikeId=%s status=%s detail=%s', bikeId, status, detail);
+    throw new Error(`Strava API error (${status ?? 'network'}): ${detail}`);
+  }
 
   const gear = gearRes.data;
   const bikeActivities = actRes.data.filter(a => a.gear_id === bikeId);
@@ -93,8 +105,8 @@ function filterItems(items, bikeData) {
   const effectiveBrakeType = BRAKE_TYPE_NORM[bikeData.brakeType] ?? bikeData.brakeType;
 
   return items.filter(item => {
-    // OEM pad type means pad material is unknown — show all brake pad items.
-    if (item.padType && effectivePadType && effectivePadType !== 'oem' && item.padType !== effectivePadType) return false;
+    // OEM / unknown pad type means pad material is unknown — show all brake pad items.
+    if (item.padType && effectivePadType && effectivePadType !== 'oem' && effectivePadType !== 'unknown' && item.padType !== effectivePadType) return false;
     if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
     if (item.tubelessOnly && !bikeData.isTubeless) return false;
     // Rear shock items are only shown for full suspension bikes.
@@ -282,8 +294,8 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
     const log = await logService(bikeId, itemId, entry);
     res.json({ success: true, log });
   } catch (err) {
-    console.error('Log service error:', err.message);
-    res.status(500).json({ error: 'Failed to log service' });
+    console.error('[log] bikeId=%s itemId=%s error: %s\n%s', bikeId, itemId, err.message, err.stack);
+    res.status(500).json({ error: err.message || 'Failed to log service' });
   }
 });
 
@@ -323,7 +335,7 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
         // tubelessOnly is intentionally omitted — users can still log sealant service.
         const effectivePadType   = PAD_TYPE_NORM[bikeData.padType]    ?? bikeData.padType;
         const effectiveBrakeType = BRAKE_TYPE_NORM[bikeData.brakeType] ?? bikeData.brakeType;
-        if (item.padType && effectivePadType && effectivePadType !== 'oem' && item.padType !== effectivePadType) return false;
+        if (item.padType && effectivePadType && effectivePadType !== 'oem' && effectivePadType !== 'unknown' && item.padType !== effectivePadType) return false;
         if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
         if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
         if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
