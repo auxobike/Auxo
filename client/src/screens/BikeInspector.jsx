@@ -5,9 +5,9 @@ import { api } from '../api';
 import './BikeInspector.css';
 
 const BIKE_IMAGES = {
-  road:   '/bikes/road.png',
-  mtb:    '/bikes/mtb.png',
-  gravel: '/bikes/gravel.png',
+  road:   '/bikes/road-bike-black.png',
+  mtb:    '/bikes/hardtail.png',
+  gravel: '/bikes/gravel-bike-white.png',
 };
 
 // ── Status helpers ────────────────────────────────────────────────────────────
@@ -226,7 +226,7 @@ export default function BikeInspector({ onLogout }) {
         n + s.items.filter(i => i.status.status === 'due_soon').length, 0)
     : 0;
 
-  const bikeImage = BIKE_IMAGES[statusData?.bikeType] || '/bikes/road.png';
+  const bikeImage = BIKE_IMAGES[statusData?.bikeType] || '/bikes/road-bike-black.png';
   const bikeName  = statusData?.gear?.name
     || bikes.find(b => b.id === bikeId)?.name
     || '…';

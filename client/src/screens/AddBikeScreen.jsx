@@ -8,19 +8,19 @@ const BIKES = [
   {
     type:    'road',
     label:   'Road Bike',
-    image:   '/bikes/road.png',
+    image:   '/bikes/road-bike-black.png',
     tagline: 'Built for speed on pavement',
   },
   {
     type:    'mtb',
     label:   'Mountain Bike',
-    image:   '/bikes/mtb.png',
+    image:   '/bikes/hardtail.png',
     tagline: 'Engineered for the trail',
   },
   {
     type:    'gravel',
     label:   'Gravel Bike',
-    image:   '/bikes/gravel.png',
+    image:   '/bikes/gravel-bike-white.png',
     tagline: 'Ready for any surface',
   },
 ];

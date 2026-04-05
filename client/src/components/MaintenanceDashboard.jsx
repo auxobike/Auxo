@@ -5,9 +5,9 @@ import AppHeader from './AppHeader';
 import './MaintenanceDashboard.css';
 
 const BIKE_IMAGES = {
-  road:   '/bikes/road.png',
-  mtb:    '/bikes/mtb.png',
-  gravel: '/bikes/gravel.png',
+  road:   '/bikes/road-bike-black.png',
+  mtb:    '/bikes/hardtail.png',
+  gravel: '/bikes/gravel-bike-white.png',
 };
 
 // ── SVG donut: three-segment ring always filling the full circle ──
@@ -98,7 +98,7 @@ function BikeCard({ bike }) {
   }
 
   const { bikeType, sections } = statusData;
-  const bikeImage  = BIKE_IMAGES[bikeType] || '/bikes/road.png';
+  const bikeImage  = BIKE_IMAGES[bikeType] || '/bikes/road-bike-black.png';
   const critical   = sections.reduce((n, s) =>
     n + s.items.filter(i => ['due', 'overdue'].includes(i.status.status)).length, 0);
   const alerts     = sections.reduce((n, s) =>
