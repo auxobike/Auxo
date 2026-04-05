@@ -263,8 +263,22 @@ router.put('/bikes/:bikeId', requireAuth, async (req, res) => {
   res.json(updated);
 });
 
+// Items that are automatically reset when a parent item is logged.
+// Logging a linked item that doesn't apply to this bike type is harmless —
+// filterItems will exclude it from the status display.
+const LINKED_ITEMS = {
+  brake_resin_replace:    ['brake_resin_clean', 'brake_resin_check', 'brake_resin_inspect'],
+  brake_metal_replace:    ['brake_metal_clean', 'brake_metal_check', 'brake_metal_inspect'],
+  chain_replace:          ['chain_clean', 'chain_check'],
+  chainring_replace:      ['chainring_check'],
+  tire_replace:           ['sealant_add'],
+  fork_full_service:      ['fork_pressure', 'fork_lower_service'],
+  rear_shock_full_service:['rear_shock_pressure', 'rear_shock_air_service'],
+};
+
 // POST /api/maintenance/log/:bikeId/:itemId
 // Mark a maintenance item as done. Snapshots current Strava mileage/ride count.
+// Linked items (see LINKED_ITEMS above) are automatically reset with the same snapshot.
 router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
   const { bikeId, itemId } = req.params;
   const { notes, userInterval } = req.body;
@@ -291,8 +305,23 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
       await setBikeConfig(bikeId, { chainReplacements: newCount });
     }
 
-    const log = await logService(bikeId, itemId, entry);
-    res.json({ success: true, log });
+    // Log the primary item, then auto-reset any linked items in parallel.
+    // Linked items use the same snapshot entry but without notes/userInterval.
+    const linkedIds = LINKED_ITEMS[itemId] ?? [];
+    const linkedEntry = {
+      lastServiceDate:       entry.lastServiceDate,
+      lastServiceMileage:    entry.lastServiceMileage,
+      lastServiceRideCount:  entry.lastServiceRideCount,
+      lastServiceHours:      entry.lastServiceHours,
+      lastChainReplacements: entry.lastChainReplacements,
+    };
+
+    const [log] = await Promise.all([
+      logService(bikeId, itemId, entry),
+      ...linkedIds.map(id => logService(bikeId, id, linkedEntry)),
+    ]);
+
+    res.json({ success: true, log, linkedReset: linkedIds });
   } catch (err) {
     console.error('[log] bikeId=%s itemId=%s error: %s\n%s', bikeId, itemId, err.message, err.stack);
     res.status(500).json({ error: err.message || 'Failed to log service' });
