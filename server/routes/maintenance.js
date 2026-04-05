@@ -316,10 +316,12 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
       lastChainReplacements: entry.lastChainReplacements,
     };
 
-    const [log] = await Promise.all([
-      logService(bikeId, itemId, entry),
-      ...linkedIds.map(id => logService(bikeId, id, linkedEntry)),
-    ]);
+    // Run sequentially — logService does a full read-modify-write of the JSONB
+    // row, so parallel calls would race and only the last write would survive.
+    const log = await logService(bikeId, itemId, entry);
+    for (const id of linkedIds) {
+      await logService(bikeId, id, linkedEntry);
+    }
 
     res.json({ success: true, log, linkedReset: linkedIds });
   } catch (err) {
