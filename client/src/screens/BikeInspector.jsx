@@ -328,6 +328,12 @@ export default function BikeInspector({ onLogout }) {
           >
             Adjust Service Intervals
           </button>
+          <button
+            className="btn-pill btn-pill-outline inspector-adjust-btn"
+            onClick={() => navigate(`/maintenance/${bikeId}/settings`)}
+          >
+            Edit Bike Settings
+          </button>
           <button className="inspector-reset-link">
             Reset All Service Intervals
           </button>

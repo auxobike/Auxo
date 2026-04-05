@@ -1,0 +1,134 @@
+.ebs-screen {
+  background:
+    radial-gradient(ellipse 90% 35% at 50% -5%, rgba(201, 150, 12, 0.10) 0%, transparent 65%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.ebs-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px var(--screen-pad) 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ebs-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white-40);
+  font-size: 1rem;
+}
+
+.ebs-heading-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ebs-heading {
+  font-family: var(--font-marker);
+  font-size: 2rem;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.ebs-bike-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white-70);
+  margin: 0;
+}
+
+.ebs-intro {
+  font-size: 0.85rem;
+  color: var(--white-50);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Picker group ── */
+.ebs-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ebs-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--white-50);
+}
+
+.ebs-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ebs-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white-70);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.ebs-btn:hover {
+  border-color: rgba(255, 255, 255, 0.30);
+  color: var(--white);
+}
+
+.ebs-btn--selected {
+  border-color: var(--accent);
+  background: rgba(201, 150, 12, 0.15);
+  color: var(--accent);
+}
+
+.ebs-note {
+  font-size: 0.8rem;
+  color: var(--white-50);
+  margin: -8px 0 0;
+  font-style: italic;
+}
+
+.ebs-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ── Footer ── */
+.ebs-footer {
+  padding: 12px var(--screen-pad) max(env(safe-area-inset-bottom), 20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ebs-cancel {
+  background: none;
+  border: none;
+  color: var(--white-40);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.ebs-cancel:hover {
+  color: var(--white-70);
+}

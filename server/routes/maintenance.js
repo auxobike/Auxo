@@ -101,6 +101,8 @@ function filterItems(items, bikeData) {
     if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
     // Wire/housing replacement is irrelevant for electronic shifting.
     if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
+    // Some items are restricted to a specific bike type (e.g. suspension = MTB only).
+    if (item.bikeType && item.bikeType !== bikeData.bikeType) return false;
     return true;
   });
 }
@@ -201,6 +203,21 @@ router.put('/bikes/:bikeId/intervals', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('[intervals] PUT error:', err.message);
     res.status(500).json({ error: 'Failed to save intervals.' });
+  }
+});
+
+// GET /api/maintenance/bikes/:bikeId/config
+// Return the raw stored bikeData so the settings screen can pre-populate.
+router.get('/bikes/:bikeId/config', requireAuth, async (req, res) => {
+  const { bikeId } = req.params;
+  try {
+    const bikeData = await getBikeData(bikeId);
+    if (!bikeData) return res.json({});
+    const { bikeType, brakeType, rimMaterial, padType, isTubeless, suspensionType, shiftingType } = bikeData;
+    res.json({ bikeType, brakeType, rimMaterial, padType, isTubeless, suspensionType, shiftingType });
+  } catch (err) {
+    console.error('[maintenance] get config error:', err.message);
+    res.status(500).json({ error: 'Failed to load bike config.' });
   }
 });
 
@@ -310,6 +327,7 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
         if (item.brakeType && effectiveBrakeType && item.brakeType !== effectiveBrakeType) return false;
         if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
         if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
+        if (item.bikeType && item.bikeType !== bikeData.bikeType) return false;
         return true;
       })
       .map(item => ({

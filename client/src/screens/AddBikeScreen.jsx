@@ -427,7 +427,7 @@ export default function AddBikeScreen({ onLogout }) {
             <span className="input-label">Shifting Type</span>
             <div className="pad-type-picker">
               {[
-                { value: 'mechanical', label: 'Mechanical' },
+                { value: 'mechanical', label: 'Analog'      },
                 { value: 'electronic', label: 'Electronic' },
               ].map(opt => (
                 <button

@@ -60,6 +60,7 @@ export const api = {
   }),
   getServiceHistory: (bikeId, itemId) => apiFetch(`/api/maintenance/history/${bikeId}/${itemId}`),
   getSummary: () => apiFetch('/api/maintenance/summary'),
+  getBikeConfig:  (bikeId) => apiFetch(`/api/maintenance/bikes/${bikeId}/config`),
   deleteBike:     (bikeId) => apiFetch(`/api/maintenance/bikes/${bikeId}`, { method: 'DELETE' }),
   saveIntervals:  (bikeId, intervals) => apiFetch(`/api/maintenance/bikes/${bikeId}/intervals`, {
     method: 'PUT',
