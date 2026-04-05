@@ -8,7 +8,8 @@
       "Bash(git push:*)",
       "Bash(find:*)",
       "Bash(grep -n \"useEffect\\\\|useSearchParams\\\\|location\\\\|navigate\\\\|window.location\" /Users/deanngarcia/Documents/_BIZ/Auxo/client/src/screens/*.jsx)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
