@@ -239,7 +239,7 @@ export default function BookServiceScreen({ onLogout }) {
     if (!mapRef.current) {
       mapRef.current = new window.google.maps.Map(mapDivRef.current, {
         center:           pendingCenter,
-        zoom:             13,
+        zoom:             12,
         disableDefaultUI: true,
         zoomControl:      true,
         styles:           DARK_MAP_STYLE,
