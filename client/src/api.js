@@ -80,4 +80,8 @@ export const api = {
 
   // Shops
   getFeaturedShops: () => apiFetch('/api/shops/featured'),
+
+  // Learn
+  getArticles:   ()   => apiFetch('/api/learn/articles'),
+  getArticle:    (id) => apiFetch(`/api/learn/articles/${id}`),
 };

@@ -16,6 +16,8 @@ import AdminShopsScreen    from './screens/AdminShopsScreen';
 import ProfileScreen             from './screens/ProfileScreen';
 import ServiceIntervalsScreen   from './screens/ServiceIntervalsScreen';
 import EditBikeSettingsScreen   from './screens/EditBikeSettingsScreen';
+import LearnScreen              from './screens/LearnScreen';
+import LearnArticleScreen       from './screens/LearnArticleScreen';
 
 import './styles/design-system.css';
 
@@ -219,6 +221,23 @@ export default function App() {
                 user={session.user}
                 onLogout={handleLogout}
               />
+            </RequireStrava>
+          }
+        />
+
+        <Route
+          path="/learn"
+          element={
+            <RequireStrava session={session}>
+              <LearnScreen onLogout={handleLogout} />
+            </RequireStrava>
+          }
+        />
+        <Route
+          path="/learn/:articleId"
+          element={
+            <RequireStrava session={session}>
+              <LearnArticleScreen onLogout={handleLogout} />
             </RequireStrava>
           }
         />

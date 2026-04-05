@@ -1,0 +1,65 @@
+[
+  {
+    "id": "chain-care",
+    "title": "Caring for Your Chain",
+    "category": "Drivetrain",
+    "description": "A clean, lubed chain shifts smoothly, lasts longer, and protects your cassette and chainring from premature wear.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Your chain is the hardest-working part of your drivetrain — and the most neglected. A clean, lubed chain shifts smoothly, lasts longer, and protects your cassette and chainring from premature wear."
+      },
+      {
+        "type": "frequency",
+        "heading": "How Often?",
+        "content": "Every 100–150 miles in dry conditions, or after every wet or muddy ride. If your chain looks brown or gritty, or sounds noisy while pedaling, it's overdue."
+      },
+      {
+        "type": "supplies",
+        "heading": "What You'll Need",
+        "items": [
+          "Chain degreaser",
+          "A chain cleaning tool or a rag",
+          "Chain lube (wet lube for wet conditions, dry lube for dry)",
+          "A clean rag"
+        ]
+      },
+      {
+        "type": "steps",
+        "heading": "Step-by-Step",
+        "steps": [
+          {
+            "n": 1,
+            "title": "Wipe off excess",
+            "body": "Before doing anything, wipe the chain down with a dry rag to remove loose dirt and old lube."
+          },
+          {
+            "n": 2,
+            "title": "Degrease",
+            "body": "Apply chain degreaser and work it in with a chain cleaning tool or rag. Run the chain through a few times until it runs clear."
+          },
+          {
+            "n": 3,
+            "title": "Rinse and dry",
+            "body": "Rinse with water if using a water-soluble degreaser, then dry thoroughly with a clean rag."
+          },
+          {
+            "n": 4,
+            "title": "Lubricate",
+            "body": "Apply lube to each link while slowly backpedaling. One drop per link is enough. Run the drivetrain through all the gears to make sure lubricant makes it into every nook and cranny."
+          },
+          {
+            "n": 5,
+            "title": "Wipe off excess lube",
+            "body": "Let it sit for a minute, then wipe off any excess lube with a dry rag. Excess lube attracts dirt."
+          }
+        ]
+      },
+      {
+        "type": "note",
+        "heading": "Signs of Wear",
+        "content": "Chains stretch over time. A stretched chain wears out your cassette and chainring faster. Use a chain wear indicator tool — replace your chain at 0.5–0.75% stretch to protect your drivetrain."
+      }
+    ]
+  }
+]

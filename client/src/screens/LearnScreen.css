@@ -1,0 +1,109 @@
+.learn-screen {
+  background:
+    radial-gradient(ellipse 90% 35% at 50% -5%, rgba(201, 150, 12, 0.10) 0%, transparent 65%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.learn-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px var(--screen-pad) max(env(safe-area-inset-bottom), 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.learn-heading {
+  font-family: var(--font-marker);
+  font-size: 2.6rem;
+  color: var(--accent);
+  margin: 0 0 4px;
+  line-height: 1;
+}
+
+.learn-status {
+  font-size: 0.9rem;
+  color: var(--white-40);
+  margin: 0;
+}
+
+.learn-status--error { color: #f87171; }
+
+/* ── Category section ── */
+.learn-category {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.learn-category-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: rgba(201, 150, 12, 0.08);
+  border: none;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.learn-category-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.learn-chevron {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.learn-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ── Article cards ── */
+.learn-category-articles {
+  display: flex;
+  flex-direction: column;
+}
+
+.learn-article-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  width: 100%;
+}
+
+.learn-article-card:hover,
+.learn-article-card:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.learn-article-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+.learn-article-desc {
+  font-size: 0.82rem;
+  color: var(--white-50);
+  line-height: 1.4;
+}

@@ -1,0 +1,126 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import AppHeader from '../components/AppHeader';
+import { api } from '../api';
+import './LearnArticleScreen.css';
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+      strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function ArticleSection({ section }) {
+  switch (section.type) {
+    case 'intro':
+      return <p className="la-intro">{section.content}</p>;
+
+    case 'frequency':
+    case 'note':
+      return (
+        <div className="la-note-block">
+          <h3 className="la-section-heading">{section.heading}</h3>
+          <p className="la-section-body">{section.content}</p>
+        </div>
+      );
+
+    case 'supplies':
+      return (
+        <div className="la-section">
+          <h3 className="la-section-heading">{section.heading}</h3>
+          <ul className="la-supply-list">
+            {section.items.map((item, i) => (
+              <li key={i} className="la-supply-item">{item}</li>
+            ))}
+          </ul>
+        </div>
+      );
+
+    case 'steps':
+      return (
+        <div className="la-section">
+          <h3 className="la-section-heading">{section.heading}</h3>
+          <ol className="la-steps">
+            {section.steps.map(step => (
+              <li key={step.n} className="la-step">
+                <span className="la-step-num">{step.n}</span>
+                <div className="la-step-content">
+                  <span className="la-step-title">{step.title}</span>
+                  <span className="la-step-body">{step.body}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
+
+export default function LearnArticleScreen({ onLogout }) {
+  const { articleId } = useParams();
+  const navigate      = useNavigate();
+
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  useEffect(() => {
+    api.getArticle(articleId)
+      .then(setArticle)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [articleId]);
+
+  if (loading) {
+    return (
+      <div className="screen la-screen">
+        <AppHeader onLogout={onLogout} />
+        <div className="la-loading">Loading…</div>
+      </div>
+    );
+  }
+
+  if (error || !article) {
+    return (
+      <div className="screen la-screen">
+        <AppHeader onLogout={onLogout} />
+        <div className="la-error">
+          <p>{error || 'Article not found.'}</p>
+          <button className="btn-pill btn-pill-outline" onClick={() => navigate('/learn')}>
+            Back to Learn
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="screen la-screen">
+      <AppHeader onLogout={onLogout} />
+
+      <div className="la-body">
+        <button className="la-back" onClick={() => navigate('/learn')}>
+          <BackIcon />
+          <span>Learn</span>
+        </button>
+
+        <div className="la-header">
+          <span className="la-category-badge">{article.category}</span>
+          <h1 className="la-title">{article.title}</h1>
+        </div>
+
+        <div className="la-content">
+          {article.sections.map((section, i) => (
+            <ArticleSection key={i} section={section} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
