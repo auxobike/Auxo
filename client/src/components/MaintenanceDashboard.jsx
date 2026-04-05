@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import AppHeader from './AppHeader';
-import BikeSetup from './BikeSetup';
 import './MaintenanceDashboard.css';
 
 const BIKE_IMAGES = {
@@ -67,12 +66,8 @@ function BikeCard({ bike }) {
       const data = await api.getMaintenanceStatus(bike.id);
       setStatusData(data);
       setView('dashboard');
-    } catch (err) {
-      if (err.message.includes('400')) {
-        setView('setup');
-      } else {
-        setView('error');
-      }
+    } catch {
+      setView('error');
     }
   }, [bike.id]);
 
@@ -85,17 +80,6 @@ function BikeCard({ bike }) {
         <div className="quiver-card-body">
           <div className="quiver-skeleton quiver-skeleton--name" />
           <div className="quiver-skeleton quiver-skeleton--sub" />
-        </div>
-      </div>
-    );
-  }
-
-  if (view === 'setup') {
-    return (
-      <div className="quiver-card quiver-card--setup">
-        <div className="quiver-card-body">
-          <h2 className="quiver-card-name">{bike.name}</h2>
-          <BikeSetup bike={bike} onSaved={loadStatus} />
         </div>
       </div>
     );
@@ -168,14 +152,14 @@ export default function MaintenanceDashboard({ onLogout }) {
   function fetchBikes() {
     setLoading(true);
     setError(null);
-    api.getBikes()
-      .then(data => {
-        console.log('[MaintenanceDashboard] fetched bikes:', data);
-        setBikes(data);
+    Promise.all([api.getBikes(), api.getConfiguredBikes()])
+      .then(([allBikes, { configuredBikeIds }]) => {
+        const configured = new Set(configuredBikeIds);
+        setBikes(allBikes.filter(b => configured.has(b.id)));
       })
       .catch(err => {
         console.error('[MaintenanceDashboard] failed to fetch bikes:', err.message);
-        setError(err.message || 'Could not load bikes from Strava.');
+        setError(err.message || 'Could not load bikes.');
       })
       .finally(() => setLoading(false));
   }
@@ -208,14 +192,8 @@ export default function MaintenanceDashboard({ onLogout }) {
 
         {!loading && !error && bikes.length === 0 && (
           <div className="quiver-empty">
-            <p>No bikes found on your Strava account.</p>
-            <p>
-              Add a bike in your{' '}
-              <a href="https://www.strava.com/settings/gear" target="_blank" rel="noreferrer">
-                Strava gear settings
-              </a>
-              , then come back.
-            </p>
+            <p>No bikes set up yet.</p>
+            <p>Use <strong>Add a Bike</strong> below to get started.</p>
           </div>
         )}
 
