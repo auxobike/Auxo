@@ -74,8 +74,8 @@ export default function App() {
   }, []);
 
   // Called by SignInScreen after a successful email/password login
-  function handleLogin(user, stravaLinked) {
-    setSession(prev => ({ ...prev, user, stravaLinked }));
+  function handleLogin(user, stravaLinked, athlete) {
+    setSession(prev => ({ ...prev, user, stravaLinked, athlete: athlete ?? prev.athlete }));
   }
 
   const handleLogout = async () => {

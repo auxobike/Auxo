@@ -19,7 +19,7 @@ export default function SignInScreen({ onLogin }) {
     setSubmitting(true);
     try {
       const data = await api.login(form.email, form.password);
-      onLogin(data.user, data.stravaLinked);
+      onLogin(data.user, data.stravaLinked, data.athlete);
       if (!data.stravaLinked) {
         navigate('/link-strava');
       } else {

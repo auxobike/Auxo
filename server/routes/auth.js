@@ -83,15 +83,30 @@ router.post('/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.user   = publicUser(user);
 
-    // If user has Strava tokens stored, restore them to the session
+    // If user has Strava tokens stored, restore them to the session.
+    // Trim athlete to the same fields stored at OAuth time — the full
+    // stravaTokens.athlete object (with bikes, shoes, clubs) is too large
+    // for the 4 KB cookie-session limit and will silently corrupt the cookie.
+    let sessionAthlete = null;
     if (user.stravaLinked && user.stravaTokens) {
       req.session.access_token  = user.stravaTokens.access_token;
       req.session.refresh_token = user.stravaTokens.refresh_token;
       req.session.expires_at    = user.stravaTokens.expires_at;
-      req.session.athlete       = user.stravaTokens.athlete;
+      const a = user.stravaTokens.athlete;
+      sessionAthlete = a ? {
+        id:                     a.id,
+        firstname:              a.firstname,
+        lastname:               a.lastname,
+        profile:                a.profile,
+        profile_medium:         a.profile_medium,
+        username:               a.username,
+        measurement_preference: a.measurement_preference,
+      } : null;
+      req.session.athlete = sessionAthlete;
     }
 
-    res.json({ success: true, user: publicUser(user), stravaLinked: user.stravaLinked });
+    console.log('[login] session athlete:', sessionAthlete ? { id: sessionAthlete.id, firstname: sessionAthlete.firstname } : null);
+    res.json({ success: true, user: publicUser(user), stravaLinked: user.stravaLinked, athlete: sessionAthlete });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ error: 'Login failed. Please try again.' });
@@ -300,7 +315,7 @@ router.get('/me', async (req, res) => {
   const stravaLinked = !!req.session.access_token;
   const athlete      = req.session.athlete || null;
 
-  console.log('[me] → 200 authenticated — stravaLinked:', stravaLinked, '| hasUser:', !!user);
+  console.log('[me] → 200 authenticated — stravaLinked:', stravaLinked, '| hasUser:', !!user, '| athlete:', athlete ? { id: athlete.id, firstname: athlete.firstname } : null);
   res.json({
     authenticated: true,
     athlete,
