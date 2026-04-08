@@ -38,6 +38,7 @@ export default function EditBikeSettingsScreen({ onLogout }) {
   const [rimMaterial,  setRimMaterial]  = useState('');
   const [padType,      setPadType]      = useState('');
   const [isTubeless,   setIsTubeless]   = useState(null);
+  const [chainType,    setChainType]    = useState('');
 
   useEffect(() => {
     Promise.all([
@@ -50,6 +51,7 @@ export default function EditBikeSettingsScreen({ onLogout }) {
         setRimMaterial(config.rimMaterial ?? '');
         setPadType(config.padType         ?? '');
         setIsTubeless(config.isTubeless   ?? null);
+        setChainType(config.chainType     ?? '');
         setBikeName(status.gear?.name     ?? '');
       })
       .catch(err => setError(err.message))
@@ -68,6 +70,7 @@ export default function EditBikeSettingsScreen({ onLogout }) {
       if (rimMaterial)          config.rimMaterial = rimMaterial;
       if (padType)              config.padType     = padType;
       if (isTubeless !== null)  config.isTubeless  = isTubeless;
+      if (chainType)            config.chainType   = chainType;
 
       if (Object.keys(config).length > 0) {
         await api.configureBike(bikeId, config);
@@ -201,6 +204,17 @@ export default function EditBikeSettingsScreen({ onLogout }) {
           ]}
           value={isTubeless}
           onChange={setIsTubeless}
+        />
+
+        {/* Chain lube type */}
+        <Picker
+          label="Chain Lube Type"
+          options={[
+            { value: 'standard', label: 'Standard' },
+            { value: 'wax',      label: 'Wax'      },
+          ]}
+          value={chainType}
+          onChange={setChainType}
         />
 
         {error && <p className="ebs-error">{error}</p>}

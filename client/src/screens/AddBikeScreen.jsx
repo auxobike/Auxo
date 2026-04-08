@@ -177,6 +177,7 @@ export default function AddBikeScreen({ onLogout }) {
   const [rimMaterial,        setRimMaterial]        = useState('');
   const [suspensionType,     setSuspensionType]     = useState('');
   const [shiftingType,       setShiftingType]       = useState('');  // 'mechanical' | 'electronic'
+  const [chainType,          setChainType]          = useState('');  // 'standard' | 'wax'
   const [isTubeless,         setIsTubeless]         = useState(null); // null | true | false
   const [replacedComponents, setReplacedComponents] = useState(new Set());
   const [componentMileage,   setComponentMileage]   = useState({});
@@ -196,6 +197,7 @@ export default function AddBikeScreen({ onLogout }) {
     setRimMaterial('');
     setSuspensionType('');
     setShiftingType('');
+    setChainType('');
     setIsTubeless(null);
   }, [index]);
 
@@ -322,6 +324,7 @@ export default function AddBikeScreen({ onLogout }) {
         rimMaterial:        rimMaterial    || undefined,
         suspensionType:     suspensionType || undefined,
         shiftingType:       shiftingType   || undefined,
+        chainType:          chainType      || undefined,
         isTubeless:         isTubeless !== null ? isTubeless : undefined,
         replacedComponents: [...replacedComponents],
         mileageBaselines,
@@ -435,6 +438,26 @@ export default function AddBikeScreen({ onLogout }) {
                   type="button"
                   className={`pad-type-btn${shiftingType === opt.value ? ' pad-type-btn--selected' : ''}`}
                   onClick={() => setShiftingType(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Chain lube type ── */}
+          <div className="input-group pad-type-group">
+            <span className="input-label">Chain Lube Type</span>
+            <div className="pad-type-picker">
+              {[
+                { value: 'standard', label: 'Standard' },
+                { value: 'wax',      label: 'Wax'      },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pad-type-btn${chainType === opt.value ? ' pad-type-btn--selected' : ''}`}
+                  onClick={() => setChainType(opt.value)}
                 >
                   {opt.label}
                 </button>
@@ -787,7 +810,7 @@ export default function AddBikeScreen({ onLogout }) {
               onClick={handleStep1Next}
               disabled={
                 !bikeId || bikesLoading ||
-                !shiftingType || isTubeless === null ||
+                !shiftingType || !chainType || isTubeless === null ||
                 (isMtb
                   ? (!padType || !brakeType)
                   : (!brakeType ||

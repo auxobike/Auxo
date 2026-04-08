@@ -38,7 +38,8 @@ const RULES = {
         id: 'drivetrain',
         label: 'Drive Train',
         items: [
-          { id: 'chain_clean',          label: 'Chain',        action: 'Clean',      trigger: { type: 'rides', every: 3 } },
+          { id: 'chain_clean',          label: 'Chain',        action: 'Clean',           chainType: 'standard', trigger: { type: 'rides', every: 3 } },
+          { id: 'chain_clean_wax',      label: 'Chain',        action: 'Clean / Re-wax',  chainType: 'wax',      trigger: { type: 'miles_or_days', miles: 150, days: 42 } },
           { id: 'chain_check',          label: 'Chain',        action: 'Check wear', trigger: { type: 'miles', firstAt: 2000, thenEvery: 2000 } },
           { id: 'chain_replace',        label: 'Chain',        action: 'Replace',    trigger: { type: 'miles', every: 3000 } },
           { id: 'wire_housing_replace', label: 'Wire/Housing', action: 'Replace',    mechShiftingOnly: true, trigger: { type: 'miles', every: 2000 } },
@@ -83,7 +84,8 @@ const RULES = {
         id: 'drivetrain',
         label: 'Drive Train',
         items: [
-          { id: 'chain_clean',          label: 'Chain',        action: 'Clean',      trigger: { type: 'rides', every: 2 } },
+          { id: 'chain_clean',          label: 'Chain',        action: 'Clean',           chainType: 'standard', trigger: { type: 'rides', every: 2 } },
+          { id: 'chain_clean_wax',      label: 'Chain',        action: 'Clean / Re-wax',  chainType: 'wax',      trigger: { type: 'miles_or_days', miles: 150, days: 42 } },
           { id: 'chain_check',          label: 'Chain',        action: 'Check wear', trigger: { type: 'miles', firstAt: 1500, thenEvery: 300 } },
           { id: 'chain_replace',        label: 'Chain',        action: 'Replace',    trigger: { type: 'miles_or_days', miles: 2500, days: 365 } },
           { id: 'wire_housing_replace', label: 'Wire/Housing', action: 'Replace',    mechShiftingOnly: true, trigger: { type: 'miles', every: 2000 } },
@@ -143,7 +145,8 @@ const RULES = {
         id: 'drivetrain',
         label: 'Drive Train',
         items: [
-          { id: 'chain_clean',          label: 'Chain',        action: 'Clean',      trigger: { type: 'rides', every: 2 } },
+          { id: 'chain_clean',          label: 'Chain',        action: 'Clean',           chainType: 'standard', trigger: { type: 'rides', every: 2 } },
+          { id: 'chain_clean_wax',      label: 'Chain',        action: 'Clean / Re-wax',  chainType: 'wax',      trigger: { type: 'miles_or_days', miles: 150, days: 42 } },
           { id: 'chain_check',          label: 'Chain',        action: 'Check wear', trigger: { type: 'miles', firstAt: 2000, thenEvery: 2000 } },
           { id: 'chain_replace',        label: 'Chain',        action: 'Replace',    trigger: { type: 'miles', every: 3000 } },
           { id: 'wire_housing_replace', label: 'Wire/Housing', action: 'Replace',    mechShiftingOnly: true, trigger: { type: 'miles', every: 2000 } },

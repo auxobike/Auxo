@@ -116,6 +116,11 @@ function filterItems(items, bikeData) {
     if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
     // Some items are restricted to a specific bike type (e.g. suspension = MTB only).
     if (item.bikeType && item.bikeType !== bikeData.bikeType) return false;
+    // Chain type: wax users see chain_clean_wax, standard (or unset) see chain_clean.
+    if (item.chainType) {
+      const bikeChainType = bikeData.chainType || 'standard';
+      if (item.chainType !== bikeChainType) return false;
+    }
     return true;
   });
 }
@@ -226,8 +231,8 @@ router.get('/bikes/:bikeId/config', requireAuth, async (req, res) => {
   try {
     const bikeData = await getBikeData(bikeId);
     if (!bikeData) return res.json({});
-    const { bikeType, brakeType, rimMaterial, padType, isTubeless, suspensionType, shiftingType } = bikeData;
-    res.json({ bikeType, brakeType, rimMaterial, padType, isTubeless, suspensionType, shiftingType });
+    const { bikeType, brakeType, rimMaterial, padType, isTubeless, suspensionType, shiftingType, chainType } = bikeData;
+    res.json({ bikeType, brakeType, rimMaterial, padType, isTubeless, suspensionType, shiftingType, chainType });
   } catch (err) {
     console.error('[maintenance] get config error:', err.message);
     res.status(500).json({ error: 'Failed to load bike config.' });
@@ -270,7 +275,7 @@ router.put('/bikes/:bikeId', requireAuth, async (req, res) => {
 const LINKED_ITEMS = {
   brake_resin_replace:    ['brake_resin_clean', 'brake_resin_check', 'brake_resin_inspect'],
   brake_metal_replace:    ['brake_metal_clean', 'brake_metal_check', 'brake_metal_inspect'],
-  chain_replace:          ['chain_clean', 'chain_check'],
+  chain_replace:          ['chain_clean', 'chain_clean_wax', 'chain_check'],
   chainring_replace:      ['chainring_check'],
   tires_check:            ['sealant_add'],
   fork_full_service:      ['fork_pressure', 'fork_lower_service'],
@@ -372,6 +377,10 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
         if (item.suspensionType && bikeData.suspensionType && item.suspensionType !== bikeData.suspensionType) return false;
         if (item.mechShiftingOnly && bikeData.shiftingType === 'electronic') return false;
         if (item.bikeType && item.bikeType !== bikeData.bikeType) return false;
+        if (item.chainType) {
+          const bikeChainType = bikeData.chainType || 'standard';
+          if (item.chainType !== bikeChainType) return false;
+        }
         return true;
       })
       .map(item => ({
