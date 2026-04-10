@@ -163,6 +163,18 @@ export default function LearnArticleScreen({ onLogout }) {
           <h1 className="la-title">{article.title}</h1>
         </div>
 
+        {article.videoId && (
+          <div className="la-video-wrap">
+            <iframe
+              className="la-video"
+              src={`https://www.youtube.com/embed/${article.videoId}`}
+              title={article.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        )}
+
         <div className="la-content">
           {article.sections.map((section, i) => (
             <ArticleSection key={i} section={section} />
