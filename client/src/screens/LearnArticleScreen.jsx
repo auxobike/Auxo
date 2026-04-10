@@ -57,6 +57,32 @@ function ArticleSection({ section }) {
         </div>
       );
 
+    case 'comparison':
+      return (
+        <div className="la-section">
+          <div className="la-comparison-wrap">
+            <table className="la-comparison">
+              <thead>
+                <tr>
+                  <th className="la-comparison-th la-comparison-th--label" />
+                  <th className="la-comparison-th">{section.colA}</th>
+                  <th className="la-comparison-th">{section.colB}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {section.rows.map((row, i) => (
+                  <tr key={i} className="la-comparison-row">
+                    <td className="la-comparison-td la-comparison-td--label">{row.label}</td>
+                    <td className="la-comparison-td">{row.a}</td>
+                    <td className="la-comparison-td">{row.b}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+
     case 'signs':
       return (
         <div className="la-section">

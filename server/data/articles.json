@@ -133,5 +133,48 @@
         "content": "When lubricating your chain, always cover your rotors and brake calipers first. A single overspray can contaminate pads beyond recovery."
       }
     ]
+  },
+  {
+    "id": "standard-vs-wax-chains",
+    "title": "Standard vs. Wax Chains: What's the Difference?",
+    "category": "Bike Tech",
+    "description": "A straightforward breakdown of traditional chain lube vs wax — and how to know which is right for you.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "If you've spent any time in cycling circles lately, you've probably heard people talking about wax chains. But is it worth switching from the lube you've been using for years? Here's a straightforward breakdown."
+      },
+      {
+        "type": "note",
+        "heading": "How standard chain lube works",
+        "content": "Traditional chain lubes — wet, dry, or all-conditions — coat the chain's moving parts with an oil-based film. They're easy to apply, widely available, and forgiving. The downside: oil attracts dirt and grime, which turns into an abrasive paste that accelerates wear on your chain, cassette, and chainrings."
+      },
+      {
+        "type": "note",
+        "heading": "How wax chains work",
+        "content": "Wax lubrication works differently. The chain is immersed in molten paraffin wax, which bonds to the metal and dries to a hard, clean coating. Because wax is dry, it doesn't attract dirt the same way oil does. A waxed chain runs cleaner and can last significantly longer — some riders report 2–3x chain life compared to oil lube."
+      },
+      {
+        "type": "comparison",
+        "colA": "Standard Lube",
+        "colB": "Wax",
+        "rows": [
+          { "label": "Application",   "a": "Easy — drip and go",          "b": "More involved — requires immersion" },
+          { "label": "Cleanliness",   "a": "Gets dirty quickly",           "b": "Stays much cleaner" },
+          { "label": "Reapplication", "a": "Every 100–150 miles",          "b": "Every 150–200 miles" },
+          { "label": "Wet weather",   "a": "Good options available",       "b": "Washes off faster" },
+          { "label": "Cost",          "a": "Low",                          "b": "Higher upfront, lower long-term" }
+        ]
+      },
+      {
+        "type": "note",
+        "heading": "Is wax right for you?",
+        "content": "Wax makes the most sense for road and gravel riders who want maximum drivetrain efficiency and cleanliness. Mountain bikers can use it, but frequent wet and muddy conditions mean more frequent reapplication. If you ride in variable conditions or just want a simple low-maintenance solution, a quality wet or dry lube still does the job well."
+      },
+      {
+        "type": "proTip",
+        "content": "If you're switching to wax for the first time, you need to completely degrease your chain first — or start with a fresh chain. Wax doesn't bond properly over oil residue."
+      }
+    ]
   }
 ]

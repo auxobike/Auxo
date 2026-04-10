@@ -4,7 +4,7 @@ import AppHeader from '../components/AppHeader';
 import { api } from '../api';
 import './LearnScreen.css';
 
-const CATEGORY_ORDER = ['Drivetrain', 'Braking System', 'Brakes', 'Tires', 'Suspension', 'Full Bike Service'];
+const CATEGORY_ORDER = ['Drivetrain', 'Braking System', 'Bike Tech', 'Brakes', 'Tires', 'Suspension', 'Full Bike Service'];
 
 function ChevronIcon({ open }) {
   return (

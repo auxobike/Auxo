@@ -205,6 +205,51 @@
   line-height: 1.6;
 }
 
+/* ── Comparison table ── */
+.la-comparison-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.la-comparison {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.la-comparison-th {
+  padding: 8px 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  text-align: left;
+  border-bottom: 1.5px solid rgba(201, 150, 12, 0.35);
+}
+
+.la-comparison-th--label {
+  color: transparent;
+  width: 30%;
+}
+
+.la-comparison-row:not(:last-child) .la-comparison-td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.la-comparison-td {
+  padding: 10px 12px;
+  color: var(--white-70);
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+.la-comparison-td--label {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
 /* ── Signs of Wear list ── */
 .la-signs-list {
   list-style: none;
