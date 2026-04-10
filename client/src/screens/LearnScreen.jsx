@@ -19,7 +19,7 @@ function ChevronIcon({ open }) {
 }
 
 function CategorySection({ category, articles, onSelect }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="learn-category">

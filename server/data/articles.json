@@ -299,5 +299,72 @@
         "content": "Mixing pad types front and rear is totally fine — many riders run metallic up front for maximum stopping power and resin in the rear for modulation and feel."
       }
     ]
+  },
+  {
+    "id": "when-to-replace-tires",
+    "title": "When to Replace Your Tires",
+    "category": "Tires, Tubes, and Wheels",
+    "description": "Tires don't make noise when they're past their prime — they just fail. Here's how to know when it's time for new rubber.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Tires are one of the most safety-critical parts of your bike, and also one of the easiest to neglect. Unlike a worn chain, a tire doesn't make noise when it's past its prime — it just fails when you least expect it. Here's how to know when it's time for new rubber."
+      },
+      {
+        "type": "frequency",
+        "heading": "How Often?",
+        "content": "Give your tires a quick visual inspection before every ride. A more thorough check every 4–6 weeks will catch problems early before they become a roadside emergency."
+      },
+      {
+        "type": "steps",
+        "heading": "What to Look For",
+        "steps": [
+          {
+            "n": 1,
+            "title": "Worn tread",
+            "body": "Most tires have small wear indicator holes or dimples in the center of the tread. When those disappear, the tire is done. No indicator? Look for the tread pattern becoming flat and smooth in the center contact patch — that's your signal."
+          },
+          {
+            "n": 2,
+            "title": "Cracking or dry rot",
+            "body": "Small cracks in the rubber, especially on the sidewalls, mean the tire compound is breaking down. This happens from age, UV exposure, and ozone — even if you haven't ridden many miles. A tire that's 3–5 years old should be replaced regardless of visible tread."
+          },
+          {
+            "n": 3,
+            "title": "Cuts and slices",
+            "body": "Small surface cuts are usually fine. Deep cuts that expose the casing beneath — the woven fabric layer — compromise the tire's structure. If you can see threads, replace the tire."
+          },
+          {
+            "n": 4,
+            "title": "Persistent punctures",
+            "body": "If a tire keeps going flat in the same spot, the casing may be damaged or the bead compromised. Even if it holds air between rides, repeated punctures in the same location are a sign the tire is done."
+          },
+          {
+            "n": 5,
+            "title": "Bulges or deformations",
+            "body": "A bulge anywhere on a tire — tread or sidewall — means the internal structure has failed. This tire can blow out without warning. Replace it immediately."
+          },
+          {
+            "n": 6,
+            "title": "Sidewall damage",
+            "body": "The sidewall is thinner and more vulnerable than the tread. Cuts, tears, or fraying on the sidewall are serious. If you can see or feel any separation, don't ride on it."
+          }
+        ]
+      },
+      {
+        "type": "comparison",
+        "colA": "Typical Lifespan",
+        "rows": [
+          { "label": "Road clincher", "a": "1,500–3,000 miles" },
+          { "label": "Gravel",        "a": "2,000–5,000 miles" },
+          { "label": "MTB trail",     "a": "1,500–3,500 miles" },
+          { "label": "MTB rear only", "a": "Replace sooner — rears wear faster" }
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "Rear tires wear significantly faster than front tires — often twice as fast. When your rear is worn out, consider swapping the front to the rear and fitting a fresh tire up front. You'll get more life out of both."
+      }
+    ]
   }
 ]
