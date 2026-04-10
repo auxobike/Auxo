@@ -254,5 +254,50 @@
         "content": "Always carry a small bottle of sealant on longer rides. If you get a puncture that won't seal on its own, injecting fresh sealant through the valve can often save the ride without needing a tube."
       }
     ]
+  },
+  {
+    "id": "mtb-brake-pad-types",
+    "title": "MTB Brake Pad Types: Resin, Metallic, and Semi-Metallic",
+    "category": "Braking System",
+    "description": "The material your pads are made from affects feel, lifespan, and performance. Here's how to choose the right type for your riding.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Not all brake pads are created equal. The material your pads are made from affects how they feel, how long they last, and how well they perform in different conditions. Here's what you need to know before your next pad swap."
+      },
+      {
+        "type": "note",
+        "heading": "Resin (Organic) Pads",
+        "content": "Resin pads are made from a mixture of organic materials bonded together — think rubber, kevlar, and other fibers. They're the most common type found stock on new bikes. Strong points: quiet and smooth with little noise or vibration, gentle on rotors, good initial bite. Weaknesses: fade under heat on long descents, wear faster than metal pads, poor wet performance. Best for: trail riders and anyone prioritizing a quiet smooth feel over raw power."
+      },
+      {
+        "type": "note",
+        "heading": "Metallic (Sintered) Pads",
+        "content": "Metallic pads are made by compressing and heating metal particles — copper, iron, and other alloys — into a dense hard compound. Strong points: heat resistant on long descents, long lasting, strong in wet and muddy conditions. Weaknesses: more prone to squealing, harder on rotors, less initial bite until warmed up. Best for: enduro and gravity riders, heavy riders, anyone doing big descents or riding in consistently wet conditions."
+      },
+      {
+        "type": "note",
+        "heading": "Semi-Metallic Pads",
+        "content": "Semi-metallic pads combine metal particles with organic binders to get the best of both worlds. Strong points: better heat resistance than resin, more initial bite than full metallic, decent in varied conditions. Weaknesses: don't fully excel in any one area, can still squeal in wet conditions. Best for: all-mountain and trail riders who want a versatile pad for varied conditions."
+      },
+      {
+        "type": "comparison",
+        "colA": "Resin",
+        "colB": "Semi-Metallic",
+        "colC": "Metallic",
+        "rows": [
+          { "label": "Noise",           "a": "Quiet",          "b": "Moderate",       "c": "Can be loud" },
+          { "label": "Heat resistance", "a": "Low",            "b": "Medium",         "c": "High" },
+          { "label": "Wet performance", "a": "Poor",           "b": "Good",           "c": "Excellent" },
+          { "label": "Rotor wear",      "a": "Low",            "b": "Medium",         "c": "Higher" },
+          { "label": "Lifespan",        "a": "Shorter",        "b": "Medium",         "c": "Longer" },
+          { "label": "Best for",        "a": "Trail/casual",   "b": "All-mountain",   "c": "Enduro/gravity" }
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "Mixing pad types front and rear is totally fine — many riders run metallic up front for maximum stopping power and resin in the rear for modulation and feel."
+      }
+    ]
   }
 ]

@@ -67,6 +67,7 @@ function ArticleSection({ section }) {
                   <th className="la-comparison-th la-comparison-th--label" />
                   <th className="la-comparison-th">{section.colA}</th>
                   <th className="la-comparison-th">{section.colB}</th>
+                  {section.colC && <th className="la-comparison-th">{section.colC}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -75,6 +76,7 @@ function ArticleSection({ section }) {
                     <td className="la-comparison-td la-comparison-td--label">{row.label}</td>
                     <td className="la-comparison-td">{row.a}</td>
                     <td className="la-comparison-td">{row.b}</td>
+                    {section.colC && <td className="la-comparison-td">{row.c}</td>}
                   </tr>
                 ))}
               </tbody>
