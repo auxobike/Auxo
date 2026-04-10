@@ -366,5 +366,113 @@
         "content": "Rear tires wear significantly faster than front tires — often twice as fast. When your rear is worn out, consider swapping the front to the rear and fitting a fresh tire up front. You'll get more life out of both."
       }
     ]
+  },
+  {
+    "id": "mtb-tire-compounds",
+    "title": "MTB Tire Types: Rubber Compounds and What They Mean",
+    "category": "Tires, Tubes, and Wheels",
+    "description": "Soft, hard, dual compound — understanding rubber compounds will help you choose the right tire for your riding and conditions.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Walk into any bike shop and you'll find MTB tires with names like Soft Compound, Dual Compound, MaxGrip, or TrailShield. It can feel like marketing noise — but there's real substance behind the terminology. Understanding rubber compounds will help you choose the right tire for your riding and conditions."
+      },
+      {
+        "type": "note",
+        "heading": "What is a tire compound?",
+        "content": "The rubber used in a tire isn't just rubber — it's a carefully engineered blend of natural rubber, synthetic polymers, carbon black, and chemical additives. The specific recipe determines how soft or hard the rubber is, measured on a durometer scale. Softer rubber grips better. Harder rubber lasts longer. Everything in tire design is a tradeoff between these two things."
+      },
+      {
+        "type": "note",
+        "heading": "Hard compound tires",
+        "content": "Hard compounds use a denser, stiffer rubber that resists wear. Grip is lower with less surface contact and conformity to terrain. Rolling resistance is lower — rolls faster on smooth surfaces. Durability is high with a significantly longer lifespan. Best for: cross-country racing, hardpack trails, dry conditions where speed matters more than grip."
+      },
+      {
+        "type": "note",
+        "heading": "Soft compound tires",
+        "content": "Soft compounds use a more pliable rubber that deforms to wrap around rocks, roots, and loose terrain. Grip is high with excellent traction in technical or loose conditions. Rolling resistance is higher with more drag especially on smooth surfaces. Durability is lower — wears faster on abrasive surfaces. Best for: enduro, gravity, wet conditions, technical terrain."
+      },
+      {
+        "type": "note",
+        "heading": "Dual compound tires",
+        "content": "Most quality MTB tires today use dual compounds — a harder rubber in the center of the tread for rolling efficiency, and softer rubber on the side knobs for cornering grip. Best for: trail riding and all-mountain — the best balance for most riders."
+      },
+      {
+        "type": "note",
+        "heading": "Casing matters too",
+        "content": "Compound is only part of the story. The casing — the woven fabric beneath the rubber — affects weight, puncture resistance, and how the tire conforms to terrain. Light casings (60–120tpi) are lighter and more supple but less puncture resistant. Heavy or reinforced casings (EXO, DH casing) are heavier but much more resistant to cuts and sidewall tears. Dual-ply uses two layers for maximum protection — used in downhill and aggressive enduro."
+      },
+      {
+        "type": "comparison",
+        "colA": "Hard",
+        "colB": "Dual",
+        "colC": "Soft",
+        "rows": [
+          { "label": "Grip",           "a": "Lower",            "b": "Good",                    "c": "Excellent" },
+          { "label": "Speed",          "a": "Faster",           "b": "Balanced",                "c": "Slower" },
+          { "label": "Durability",     "a": "Long lasting",     "b": "Medium",                  "c": "Wears faster" },
+          { "label": "Best conditions","a": "Dry hardpack",     "b": "Mixed all-mountain",      "c": "Wet loose technical" },
+          { "label": "Best style",     "a": "XC/marathon",      "b": "Trail/enduro",            "c": "Enduro/gravity" }
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "Many riders run a softer compound up front for maximum grip and braking traction, and a harder or dual compound on the rear where rolling efficiency and durability matter more. Front and rear tires don't need to match."
+      }
+    ]
+  },
+  {
+    "id": "mtb-tire-compounds-bike-tech",
+    "title": "MTB Tire Types: Rubber Compounds and What They Mean",
+    "category": "Bike Tech",
+    "description": "Soft, hard, dual compound — understanding rubber compounds will help you choose the right tire for your riding and conditions.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Walk into any bike shop and you'll find MTB tires with names like Soft Compound, Dual Compound, MaxGrip, or TrailShield. It can feel like marketing noise — but there's real substance behind the terminology. Understanding rubber compounds will help you choose the right tire for your riding and conditions."
+      },
+      {
+        "type": "note",
+        "heading": "What is a tire compound?",
+        "content": "The rubber used in a tire isn't just rubber — it's a carefully engineered blend of natural rubber, synthetic polymers, carbon black, and chemical additives. The specific recipe determines how soft or hard the rubber is, measured on a durometer scale. Softer rubber grips better. Harder rubber lasts longer. Everything in tire design is a tradeoff between these two things."
+      },
+      {
+        "type": "note",
+        "heading": "Hard compound tires",
+        "content": "Hard compounds use a denser, stiffer rubber that resists wear. Grip is lower with less surface contact and conformity to terrain. Rolling resistance is lower — rolls faster on smooth surfaces. Durability is high with a significantly longer lifespan. Best for: cross-country racing, hardpack trails, dry conditions where speed matters more than grip."
+      },
+      {
+        "type": "note",
+        "heading": "Soft compound tires",
+        "content": "Soft compounds use a more pliable rubber that deforms to wrap around rocks, roots, and loose terrain. Grip is high with excellent traction in technical or loose conditions. Rolling resistance is higher with more drag especially on smooth surfaces. Durability is lower — wears faster on abrasive surfaces. Best for: enduro, gravity, wet conditions, technical terrain."
+      },
+      {
+        "type": "note",
+        "heading": "Dual compound tires",
+        "content": "Most quality MTB tires today use dual compounds — a harder rubber in the center of the tread for rolling efficiency, and softer rubber on the side knobs for cornering grip. Best for: trail riding and all-mountain — the best balance for most riders."
+      },
+      {
+        "type": "note",
+        "heading": "Casing matters too",
+        "content": "Compound is only part of the story. The casing — the woven fabric beneath the rubber — affects weight, puncture resistance, and how the tire conforms to terrain. Light casings (60–120tpi) are lighter and more supple but less puncture resistant. Heavy or reinforced casings (EXO, DH casing) are heavier but much more resistant to cuts and sidewall tears. Dual-ply uses two layers for maximum protection — used in downhill and aggressive enduro."
+      },
+      {
+        "type": "comparison",
+        "colA": "Hard",
+        "colB": "Dual",
+        "colC": "Soft",
+        "rows": [
+          { "label": "Grip",           "a": "Lower",            "b": "Good",                    "c": "Excellent" },
+          { "label": "Speed",          "a": "Faster",           "b": "Balanced",                "c": "Slower" },
+          { "label": "Durability",     "a": "Long lasting",     "b": "Medium",                  "c": "Wears faster" },
+          { "label": "Best conditions","a": "Dry hardpack",     "b": "Mixed all-mountain",      "c": "Wet loose technical" },
+          { "label": "Best style",     "a": "XC/marathon",      "b": "Trail/enduro",            "c": "Enduro/gravity" }
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "Many riders run a softer compound up front for maximum grip and braking traction, and a harder or dual compound on the rear where rolling efficiency and durability matter more. Front and rear tires don't need to match."
+      }
+    ]
   }
 ]
