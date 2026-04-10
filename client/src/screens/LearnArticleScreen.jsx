@@ -57,6 +57,26 @@ function ArticleSection({ section }) {
         </div>
       );
 
+    case 'signs':
+      return (
+        <div className="la-section">
+          <h3 className="la-section-heading">{section.heading}</h3>
+          <ul className="la-signs-list">
+            {section.items.map((item, i) => (
+              <li key={i} className="la-signs-item">{item}</li>
+            ))}
+          </ul>
+        </div>
+      );
+
+    case 'proTip':
+      return (
+        <div className="la-pro-tip">
+          <span className="la-pro-tip-label">Pro Tip</span>
+          <p className="la-pro-tip-body">{section.content}</p>
+        </div>
+      );
+
     default:
       return null;
   }

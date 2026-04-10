@@ -204,3 +204,60 @@
   color: var(--white-60);
   line-height: 1.6;
 }
+
+/* ── Signs of Wear list ── */
+.la-signs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.la-signs-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--white-70);
+  line-height: 1.5;
+}
+
+.la-signs-item::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(220, 80, 60, 0.85);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+/* ── Pro Tip ── */
+.la-pro-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(201, 150, 12, 0.08);
+  border: 1px solid rgba(201, 150, 12, 0.35);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+
+.la-pro-tip-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.la-pro-tip-body {
+  font-size: 0.88rem;
+  color: var(--white-70);
+  line-height: 1.6;
+  margin: 0;
+}

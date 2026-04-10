@@ -61,5 +61,77 @@
         "content": "Chains stretch over time. A stretched chain wears out your cassette and chainring faster. Use a chain wear indicator tool — replace your chain at 0.5–0.75% stretch to protect your drivetrain."
       }
     ]
+  },
+  {
+    "id": "brake-pad-care",
+    "title": "Checking and cleaning your brake pads",
+    "category": "Braking System",
+    "description": "How to inspect and clean your brake pads to maintain stopping power and safety.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Your brake pads are your first line of safety. Worn or contaminated pads reduce stopping power — sometimes dramatically — before you ever notice a problem. A quick inspection every month can protect both your bike and yourself."
+      },
+      {
+        "type": "frequency",
+        "heading": "How Often?",
+        "content": "Check pads every 4–6 weeks, or any time you notice reduced braking performance, squealing, or grinding. After wet or muddy rides, always give them a quick look."
+      },
+      {
+        "type": "supplies",
+        "heading": "What You'll Need",
+        "items": [
+          "Isopropyl alcohol (rubbing alcohol)",
+          "Clean lint-free rags or paper towels",
+          "A flashlight or headlamp",
+          "A ruler or calliper (optional)"
+        ]
+      },
+      {
+        "type": "steps",
+        "heading": "Step-by-Step",
+        "steps": [
+          {
+            "n": 1,
+            "title": "Find the pads",
+            "body": "Look at your brake caliper — the clamp straddling the rotor (disc brakes) or rim (rim brakes). Shine a light into the caliper to see the pads on either side of the rotor or rim surface."
+          },
+          {
+            "n": 2,
+            "title": "Check pad thickness",
+            "body": "The friction material should be at least 1.5mm thick (disc brakes) or have visible material above the wear indicator line (rim brakes). If you can barely see any pad material, it's time to replace them."
+          },
+          {
+            "n": 3,
+            "title": "Inspect for contamination",
+            "body": "Look for oily residue, glazed shiny spots, or embedded debris. Oil is the main culprit — even a small amount on a rotor or rim can ruin a set of pads."
+          },
+          {
+            "n": 4,
+            "title": "Clean the pads",
+            "body": "Dampen a clean rag with isopropyl alcohol and wipe down the pad surface. Use a fresh section of rag for each swipe. Do the same to the rotor or rim. Never use soap, water, or any lubricant near brakes."
+          },
+          {
+            "n": 5,
+            "title": "Let dry and test",
+            "body": "Let air dry for a minute, then take a slow roll and squeeze the brakes firmly a few times to bed them back in."
+          }
+        ]
+      },
+      {
+        "type": "signs",
+        "heading": "Signs of Wear",
+        "items": [
+          "Pad material less than 1.5mm thick (disc) or worn to the indicator line (rim)",
+          "Grinding or metallic scraping — the backing plate is contacting the rotor",
+          "Heavy oil contamination that does not improve after cleaning",
+          "Uneven or cracked pad surface"
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "When lubricating your chain, always cover your rotors and brake calipers first. A single overspray can contaminate pads beyond recovery."
+      }
+    ]
   }
 ]
