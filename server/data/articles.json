@@ -176,5 +176,83 @@
         "content": "If you're switching to wax for the first time, you need to completely degrease your chain first — or start with a fresh chain. Wax doesn't bond properly over oil residue."
       }
     ]
+  },
+  {
+    "id": "adding-tubeless-sealant",
+    "title": "How to Add Sealant to a Tubeless Tire",
+    "category": "Tires, Tubes, and Wheels",
+    "description": "Tubeless sealant dries out over time. Here's how to top it up and keep your tires rolling.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Tubeless sealant is what makes a tubeless setup work — it coats the inside of the tire and instantly plugs small punctures as you ride. But sealant dries out over time, so topping it up regularly is one of the most important things you can do to keep your tires rolling."
+      },
+      {
+        "type": "frequency",
+        "heading": "How Often?",
+        "content": "Every 3–6 months in normal conditions, or sooner if you notice your tire losing air faster than usual. In hot, dry climates sealant dries out faster — check every 2–3 months. After a big puncture, always top up — the sealant used to plug the hole is gone."
+      },
+      {
+        "type": "supplies",
+        "heading": "What You'll Need",
+        "items": [
+          "Tubeless sealant (your preferred brand)",
+          "A sealant injector or large syringe",
+          "Tire levers (just in case)",
+          "A pump or CO2 inflator",
+          "Clean rags"
+        ]
+      },
+      {
+        "type": "steps",
+        "heading": "Step-by-Step",
+        "steps": [
+          {
+            "n": 1,
+            "title": "Remove the valve core",
+            "body": "Using a valve core tool or the back of most valve caps, unscrew the valve core and set it somewhere safe. Don't lose it."
+          },
+          {
+            "n": 2,
+            "title": "Check remaining sealant",
+            "body": "Shake the wheel. If you hear sloshing, there's still some sealant in there — you may just need a top-up. If it's silent and dry, you'll need a full refill (about 2–4oz depending on tire size)."
+          },
+          {
+            "n": 3,
+            "title": "Inject the sealant",
+            "body": "Draw sealant into your injector and insert it into the valve stem. Slowly push the sealant in. For a road tire, 2oz is typical. For gravel or MTB, 3–4oz."
+          },
+          {
+            "n": 4,
+            "title": "Reinstall the valve core",
+            "body": "Screw it back in firmly but don't overtighten."
+          },
+          {
+            "n": 5,
+            "title": "Inflate and slosh",
+            "body": "Inflate to your normal riding pressure, then rotate the wheel to coat the inside of the tire evenly. Give it a few spins in each direction."
+          },
+          {
+            "n": 6,
+            "title": "Check for leaks",
+            "body": "Look around the bead and valve for any sealant seeping out. A little at the valve is normal — wipe it off and it should seal within a minute."
+          }
+        ]
+      },
+      {
+        "type": "signs",
+        "heading": "Signs It's Time",
+        "items": [
+          "Tire losing air noticeably between rides",
+          "Dry, chalky residue inside the tire (no liquid left)",
+          "Sealant has chunked up and won't flow",
+          "More than 6 months since last top-up"
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "Always carry a small bottle of sealant on longer rides. If you get a puncture that won't seal on its own, injecting fresh sealant through the valve can often save the ride without needing a tube."
+      }
+    ]
   }
 ]
