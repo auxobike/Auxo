@@ -14,23 +14,39 @@ const router = express.Router();
 const METERS_PER_MILE = 1609.34;
 
 // Fetch current mileage, ride count, and ride hours for a bike from Strava.
-// Returns approximations based on the 200 most recent activities.
-async function fetchStravaState(bikeId, accessToken) {
+//
+// prefetchedActivities — optional array already fetched by the caller.
+//   When provided, only the gear endpoint is called; the activities list is
+//   reused as-is, eliminating redundant Strava calls when processing multiple
+//   bikes (e.g. in the summary endpoint).
+async function fetchStravaState(bikeId, accessToken, prefetchedActivities = null) {
   if (!accessToken) {
     throw new Error('No Strava access token in session — user may need to re-link Strava');
   }
 
-  let gearRes, actRes;
+  let gear, activities;
   try {
-    [gearRes, actRes] = await Promise.all([
-      axios.get(`https://www.strava.com/api/v3/gear/${bikeId}`, {
+    if (prefetchedActivities !== null) {
+      // Activities already in hand — only fetch gear details.
+      const gearRes = await axios.get(`https://www.strava.com/api/v3/gear/${bikeId}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }),
-      axios.get('https://www.strava.com/api/v3/athlete/activities', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params: { per_page: 200 },
-      }),
-    ]);
+      });
+      gear       = gearRes.data;
+      activities = prefetchedActivities;
+    } else {
+      // Single-bike path: fetch gear and activities in parallel.
+      const [gearRes, actRes] = await Promise.all([
+        axios.get(`https://www.strava.com/api/v3/gear/${bikeId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+        axios.get('https://www.strava.com/api/v3/athlete/activities', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          params: { per_page: 200 },
+        }),
+      ]);
+      gear       = gearRes.data;
+      activities = actRes.data;
+    }
   } catch (err) {
     const status  = err.response?.status;
     const detail  = err.response?.data?.message || err.message;
@@ -38,8 +54,7 @@ async function fetchStravaState(bikeId, accessToken) {
     throw new Error(`Strava API error (${status ?? 'network'}): ${detail}`);
   }
 
-  const gear = gearRes.data;
-  const bikeActivities = actRes.data.filter(a => a.gear_id === bikeId);
+  const bikeActivities = activities.filter(a => a.gear_id === bikeId);
 
   return {
     gear,
@@ -407,22 +422,42 @@ router.get('/items/:bikeId', requireAuth, async (req, res) => {
 // Used by AccountLandingScreen to populate the quick-stats strip.
 router.get('/summary', requireAuth, async (req, res) => {
   try {
-    const [bikeIds, currentUser] = await Promise.all([
+    const token = req.session.access_token;
+
+    // Round 1 — DB lookups and the single Strava activities fetch all run in parallel.
+    // Activities are fetched once here and reused for every bike, eliminating the
+    // N-per-bike duplicate fetches that existed before. lastRide is derived from
+    // the same payload — no separate sequential fetch needed.
+    const [bikeIds, currentUser, actRes] = await Promise.all([
       getConfiguredBikeIds(),
       req.session.userId ? findById(req.session.userId) : null,
+      token
+        ? axios.get('https://www.strava.com/api/v3/athlete/activities', {
+            headers: { Authorization: `Bearer ${token}` },
+            params:  { per_page: 200 },
+          }).catch(e => { console.error('[summary] activities fetch error:', e.message); return null; })
+        : Promise.resolve(null),
     ]);
-    const bikeCount    = bikeIds.length;
-    const warnFraction = ((currentUser?.preferences?.warnThreshold ?? 10) / 100);
 
-    // Fetch maintenance status for each configured bike in parallel.
-    // We need a Strava token — if the session has one, use it; otherwise skip counts.
+    const bikeCount      = bikeIds.length;
+    const warnFraction   = (currentUser?.preferences?.warnThreshold ?? 10) / 100;
+    const allActivities  = actRes?.data || [];
+
+    // Derive lastRide from the activities we already have — no extra Strava call.
+    const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'MountainBikeRide', 'GravelRide']);
+    const latestRide = allActivities.find(a => RIDE_TYPES.has(a.sport_type));
+    const lastRide   = latestRide?.start_date_local?.split('T')[0] || null;
+
+    // Round 2 — per-bike status counts, all parallel.
+    // fetchStravaState receives the pre-fetched activities so it only needs to
+    // hit Strava for each bike's gear endpoint (one call per bike, not two).
     let itemsDue = 0;
-    if (req.session.access_token && bikeCount > 0) {
+    if (token && bikeCount > 0) {
       const results = await Promise.allSettled(
         bikeIds.map(async bikeId => {
           const [bikeData, stravaState, conditionAdj] = await Promise.all([
             getBikeData(bikeId),
-            fetchStravaState(bikeId, req.session.access_token),
+            fetchStravaState(bikeId, token, allActivities),
             req.session.userId ? getConditionAdjustment(req.session.userId, bikeId) : Promise.resolve(0),
           ]);
           if (!bikeData?.bikeType) return 0;
@@ -463,26 +498,6 @@ router.get('/summary', requireAuth, async (req, res) => {
       );
       for (const r of results) {
         if (r.status === 'fulfilled') itemsDue += r.value;
-      }
-    }
-
-    // Last ride — fetch only the most recent activity
-    let lastRide = null;
-    if (req.session.access_token) {
-      try {
-        const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'MountainBikeRide', 'GravelRide']);
-        const actRes = await axios.get('https://www.strava.com/api/v3/athlete/activities', {
-          headers: { Authorization: `Bearer ${req.session.access_token}` },
-          params: { per_page: 10 },
-        });
-        const latest = actRes.data.find(
-          a => RIDE_TYPES.has(a.sport_type) && !a.sport_type.includes('EBike'),
-        );
-        if (latest?.start_date_local) {
-          lastRide = latest.start_date_local.split('T')[0]; // YYYY-MM-DD
-        }
-      } catch (e) {
-        console.error('[summary] last ride fetch error:', e.message);
       }
     }
 

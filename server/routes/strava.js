@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const requireAuth = require('../middleware/requireAuth');
 const { getBikeData, saveRideConditions } = require('../utils/store');
+const { findById } = require('../utils/userStore');
 
 const router = express.Router();
 
@@ -43,27 +44,32 @@ router.get('/activities/:id', requireAuth, async (req, res) => {
 });
 
 // GET /api/strava/bikes — list athlete's bikes (gear)
+// Uses the bike list stored in the DB at OAuth time to avoid a live Strava call.
+// Falls back to a fresh GET /athlete request only when cached data is absent.
 router.get('/bikes', requireAuth, async (req, res) => {
   const token = req.session.access_token;
   console.log('[/api/strava/bikes] token present:', !!token);
-  console.log('[/api/strava/bikes] token prefix:', token?.slice(0, 8));
   console.log('[/api/strava/bikes] session expires_at:', req.session.expires_at, '| now:', Math.floor(Date.now() / 1000));
 
   try {
+    // Prefer the bike list already stored in DB — avoids a live Strava round-trip.
+    if (req.session.userId) {
+      const user = await findById(req.session.userId);
+      const cachedBikes = user?.stravaTokens?.athlete?.bikes;
+      if (Array.isArray(cachedBikes) && cachedBikes.length > 0) {
+        console.log('[/api/strava/bikes] served from DB cache —', cachedBikes.length, 'bike(s)');
+        return res.json(cachedBikes);
+      }
+    }
+
+    // Cache miss — fall back to a live Strava request.
+    console.log('[/api/strava/bikes] cache miss — fetching from Strava');
     const athleteRes = await stravaGet('/athlete', token);
-    const athlete    = athleteRes.data;
-
-    console.log('[/api/strava/bikes] Strava /athlete status:', athleteRes.status);
-    console.log('[/api/strava/bikes] athlete id:', athlete.id, '| username:', athlete.username);
-    console.log('[/api/strava/bikes] bikes array raw:', JSON.stringify(athlete.bikes));
-
-    const bikes = athlete.bikes || [];
-    console.log('[/api/strava/bikes] returning', bikes.length, 'bike(s)');
-
+    const bikes = athleteRes.data.bikes || [];
+    console.log('[/api/strava/bikes] Strava returned', bikes.length, 'bike(s)');
     res.json(bikes);
   } catch (err) {
-    console.error('[/api/strava/bikes] Strava error status:', err.response?.status);
-    console.error('[/api/strava/bikes] Strava error body:', JSON.stringify(err.response?.data));
+    console.error('[/api/strava/bikes] error status:', err.response?.status);
     console.error('[/api/strava/bikes] message:', err.message);
     res.status(500).json({ error: 'Failed to fetch bikes' });
   }
@@ -97,9 +103,12 @@ router.get('/new-rides', requireAuth, async (req, res) => {
     : Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
 
   try {
-    const [actRes, athleteRes] = await Promise.all([
+    // Fetch activities and cached bike names in parallel.
+    // The DB lookup avoids a live GET /athlete Strava call for users who have
+    // previously linked — only falls back to Strava when cache is missing.
+    const [actRes, userRecord] = await Promise.all([
       stravaGet('/athlete/activities', token, { after, per_page: 50 }),
-      stravaGet('/athlete', token),
+      req.session.userId ? findById(req.session.userId) : Promise.resolve(null),
     ]);
 
     const RIDE_TYPES = new Set(['Ride', 'MountainBikeRide', 'GravelRide', 'VirtualRide']);
@@ -108,10 +117,14 @@ router.get('/new-rides', requireAuth, async (req, res) => {
       .filter(a => RIDE_TYPES.has(a.sport_type))
       .slice(0, 5);
 
-    // Build bike name map from athlete's gear list
+    // Build bike name map — prefer cached DB data, fall back to live Strava call.
     const bikeNameMap = {};
-    for (const bike of (athleteRes.data.bikes || [])) {
-      bikeNameMap[bike.id] = bike.name;
+    const cachedBikes = userRecord?.stravaTokens?.athlete?.bikes;
+    if (Array.isArray(cachedBikes) && cachedBikes.length > 0) {
+      for (const bike of cachedBikes) bikeNameMap[bike.id] = bike.name;
+    } else {
+      const athleteRes = await stravaGet('/athlete', token);
+      for (const bike of (athleteRes.data.bikes || [])) bikeNameMap[bike.id] = bike.name;
     }
 
     // Look up configured bikeType for each unique gear from our DB
