@@ -5,6 +5,7 @@ const router  = express.Router();
 
 const { findByEmail, findById, createUser, updateUser, deleteUser, publicUser } = require('../utils/userStore');
 const { getConfiguredBikeIds, deleteBikeData } = require('../utils/store');
+const { syncEffectiveMileageForUser } = require('../utils/effectiveMileage');
 
 const {
   STRAVA_CLIENT_ID,
@@ -108,6 +109,13 @@ router.post('/login', async (req, res) => {
         measurement_preference: a.measurement_preference,
       } : null;
       req.session.athlete = sessionAthlete;
+    }
+
+    // Fire-and-forget: refresh stored effective mileage for all linked bikes.
+    const loginBikes = user.stravaTokens?.athlete?.bikes ?? [];
+    if (loginBikes.length > 0) {
+      syncEffectiveMileageForUser(loginBikes.map(b => b.id), user.id)
+        .catch(err => console.error('[login] effectiveMileage sync error:', err.message));
     }
 
     console.log('[login] session athlete:', sessionAthlete ? { id: sessionAthlete.id, firstname: sessionAthlete.firstname } : null);
@@ -239,6 +247,13 @@ router.get('/strava/callback', async (req, res) => {
       // No users row exists for these accounts so lastLoginAt stays null —
       // the new-rides endpoint will default to the past 7 days.
       req.session.userId = String(athlete.id);
+    }
+
+    // Fire-and-forget: refresh stored effective mileage for all linked bikes.
+    const callbackBikes = athlete?.bikes ?? [];
+    if (callbackBikes.length > 0 && req.session.userId) {
+      syncEffectiveMileageForUser(callbackBikes.map(b => b.id), req.session.userId)
+        .catch(err => console.error('[strava/callback] effectiveMileage sync error:', err.message));
     }
 
     // cookie-session writes the session into the Set-Cookie header automatically

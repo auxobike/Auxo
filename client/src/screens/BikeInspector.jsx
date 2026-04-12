@@ -302,6 +302,26 @@ export default function BikeInspector({ onLogout }) {
               </div>
             </div>
           </div>
+
+          {/* Mileage stats */}
+          <div className="inspector-mileage-strip">
+            <div className="inspector-mileage-stat">
+              <span className="inspector-mileage-label">Strava Miles</span>
+              <span className="inspector-mileage-value">{statusData.rawMileage?.toLocaleString() ?? '—'}</span>
+            </div>
+            {statusData.effectiveMileage > statusData.rawMileage && (
+              <>
+                <div className="inspector-mileage-divider" />
+                <div className="inspector-mileage-stat">
+                  <span className="inspector-mileage-label">Effective Miles</span>
+                  <span className="inspector-mileage-value inspector-mileage-value--accent">
+                    {statusData.effectiveMileage?.toLocaleString()}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
           <button
             className="btn-pill btn-pill-ghost inspector-mechanic-btn"
             onClick={() => navigate('/book-service')}

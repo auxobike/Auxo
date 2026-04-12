@@ -37,12 +37,40 @@ async function migrate() {
       activity_id     TEXT        NOT NULL,
       user_id         TEXT        NOT NULL,
       gear_id         TEXT,
-      condition       TEXT        NOT NULL CHECK (condition IN ('dry', 'wet', 'muddy')),
+      condition       TEXT        NOT NULL CHECK (condition IN ('dry', 'wet', 'muddy', 'trainer')),
+      is_trainer      BOOLEAN     NOT NULL DEFAULT FALSE,
       actual_miles    NUMERIC     NOT NULL,
       effective_miles NUMERIC     NOT NULL,
       recorded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       PRIMARY KEY (activity_id, user_id)
     )
+  `);
+
+  // Idempotent: add is_trainer column if it doesn't exist yet.
+  await pool.query(`
+    ALTER TABLE ride_conditions ADD COLUMN IF NOT EXISTS is_trainer BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+
+  // Idempotent: expand condition CHECK constraint to include 'trainer'.
+  // The DO block finds the existing constraint by inspecting its definition
+  // and only replaces it when 'trainer' is not already allowed.
+  await pool.query(`
+    DO $$
+    DECLARE
+      c_name TEXT;
+    BEGIN
+      SELECT c.conname INTO c_name
+      FROM pg_constraint c
+      JOIN pg_class t ON t.oid = c.conrelid
+      WHERE t.relname = 'ride_conditions' AND c.contype = 'c'
+        AND pg_get_constraintdef(c.oid) LIKE '%dry%'
+        AND pg_get_constraintdef(c.oid) NOT LIKE '%trainer%';
+      IF c_name IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE ride_conditions DROP CONSTRAINT ' || quote_ident(c_name);
+        EXECUTE 'ALTER TABLE ride_conditions ADD CONSTRAINT ride_conditions_condition_check '
+          || 'CHECK (condition IN (''dry'', ''wet'', ''muddy'', ''trainer''))';
+      END IF;
+    END $$;
   `);
 
   await pool.query(`

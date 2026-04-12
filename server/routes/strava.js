@@ -3,6 +3,7 @@ const axios = require('axios');
 const requireAuth = require('../middleware/requireAuth');
 const { getBikeData, saveRideConditions } = require('../utils/store');
 const { findById } = require('../utils/userStore');
+const { recalculateEffectiveMileage } = require('../utils/effectiveMileage');
 
 const router = express.Router();
 
@@ -147,6 +148,7 @@ router.get('/new-rides', requireAuth, async (req, res) => {
       gearId:        a.gear_id || null,
       bikeName:      a.gear_id ? (bikeNameMap[a.gear_id] || 'Unknown bike') : null,
       bikeType:      a.gear_id ? (bikeTypeMap[a.gear_id] || null) : null,
+      isTrainer:     a.sport_type === 'VirtualRide' || a.trainer === true,
     }));
 
     res.json(rides);
@@ -170,18 +172,32 @@ router.post('/ride-conditions', requireAuth, async (req, res) => {
   const userId = req.session.userId;
 
   const records = conditions
-    .filter(c => c.condition && MULTIPLIERS[c.condition] !== undefined)
-    .map(c => ({
-      activityId:     String(c.activityId),
-      userId,
-      gearId:         c.gearId || null,
-      condition:      c.condition,
-      actualMiles:    Number(c.distanceMiles) || 0,
-      effectiveMiles: (Number(c.distanceMiles) || 0) * MULTIPLIERS[c.condition],
-    }));
+    .filter(c => c.isTrainer || (c.condition && MULTIPLIERS[c.condition] !== undefined))
+    .map(c => {
+      const actualMiles = Number(c.distanceMiles) || 0;
+      return {
+        activityId:     String(c.activityId),
+        userId,
+        gearId:         c.gearId || null,
+        // Trainer rides use condition='trainer'; per-category wear is applied in
+        // the maintenance calculator using trainerMilesTotal — not via effective_miles.
+        condition:      c.isTrainer ? 'trainer' : c.condition,
+        isTrainer:      !!c.isTrainer,
+        actualMiles,
+        effectiveMiles: c.isTrainer ? actualMiles : actualMiles * MULTIPLIERS[c.condition],
+      };
+    });
 
   try {
     await saveRideConditions(records);
+
+    // Fire-and-forget: update stored effective mileage for each affected bike.
+    const uniqueGearIds = [...new Set(records.map(r => r.gearId).filter(Boolean))];
+    if (uniqueGearIds.length > 0 && userId) {
+      Promise.all(uniqueGearIds.map(gId => recalculateEffectiveMileage(gId, userId)))
+        .catch(err => console.error('[ride-conditions] effectiveMileage sync error:', err.message));
+    }
+
     res.json({ success: true, saved: records.length });
   } catch (err) {
     console.error('[ride-conditions] error:', err.message);

@@ -140,6 +140,25 @@ function filterItems(items, bikeData) {
   });
 }
 
+// Trainer rides reduce wear differently per maintenance section:
+//   brake_system / tires → 0 % (no outdoor wear)
+//   drivetrain            → 60 % (chain/cassette still wear but less)
+//   everything else       → 100 % (no reduction)
+const TRAINER_SECTION_MULTIPLIERS = { brake_system: 0, tires: 0, drivetrain: 0.6 };
+
+// Compute the effective mileage for a maintenance section, factoring in both
+// condition-based adjustments (wet/muddy multipliers) and trainer deductions.
+function sectionMileage(sectionId, rawMileage, conditionAdj, trainerMilesTotal) {
+  const base = rawMileage + conditionAdj;
+  const multiplier = TRAINER_SECTION_MULTIPLIERS[sectionId];
+  if (multiplier !== undefined) {
+    // trainerMilesTotal is already included in rawMileage (Strava counts every ride).
+    // We subtract the "excess" trainer contribution: (1 - multiplier) * trainerMiles.
+    return Math.max(0, base - trainerMilesTotal * (1 - multiplier));
+  }
+  return base;
+}
+
 // ── Routes ───────────────────────────────────────────────────────────────────
 
 // GET /api/maintenance/status/:bikeId
@@ -156,20 +175,26 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
   if (!rules) return res.status(400).json({ error: 'Unknown bike type' });
 
   try {
-    const [stravaState, currentUser, conditionAdj] = await Promise.all([
+    const [stravaState, currentUser] = await Promise.all([
       fetchStravaState(bikeId, req.session.access_token),
       req.session.userId ? findById(req.session.userId) : null,
-      req.session.userId ? getConditionAdjustment(req.session.userId, bikeId) : Promise.resolve(0),
     ]);
 
-    const warnFraction = ((currentUser?.preferences?.warnThreshold ?? 10) / 100);
+    // Use stored effectiveMileageAdj if available; fall back to a live DB query
+    // for bikes that haven't been synced yet (e.g. first login after deploy).
+    const conditionAdj = bikeData.effectiveMileageAdj != null
+      ? bikeData.effectiveMileageAdj
+      : req.session.userId ? await getConditionAdjustment(req.session.userId, bikeId) : 0;
 
+    const warnFraction      = ((currentUser?.preferences?.warnThreshold ?? 10) / 100);
+    const trainerMilesTotal = bikeData.trainerMilesTotal ?? 0;
+
+    // Base bikeState used for non-mileage triggers (ride count, hours, chain replacements).
+    // Per-section mileage is injected below for mileage-based triggers.
     const bikeState = {
-      // Effective mileage adds condition-based wear (wet/muddy multipliers) on top of
-      // Strava's raw distance so the maintenance calculator reflects actual wear.
-      currentMileage:   stravaState.currentMileage + conditionAdj,
-      currentRideCount: stravaState.currentRideCount,
-      rideHours:        stravaState.rideHours,
+      currentMileage:    stravaState.currentMileage + conditionAdj,
+      currentRideCount:  stravaState.currentRideCount,
+      rideHours:         stravaState.rideHours,
       chainReplacements: bikeData.chainReplacements || 0,
     };
 
@@ -185,33 +210,44 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
       baseline: true,
     } : null;
 
-    const sections = rules.sections.map(section => ({
-      id:    section.id,
-      label: section.label,
-      items: filterItems(section.items, bikeData).map(item => {
-        const existingLog = bikeData.serviceLogs?.[item.id] || null;
-        const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
-        return {
-          ...item,
-          serviceLog,
-          status: getItemStatus(item, serviceLog, bikeState, {
-            warnFraction,
-            customInterval: bikeData.customIntervals?.[item.id] ?? null,
-          }),
-        };
-      }),
-    })).filter(s => s.items.length > 0);
+    const sections = rules.sections.map(section => {
+      // Apply trainer-adjusted mileage per section so tires/brakes don't
+      // accumulate wear from indoor trainer rides.
+      const secMileage = sectionMileage(section.id, stravaState.currentMileage, conditionAdj, trainerMilesTotal);
+      const secBikeState = secMileage !== bikeState.currentMileage
+        ? { ...bikeState, currentMileage: secMileage }
+        : bikeState;
+
+      return {
+        id:    section.id,
+        label: section.label,
+        items: filterItems(section.items, bikeData).map(item => {
+          const existingLog = bikeData.serviceLogs?.[item.id] || null;
+          const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
+          return {
+            ...item,
+            serviceLog,
+            status: getItemStatus(item, serviceLog, secBikeState, {
+              warnFraction,
+              customInterval: bikeData.customIntervals?.[item.id] ?? null,
+            }),
+          };
+        }),
+      };
+    }).filter(s => s.items.length > 0);
 
     const summary = getBikeSummary(sections);
 
     res.json({
       bikeId,
-      bikeType:         bikeData.bikeType,
-      bikeLabel:        rules.label,
-      gear:             stravaState.gear,
-      currentMileage:   Math.round(stravaState.currentMileage),
-      currentRideCount: stravaState.currentRideCount,
-      chainReplacements: bikeData.chainReplacements || 0,
+      bikeType:           bikeData.bikeType,
+      bikeLabel:          rules.label,
+      gear:               stravaState.gear,
+      rawMileage:         Math.round(stravaState.currentMileage),
+      effectiveMileage:   Math.round(stravaState.currentMileage + conditionAdj),
+      trainerMilesTotal:  Math.round(trainerMilesTotal),
+      currentRideCount:   stravaState.currentRideCount,
+      chainReplacements:  bikeData.chainReplacements || 0,
       summary,
       sections,
     });
@@ -455,11 +491,13 @@ router.get('/summary', requireAuth, async (req, res) => {
     if (token && bikeCount > 0) {
       const results = await Promise.allSettled(
         bikeIds.map(async bikeId => {
-          const [bikeData, stravaState, conditionAdj] = await Promise.all([
+          const [bikeData, stravaState] = await Promise.all([
             getBikeData(bikeId),
             fetchStravaState(bikeId, token, allActivities),
-            req.session.userId ? getConditionAdjustment(req.session.userId, bikeId) : Promise.resolve(0),
           ]);
+          // Use stored adj; no live DB query needed for the quick summary view.
+          const conditionAdj      = bikeData?.effectiveMileageAdj ?? 0;
+          const trainerMilesTotal = bikeData?.trainerMilesTotal   ?? 0;
           if (!bikeData?.bikeType) return 0;
           const rules = RULES[bikeData.bikeType];
           if (!rules) return 0;
@@ -483,10 +521,14 @@ router.get('/summary', requireAuth, async (req, res) => {
 
           let count = 0;
           for (const section of rules.sections) {
+            const secMileage   = sectionMileage(section.id, stravaState.currentMileage, conditionAdj, trainerMilesTotal);
+            const secBikeState = secMileage !== bikeState.currentMileage
+              ? { ...bikeState, currentMileage: secMileage }
+              : bikeState;
             for (const item of filterItems(section.items, bikeData)) {
               const existingLog = bikeData.serviceLogs?.[item.id] || null;
               const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
-              const { status } = getItemStatus(item, serviceLog, bikeState, {
+              const { status } = getItemStatus(item, serviceLog, secBikeState, {
                 warnFraction,
                 customInterval: bikeData.customIntervals?.[item.id] ?? null,
               });

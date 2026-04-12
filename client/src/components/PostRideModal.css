@@ -157,6 +157,38 @@
   font-weight: 700;
 }
 
+/* ── Trainer ride info ── */
+.prm-trainer-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-pill);
+}
+
+.prm-trainer-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(100, 180, 255, 0.12);
+  border: 1px solid rgba(100, 180, 255, 0.35);
+  color: #80c8ff;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.prm-trainer-note {
+  font-size: 0.78rem;
+  color: var(--white-40);
+  line-height: 1.4;
+  margin: 0;
+}
+
 /* ── Maintenance warnings ── */
 .prm-warnings {
   display: flex;

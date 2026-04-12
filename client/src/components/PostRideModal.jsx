@@ -53,10 +53,29 @@ function GravelIcon() {
   );
 }
 
-function BikeIcon({ type }) {
+function BikeIcon({ type, isTrainer }) {
+  if (isTrainer)         return <TrainerIcon />;
   if (type === 'mtb')    return <MtbIcon />;
   if (type === 'gravel') return <GravelIcon />;
   return <RoadIcon />;
+}
+
+// ── Trainer icon ─────────────────────────────────────────────────────────────
+
+function TrainerIcon() {
+  return (
+    <svg viewBox="0 0 40 24" fill="none" className="prm-bike-icon">
+      {/* Rear roller stand */}
+      <rect x="6" y="17" width="28" height="3" rx="1.5" stroke="currentColor" strokeWidth="2"/>
+      <line x1="10" y1="17" x2="8" y2="22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="30" y1="17" x2="32" y2="22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      {/* Bike silhouette on trainer */}
+      <circle cx="12" cy="14" r="4" stroke="currentColor" strokeWidth="2"/>
+      <circle cx="28" cy="14" r="4" stroke="currentColor" strokeWidth="2"/>
+      <path d="M12 14L18 7h6l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M24 11l4 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
 }
 
 // ── Warning calculation ─────────────────────────────────────────────────────
@@ -105,7 +124,7 @@ function RideCard({ ride, condition, onCondition, maintenanceStatus }) {
       {/* Ride header */}
       <div className="prm-ride-header">
         <div className="prm-bike-icon-wrap">
-          <BikeIcon type={ride.bikeType} />
+          <BikeIcon type={ride.bikeType} isTrainer={ride.isTrainer} />
         </div>
         <div className="prm-ride-info">
           <span className="prm-bike-name">{ride.bikeName || 'No bike assigned'}</span>
@@ -116,34 +135,46 @@ function RideCard({ ride, condition, onCondition, maintenanceStatus }) {
         </div>
       </div>
 
-      {/* Condition pills */}
-      <div className="prm-conditions">
-        {CONDITIONS.map(c => (
-          <button
-            key={c.id}
-            className={`prm-condition-pill${condition === c.id ? ' prm-condition-pill--active' : ''}`}
-            onClick={() => onCondition(condition === c.id ? null : c.id)}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Maintenance warnings — only shown when a condition is selected */}
-      {condition && warnings.length > 0 && (
-        <div className="prm-warnings">
-          <span className="prm-warnings-label">Heads up after this ride:</span>
-          <div className="prm-warning-badges">
-            {warnings.map((w, i) => (
-              <span
-                key={i}
-                className={`prm-warning-badge prm-warning-badge--${w.currentStatus === 'due_soon' ? 'alert' : 'critical'}`}
+      {ride.isTrainer ? (
+        /* Trainer ride — no condition input needed */
+        <div className="prm-trainer-info">
+          <span className="prm-trainer-badge">Trainer Ride</span>
+          <p className="prm-trainer-note">
+            Tire and brake wear not counted. Drivetrain wear counted at 60%.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Condition pills */}
+          <div className="prm-conditions">
+            {CONDITIONS.map(c => (
+              <button
+                key={c.id}
+                className={`prm-condition-pill${condition === c.id ? ' prm-condition-pill--active' : ''}`}
+                onClick={() => onCondition(condition === c.id ? null : c.id)}
               >
-                {w.label} – {w.action}
-              </span>
+                {c.label}
+              </button>
             ))}
           </div>
-        </div>
+
+          {/* Maintenance warnings — only shown when a condition is selected */}
+          {condition && warnings.length > 0 && (
+            <div className="prm-warnings">
+              <span className="prm-warnings-label">Heads up after this ride:</span>
+              <div className="prm-warning-badges">
+                {warnings.map((w, i) => (
+                  <span
+                    key={i}
+                    className={`prm-warning-badge prm-warning-badge--${w.currentStatus === 'due_soon' ? 'alert' : 'critical'}`}
+                  >
+                    {w.label} – {w.action}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -173,14 +204,14 @@ export default function PostRideModal({ rides, onClose }) {
   }
 
   async function handleSave() {
+    // Trainer rides are always included (no condition selection needed).
+    // Regular rides are only included when the user selected a condition.
     const payload = rides
-      .filter(r => conditions[r.id])
-      .map(r => ({
-        activityId:   r.id,
-        condition:    conditions[r.id],
-        distanceMiles: r.distanceMiles,
-        gearId:       r.gearId,
-      }));
+      .filter(r => r.isTrainer || conditions[r.id])
+      .map(r => r.isTrainer
+        ? { activityId: r.id, isTrainer: true, distanceMiles: r.distanceMiles, gearId: r.gearId }
+        : { activityId: r.id, condition: conditions[r.id], distanceMiles: r.distanceMiles, gearId: r.gearId }
+      );
 
     setSaving(true);
     try {
@@ -192,7 +223,9 @@ export default function PostRideModal({ rides, onClose }) {
     onClose();
   }
 
-  const anyConditionSet = rides.some(r => conditions[r.id]);
+  // Enable "All done" if any ride has a condition set, or if any ride is a trainer
+  // (trainer rides are always saved — no condition input required).
+  const anyConditionSet = rides.some(r => r.isTrainer || conditions[r.id]);
 
   return (
     <div className="prm-backdrop" role="dialog" aria-modal="true">
