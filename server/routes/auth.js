@@ -80,6 +80,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
+    // Store previous login time in session (used by /api/strava/new-rides),
+    // then update last_login_at to NOW so the next login gets a fresh window.
+    req.session.lastLoginAt = user.lastLoginAt || null;
+    await updateUser(user.id, { lastLoginAt: new Date().toISOString() });
+
     req.session.userId = user.id;
     req.session.user   = publicUser(user);
 
@@ -217,14 +222,22 @@ router.get('/strava/callback', async (req, res) => {
 
     // If logged in via email/password, persist Strava tokens to the user record
     if (req.session.userId) {
-      await updateUser(req.session.userId, {
+      // Read lastLoginAt BEFORE updating so we can pass the previous value to
+      // the new-rides endpoint (which shows rides since the last login).
+      const userBefore = await findById(req.session.userId);
+      req.session.lastLoginAt = userBefore?.lastLoginAt || null;
+
+      const updatedUser = await updateUser(req.session.userId, {
         stravaLinked: true,
         stravaId:     String(athlete.id),
         stravaTokens: { access_token, refresh_token, expires_at, athlete },
+        lastLoginAt:  new Date().toISOString(),
       });
-      req.session.user = publicUser(await findById(req.session.userId));
+      req.session.user = publicUser(updatedUser);
     } else {
-      // Strava-only login: store athlete id as the session identifier
+      // Strava-only login: store athlete id as the session identifier.
+      // No users row exists for these accounts so lastLoginAt stays null —
+      // the new-rides endpoint will default to the past 7 days.
       req.session.userId = String(athlete.id);
     }
 

@@ -23,9 +23,26 @@ async function migrate() {
     )
   `);
 
-  // Add preferences column to existing users tables (idempotent)
+  // Idempotent column additions
   await pool.query(`
     ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB NOT NULL DEFAULT '{}'
+  `);
+
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ride_conditions (
+      activity_id     TEXT        NOT NULL,
+      user_id         TEXT        NOT NULL,
+      gear_id         TEXT,
+      condition       TEXT        NOT NULL CHECK (condition IN ('dry', 'wet', 'muddy')),
+      actual_miles    NUMERIC     NOT NULL,
+      effective_miles NUMERIC     NOT NULL,
+      recorded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (activity_id, user_id)
+    )
   `);
 
   await pool.query(`

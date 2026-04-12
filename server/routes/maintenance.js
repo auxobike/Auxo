@@ -4,7 +4,7 @@ const axios   = require('axios');
 const requireAuth             = require('../middleware/requireAuth');
 const RULES                   = require('../data/maintenanceRules');
 const { getItemStatus, getBikeSummary } = require('../utils/maintenanceCalculator');
-const { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds, deleteBikeData } = require('../utils/store');
+const { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds, deleteBikeData, getConditionAdjustment } = require('../utils/store');
 const { findById }            = require('../utils/userStore');
 
 const router = express.Router();
@@ -141,15 +141,18 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
   if (!rules) return res.status(400).json({ error: 'Unknown bike type' });
 
   try {
-    const [stravaState, currentUser] = await Promise.all([
+    const [stravaState, currentUser, conditionAdj] = await Promise.all([
       fetchStravaState(bikeId, req.session.access_token),
       req.session.userId ? findById(req.session.userId) : null,
+      req.session.userId ? getConditionAdjustment(req.session.userId, bikeId) : Promise.resolve(0),
     ]);
 
     const warnFraction = ((currentUser?.preferences?.warnThreshold ?? 10) / 100);
 
     const bikeState = {
-      currentMileage:   stravaState.currentMileage,
+      // Effective mileage adds condition-based wear (wet/muddy multipliers) on top of
+      // Strava's raw distance so the maintenance calculator reflects actual wear.
+      currentMileage:   stravaState.currentMileage + conditionAdj,
       currentRideCount: stravaState.currentRideCount,
       rideHours:        stravaState.rideHours,
       chainReplacements: bikeData.chainReplacements || 0,
@@ -417,16 +420,17 @@ router.get('/summary', requireAuth, async (req, res) => {
     if (req.session.access_token && bikeCount > 0) {
       const results = await Promise.allSettled(
         bikeIds.map(async bikeId => {
-          const [bikeData, stravaState] = await Promise.all([
+          const [bikeData, stravaState, conditionAdj] = await Promise.all([
             getBikeData(bikeId),
             fetchStravaState(bikeId, req.session.access_token),
+            req.session.userId ? getConditionAdjustment(req.session.userId, bikeId) : Promise.resolve(0),
           ]);
           if (!bikeData?.bikeType) return 0;
           const rules = RULES[bikeData.bikeType];
           if (!rules) return 0;
 
           const bikeState = {
-            currentMileage:    stravaState.currentMileage,
+            currentMileage:    stravaState.currentMileage + conditionAdj,
             currentRideCount:  stravaState.currentRideCount,
             rideHours:         stravaState.rideHours,
             chainReplacements: bikeData.chainReplacements || 0,

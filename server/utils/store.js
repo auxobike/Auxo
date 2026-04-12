@@ -59,4 +59,39 @@ async function deleteBikeData(bikeIds) {
   await pool.query('DELETE FROM bike_data WHERE bike_id = ANY($1)', [bikeIds]);
 }
 
-module.exports = { getBikeData, setBikeConfig, logService, getServiceHistory, getConfiguredBikeIds, deleteBikeData };
+// Returns the total extra miles (effective - actual) accrued by conditions logged
+// for a given user + gear combination. Added to Strava mileage when calculating
+// maintenance status so wet/muddy rides count for more wear than their raw distance.
+async function getConditionAdjustment(userId, gearId) {
+  if (!userId || !gearId) return 0;
+  const { rows } = await pool.query(
+    `SELECT COALESCE(SUM(effective_miles - actual_miles), 0) AS adjustment
+     FROM ride_conditions WHERE user_id = $1 AND gear_id = $2`,
+    [userId, gearId],
+  );
+  return parseFloat(rows[0].adjustment) || 0;
+}
+
+// Upsert an array of condition records. Duplicate activity+user pairs overwrite
+// the previous selection (user changed their mind before saving).
+async function saveRideConditions(records) {
+  for (const r of records) {
+    await pool.query(
+      `INSERT INTO ride_conditions
+         (activity_id, user_id, gear_id, condition, actual_miles, effective_miles)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (activity_id, user_id) DO UPDATE SET
+         condition       = EXCLUDED.condition,
+         actual_miles    = EXCLUDED.actual_miles,
+         effective_miles = EXCLUDED.effective_miles,
+         recorded_at     = NOW()`,
+      [r.activityId, r.userId, r.gearId, r.condition, r.actualMiles, r.effectiveMiles],
+    );
+  }
+}
+
+module.exports = {
+  getBikeData, setBikeConfig, logService, getServiceHistory,
+  getConfiguredBikeIds, deleteBikeData,
+  getConditionAdjustment, saveRideConditions,
+};

@@ -12,6 +12,7 @@ function rowToUser(row) {
     stravaTokens: row.strava_tokens,   // already parsed by pg (JSONB column)
     preferences:  row.preferences ?? {},
     createdAt:    row.created_at,
+    lastLoginAt:  row.last_login_at ?? null,
   };
 }
 
@@ -53,6 +54,7 @@ async function updateUser(id, fields) {
   if ('stravaTokens'  in fields) { setClauses.push(`strava_tokens = $${i++}`); values.push(fields.stravaTokens); }
   if ('passwordHash'  in fields) { setClauses.push(`password_hash = $${i++}`); values.push(fields.passwordHash); }
   if ('preferences'   in fields) { setClauses.push(`preferences   = $${i++}`); values.push(JSON.stringify(fields.preferences)); }
+  if ('lastLoginAt'   in fields) { setClauses.push(`last_login_at = $${i++}`); values.push(fields.lastLoginAt); }
 
   if (!setClauses.length) return findById(id);
 

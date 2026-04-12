@@ -41,10 +41,15 @@ export const api = {
   },
 
   // Strava
-  getActivities:  (page = 1) => apiFetch(`/api/strava/activities?page=${page}&per_page=30`),
-  getActivity:    (id) => apiFetch(`/api/strava/activities/${id}`),
-  getBikes:       () => apiFetch('/api/strava/bikes'),
-  getBike:        (id) => apiFetch(`/api/strava/bikes/${id}`),
+  getActivities:    (page = 1) => apiFetch(`/api/strava/activities?page=${page}&per_page=30`),
+  getActivity:      (id) => apiFetch(`/api/strava/activities/${id}`),
+  getBikes:         () => apiFetch('/api/strava/bikes'),
+  getBike:          (id) => apiFetch(`/api/strava/bikes/${id}`),
+  getNewRides:      () => apiFetch('/api/strava/new-rides'),
+  saveRideConditions: (conditions) => apiFetch('/api/strava/ride-conditions', {
+    method: 'POST',
+    body: JSON.stringify({ conditions }),
+  }),
 
   // Maintenance
   getConfiguredBikes:   () => apiFetch('/api/maintenance/configured'),

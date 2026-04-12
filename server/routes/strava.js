@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const requireAuth = require('../middleware/requireAuth');
+const { getBikeData, saveRideConditions } = require('../utils/store');
 
 const router = express.Router();
 
@@ -79,6 +80,99 @@ router.get('/bikes/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Strava gear error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch bike details' });
+  }
+});
+
+// GET /api/strava/new-rides
+// Returns rides recorded since the user's previous login (stored in session as
+// lastLoginAt). Falls back to the past 7 days when no prior login is recorded.
+// Each ride is enriched with distanceMiles, bikeName, and bikeType from our DB.
+router.get('/new-rides', requireAuth, async (req, res) => {
+  const token = req.session.access_token;
+  if (!token) return res.json([]);
+
+  const lastLoginAt = req.session.lastLoginAt;
+  const after = lastLoginAt
+    ? Math.floor(new Date(lastLoginAt).getTime() / 1000)
+    : Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
+
+  try {
+    const [actRes, athleteRes] = await Promise.all([
+      stravaGet('/athlete/activities', token, { after, per_page: 50 }),
+      stravaGet('/athlete', token),
+    ]);
+
+    const RIDE_TYPES = new Set(['Ride', 'MountainBikeRide', 'GravelRide', 'VirtualRide']);
+    // Strava returns activities newest-first; take the 5 most recent ride types.
+    const activities = actRes.data
+      .filter(a => RIDE_TYPES.has(a.sport_type))
+      .slice(0, 5);
+
+    // Build bike name map from athlete's gear list
+    const bikeNameMap = {};
+    for (const bike of (athleteRes.data.bikes || [])) {
+      bikeNameMap[bike.id] = bike.name;
+    }
+
+    // Look up configured bikeType for each unique gear from our DB
+    const uniqueGearIds = [...new Set(activities.map(a => a.gear_id).filter(Boolean))];
+    const bikeTypeMap = {};
+    await Promise.all(uniqueGearIds.map(async gearId => {
+      try {
+        const data = await getBikeData(gearId);
+        bikeTypeMap[gearId] = data?.bikeType || null;
+      } catch {
+        bikeTypeMap[gearId] = null;
+      }
+    }));
+
+    const rides = activities.map(a => ({
+      id:            String(a.id),
+      name:          a.name,
+      distanceMiles: Math.round(((a.distance || 0) / 1609.34) * 10) / 10,
+      date:          a.start_date_local?.split('T')[0] || null,
+      gearId:        a.gear_id || null,
+      bikeName:      a.gear_id ? (bikeNameMap[a.gear_id] || 'Unknown bike') : null,
+      bikeType:      a.gear_id ? (bikeTypeMap[a.gear_id] || null) : null,
+    }));
+
+    res.json(rides);
+  } catch (err) {
+    console.error('[new-rides] error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to fetch new rides' });
+  }
+});
+
+// POST /api/strava/ride-conditions
+// Save condition selections for one or more rides. Computes effective_miles
+// server-side so the multiplier logic stays authoritative on the backend.
+router.post('/ride-conditions', requireAuth, async (req, res) => {
+  const { conditions } = req.body;
+
+  if (!Array.isArray(conditions) || conditions.length === 0) {
+    return res.status(400).json({ error: 'conditions array is required' });
+  }
+
+  const MULTIPLIERS = { dry: 1.0, wet: 1.3, muddy: 1.5 };
+  const userId = req.session.userId;
+
+  const records = conditions
+    .filter(c => c.condition && MULTIPLIERS[c.condition] !== undefined)
+    .map(c => ({
+      activityId:     String(c.activityId),
+      userId,
+      gearId:         c.gearId || null,
+      condition:      c.condition,
+      actualMiles:    Number(c.distanceMiles) || 0,
+      effectiveMiles: (Number(c.distanceMiles) || 0) * MULTIPLIERS[c.condition],
+    }));
+
+  try {
+    await saveRideConditions(records);
+    res.json({ success: true, saved: records.length });
+  } catch (err) {
+    console.error('[ride-conditions] error:', err.message);
+    res.status(500).json({ error: 'Failed to save ride conditions' });
   }
 });
 
