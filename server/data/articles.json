@@ -474,5 +474,54 @@
         "content": "Many riders run a softer compound up front for maximum grip and braking traction, and a harder or dual compound on the rear where rolling efficiency and durability matter more. Front and rear tires don't need to match."
       }
     ]
+  },
+  {
+    "id": "choosing-road-tires",
+    "title": "Choosing the Right Road Tire",
+    "category": "Tires, Tubes, and Wheels",
+    "description": "Width, compound, casing, and construction — here's what actually matters when choosing a road tire.",
+    "sections": [
+      {
+        "type": "intro",
+        "content": "Road tires look simple compared to their knobby MTB cousins, but the choices you make — width, compound, casing, and construction — have a huge impact on speed, comfort, and puncture resistance. Here's what actually matters."
+      },
+      {
+        "type": "note",
+        "heading": "Width: bigger is faster (within reason)",
+        "content": "The old assumption was that narrower tires were faster. Research has flipped that on its head. A wider tire at lower pressure deforms around road imperfections rather than bouncing off them, reducing energy loss. Most road riders have moved to 28–32mm as the sweet spot. 23–25mm: still used in racing on smooth circuits, very fast on perfect pavement but harsh everywhere else. 28–30mm: the current road sweet spot — fast, comfortable, good puncture resistance. 32–35mm: borders on gravel territory, excellent comfort and versatility with slightly more rolling resistance."
+      },
+      {
+        "type": "note",
+        "heading": "Clincher vs Tubeless vs Tubular",
+        "content": "Clincher (with tube): the classic setup — easy to repair, widely compatible, affordable, still a great choice for most riders. Tubeless: no inner tube, sealant plugs small punctures automatically, lower rolling resistance, can run slightly lower pressure, more setup complexity but increasingly popular. Tubular: the tire and tube are one unit glued to the rim, used almost exclusively in professional racing and not practical for most riders."
+      },
+      {
+        "type": "note",
+        "heading": "Compound and casing",
+        "content": "Hard compound center with soft compound edges is common on dual-compound tires — efficient rolling straight ahead with good grip in corners. TPI (threads per inch): higher TPI means a more supple casing with better ride feel and lower rolling resistance — 120TPI and above is considered high quality. Folding vs wire bead: folding bead tires use kevlar instead of steel wire — lighter and easier to carry as a spare."
+      },
+      {
+        "type": "note",
+        "heading": "Puncture protection",
+        "content": "Most road tires include a puncture protection layer — a belt of kevlar or similar material beneath the tread. More protection adds weight and slightly increases rolling resistance. Minimal protection: race tires — light, fast, but vulnerable. Standard protection: the everyday choice — good balance. Maximum protection: commuter/training tires — heavier but durable."
+      },
+      {
+        "type": "comparison",
+        "colA": "Race",
+        "colB": "Training/Sport",
+        "colC": "Endurance/Commute",
+        "rows": [
+          { "label": "Width",               "a": "23–25mm",                     "b": "28–30mm",              "c": "30–35mm" },
+          { "label": "Compound",            "a": "Soft",                        "b": "Dual",                 "c": "Hard center" },
+          { "label": "Puncture protection", "a": "Minimal",                     "b": "Standard",             "c": "Maximum" },
+          { "label": "TPI",                 "a": "120+",                        "b": "60–120",               "c": "60 or less" },
+          { "label": "Best for",            "a": "Racing fast group rides",     "b": "Everyday riding",      "c": "Long days commuting reliability" }
+        ]
+      },
+      {
+        "type": "proTip",
+        "content": "Don't cheap out on tires. They're the only contact point between you and the road — a quality tire improves ride feel, speed, and safety more than almost any other upgrade at the same price point."
+      }
+    ]
   }
 ]
