@@ -45,10 +45,18 @@ export const api = {
   getActivity:      (id) => apiFetch(`/api/strava/activities/${id}`),
   getBikes:         () => apiFetch('/api/strava/bikes'),
   getBike:          (id) => apiFetch(`/api/strava/bikes/${id}`),
-  getNewRides:      () => apiFetch('/api/strava/new-rides'),
+  getNewRides:         () => apiFetch('/api/strava/new-rides'),
+  getRecentRidesForBike: (bikeId) => apiFetch(`/api/strava/rides/${bikeId}`),
   saveRideConditions: (conditions) => apiFetch('/api/strava/ride-conditions', {
     method: 'POST',
     body: JSON.stringify({ conditions }),
+  }),
+  updateRideCondition: (activityId, data) => apiFetch(`/api/strava/ride-conditions/${activityId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  clearRideCondition: (activityId) => apiFetch(`/api/strava/ride-conditions/${activityId}`, {
+    method: 'DELETE',
   }),
 
   // Maintenance

@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const requireAuth = require('../middleware/requireAuth');
-const { getBikeData, saveRideConditions } = require('../utils/store');
+const { getBikeData, saveRideConditions, getRideConditions, deleteRideCondition } = require('../utils/store');
 const { findById } = require('../utils/userStore');
 const { recalculateEffectiveMileage } = require('../utils/effectiveMileage');
 
@@ -156,6 +156,113 @@ router.get('/new-rides', requireAuth, async (req, res) => {
     console.error('[new-rides] error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch new rides' });
   }
+});
+
+// GET /api/strava/rides/:bikeId — last 5 rides on a specific bike with their stored conditions.
+// Used by BikeInspector to show a Recent Rides section with per-ride edit capability.
+router.get('/rides/:bikeId', requireAuth, async (req, res) => {
+  const { bikeId } = req.params;
+  const token  = req.session.access_token;
+  const userId = req.session.userId;
+
+  if (!token) return res.json([]);
+
+  try {
+    const [actRes, userRecord] = await Promise.all([
+      stravaGet('/athlete/activities', token, { per_page: 50 }),
+      userId ? findById(userId) : Promise.resolve(null),
+    ]);
+
+    const RIDE_TYPES = new Set(['Ride', 'MountainBikeRide', 'GravelRide', 'VirtualRide']);
+    const bikeActivities = actRes.data
+      .filter(a => a.gear_id === bikeId && RIDE_TYPES.has(a.sport_type))
+      .slice(0, 5);
+
+    const activityIds  = bikeActivities.map(a => String(a.id));
+    const conditionsMap = await getRideConditions(userId, activityIds);
+
+    const bikeNameMap = {};
+    for (const bike of (userRecord?.stravaTokens?.athlete?.bikes || [])) {
+      bikeNameMap[bike.id] = bike.name;
+    }
+
+    const rides = bikeActivities.map(a => {
+      const cond  = conditionsMap[String(a.id)] || null;
+      const stravaIsTrainer = a.sport_type === 'VirtualRide' || a.trainer === true;
+      return {
+        id:            String(a.id),
+        name:          a.name,
+        distanceMiles: Math.round(((a.distance || 0) / 1609.34) * 10) / 10,
+        date:          a.start_date_local?.split('T')[0] || null,
+        stravaGearId:  a.gear_id || null,
+        gearId:        cond?.gearId || a.gear_id || null,
+        bikeName:      bikeNameMap[a.gear_id] || null,
+        isTrainer:     cond ? cond.isTrainer : stravaIsTrainer,
+        condition:     cond && !cond.isTrainer ? cond.condition : null,
+        hasCondition:  !!cond,
+      };
+    });
+
+    res.json(rides);
+  } catch (err) {
+    console.error('[strava/rides] error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch ride history' });
+  }
+});
+
+// PUT /api/strava/ride-conditions/:activityId — edit an existing condition record.
+// Handles bike reassignment (recalculates both old and new gear), condition change,
+// and trainer↔outdoor switching.
+router.put('/ride-conditions/:activityId', requireAuth, async (req, res) => {
+  const { activityId } = req.params;
+  const { condition, isTrainer, gearId, distanceMiles } = req.body;
+  const userId = req.session.userId;
+
+  const MULTIPLIERS = { dry: 1.0, wet: 1.3, muddy: 1.5 };
+  if (!isTrainer && condition && MULTIPLIERS[condition] === undefined) {
+    return res.status(400).json({ error: 'Invalid condition' });
+  }
+
+  // Read current record so we can recalculate the old gear after a reassignment.
+  const existing = await getRideConditions(userId, [activityId]);
+  const oldGearId = existing[activityId]?.gearId || null;
+  const actualMiles = Number(distanceMiles) || existing[activityId]?.actualMiles || 0;
+
+  const record = {
+    activityId:     String(activityId),
+    userId,
+    gearId:         gearId || null,
+    condition:      isTrainer ? 'trainer' : (condition || 'dry'),
+    isTrainer:      !!isTrainer,
+    actualMiles,
+    effectiveMiles: isTrainer ? actualMiles : actualMiles * (MULTIPLIERS[condition] || 1.0),
+  };
+
+  await saveRideConditions([record]);
+
+  const gearsToUpdate = [...new Set([oldGearId, gearId].filter(Boolean))];
+  if (gearsToUpdate.length > 0 && userId) {
+    Promise.all(gearsToUpdate.map(g => recalculateEffectiveMileage(g, userId)))
+      .catch(err => console.error('[ride-conditions PUT] sync error:', err.message));
+  }
+
+  res.json({ success: true });
+});
+
+// DELETE /api/strava/ride-conditions/:activityId — remove a condition record so the
+// ride is treated as untagged. Recalculates effectiveMileage for the affected gear.
+router.delete('/ride-conditions/:activityId', requireAuth, async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.session.userId;
+
+  const oldGearId = await deleteRideCondition(userId, activityId);
+
+  if (oldGearId && userId) {
+    recalculateEffectiveMileage(oldGearId, userId)
+      .catch(err => console.error('[ride-conditions DELETE] sync error:', err.message));
+  }
+
+  res.json({ success: true });
 });
 
 // POST /api/strava/ride-conditions

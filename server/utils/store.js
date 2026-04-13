@@ -91,8 +91,41 @@ async function saveRideConditions(records) {
   }
 }
 
+// Return a map of { activityId → { condition, isTrainer, gearId, actualMiles } }
+// for the given activity IDs. Used to enrich ride lists with existing condition data.
+async function getRideConditions(userId, activityIds) {
+  if (!userId || !activityIds?.length) return {};
+  const { rows } = await pool.query(
+    `SELECT activity_id, condition, is_trainer, gear_id, actual_miles
+     FROM ride_conditions WHERE user_id = $1 AND activity_id = ANY($2)`,
+    [userId, activityIds],
+  );
+  const map = {};
+  for (const r of rows) {
+    map[r.activity_id] = {
+      condition:   r.condition,
+      isTrainer:   r.is_trainer,
+      gearId:      r.gear_id,
+      actualMiles: parseFloat(r.actual_miles),
+    };
+  }
+  return map;
+}
+
+// Delete a single ride condition record. Returns the gear_id that was associated
+// so the caller can trigger an effectiveMileage recalculation.
+async function deleteRideCondition(userId, activityId) {
+  if (!userId || !activityId) return null;
+  const { rows } = await pool.query(
+    `DELETE FROM ride_conditions WHERE user_id = $1 AND activity_id = $2 RETURNING gear_id`,
+    [userId, activityId],
+  );
+  return rows[0]?.gear_id ?? null;
+}
+
 module.exports = {
   getBikeData, setBikeConfig, logService, getServiceHistory,
   getConfiguredBikeIds, deleteBikeData,
   getConditionAdjustment, saveRideConditions,
+  getRideConditions, deleteRideCondition,
 };

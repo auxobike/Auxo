@@ -145,6 +145,14 @@ function SectionCard({ section, bikeId, loggingItems, onLog }) {
   );
 }
 
+// ── Constants shared with recent rides edit form ──────────────────────────────
+
+const CONDITIONS = [
+  { id: 'dry',   label: 'Dry' },
+  { id: 'wet',   label: 'Wet' },
+  { id: 'muddy', label: 'Muddy / Off-road' },
+];
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 export default function BikeInspector({ onLogout }) {
@@ -160,10 +168,26 @@ export default function BikeInspector({ onLogout }) {
   const [forgetting,        setForgetting]        = useState(false);
   const [logError,          setLogError]          = useState(null);
 
+  // Recent rides state
+  const [recentRides,   setRecentRides]   = useState([]);
+  const [loadingRides,  setLoadingRides]  = useState(false);
+  const [editingRideId, setEditingRideId] = useState(null);
+  const [rideEdits,     setRideEdits]     = useState({});
+  const [savingRide,    setSavingRide]    = useState(null);
+
   // Bike list for prev/next nav
   useEffect(() => {
     api.getBikes().then(setBikes).catch(() => {});
   }, []);
+
+  // Recent rides for this bike
+  useEffect(() => {
+    setLoadingRides(true);
+    api.getRecentRidesForBike(bikeId)
+      .then(setRecentRides)
+      .catch(() => {})
+      .finally(() => setLoadingRides(false));
+  }, [bikeId]);
 
   const loadStatus = useCallback(async () => {
     setLoadingStatus(true);
@@ -207,6 +231,54 @@ export default function BikeInspector({ onLogout }) {
         next.delete(itemId);
         return next;
       });
+    }
+  }
+
+  // ── Recent rides edit helpers ──
+
+  function setRideEdit(rideId, field, value) {
+    setRideEdits(prev => ({
+      ...prev,
+      [rideId]: { ...(prev[rideId] || {}), [field]: value },
+    }));
+  }
+
+  function getEffectiveRideValues(ride) {
+    const edit = rideEdits[ride.id] || {};
+    const baseCondition = ride.condition && ride.condition !== 'trainer' ? ride.condition : null;
+    return {
+      isTrainer: 'isTrainer'  in edit ? edit.isTrainer  : ride.isTrainer,
+      condition: 'condition'  in edit ? edit.condition  : baseCondition,
+      gearId:    'gearId'     in edit ? edit.gearId     : ride.gearId,
+    };
+  }
+
+  function cancelRideEdit(rideId) {
+    setEditingRideId(null);
+    setRideEdits(prev => { const next = { ...prev }; delete next[rideId]; return next; });
+  }
+
+  async function handleSaveRideEdit(ride) {
+    const { isTrainer, condition, gearId } = getEffectiveRideValues(ride);
+    setSavingRide(ride.id);
+    try {
+      if (!isTrainer && !condition) {
+        await api.clearRideCondition(ride.id);
+      } else {
+        await api.updateRideCondition(ride.id, {
+          isTrainer,
+          condition: isTrainer ? null : condition,
+          gearId,
+          distanceMiles: ride.distanceMiles,
+        });
+      }
+      const updated = await api.getRecentRidesForBike(bikeId);
+      setRecentRides(updated);
+      cancelRideEdit(ride.id);
+    } catch (err) {
+      console.error('[BikeInspector] save ride edit failed:', err.message);
+    } finally {
+      setSavingRide(null);
     }
   }
 
@@ -347,6 +419,137 @@ export default function BikeInspector({ onLogout }) {
           <div className="inspector-log-error">
             <p>{logError}</p>
             <button onClick={() => setLogError(null)}>Dismiss</button>
+          </div>
+        )}
+
+        {/* Recent Rides */}
+        {(loadingRides || recentRides.length > 0) && (
+          <div className="inspector-recent-rides">
+            <h3 className="inspector-recent-rides-heading">Recent Rides</h3>
+
+            {loadingRides ? (
+              <p className="inspector-recent-rides-loading">Loading…</p>
+            ) : (
+              recentRides.map(ride => {
+                const isEditing = editingRideId === ride.id;
+                const { isTrainer: effIsTrainer, condition: effCondition } =
+                  getEffectiveRideValues(ride);
+
+                return (
+                  <div key={ride.id} className="inspector-ride-row">
+                    {/* Ride summary row */}
+                    <div className="inspector-ride-summary">
+                      <div className="inspector-ride-summary-info">
+                        <span className="inspector-ride-name">{ride.name}</span>
+                        <span className="inspector-ride-meta">
+                          {ride.date
+                            ? new Date(ride.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : ''
+                          }
+                          {ride.distanceMiles ? ` · ${ride.distanceMiles < 10 ? ride.distanceMiles.toFixed(1) : Math.round(ride.distanceMiles)} mi` : ''}
+                        </span>
+                      </div>
+                      <div className="inspector-ride-summary-right">
+                        {ride.hasCondition && !isEditing && (
+                          effIsTrainer ? (
+                            <span className="inspector-ride-badge inspector-ride-badge--trainer">Trainer</span>
+                          ) : effCondition ? (
+                            <span className={`inspector-ride-badge inspector-ride-badge--${effCondition}`}>
+                              {effCondition.charAt(0).toUpperCase() + effCondition.slice(1)}
+                            </span>
+                          ) : null
+                        )}
+                        {!ride.hasCondition && !isEditing && (
+                          <span className="inspector-ride-badge inspector-ride-badge--untagged">Not tagged</span>
+                        )}
+                        <button
+                          className={`inspector-ride-edit-btn${isEditing ? ' inspector-ride-edit-btn--active' : ''}`}
+                          onClick={() => isEditing ? cancelRideEdit(ride.id) : setEditingRideId(ride.id)}
+                        >
+                          {isEditing ? 'Cancel' : 'Edit'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Inline edit form */}
+                    {isEditing && (
+                      <div className="inspector-ride-edit-form">
+                        {/* Bike selector */}
+                        <div className="inspector-ride-edit-field">
+                          <span className="inspector-ride-edit-label">Bike</span>
+                          <select
+                            className="inspector-ride-select"
+                            value={rideEdits[ride.id]?.gearId ?? ride.gearId ?? ''}
+                            onChange={e => setRideEdit(ride.id, 'gearId', e.target.value || null)}
+                          >
+                            <option value="">No bike</option>
+                            {bikes.map(b => (
+                              <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {effIsTrainer ? (
+                          <>
+                            <span className="inspector-trainer-badge-sm">Trainer Ride — drivetrain wear 60%, tires/brakes 0%</span>
+                            <button
+                              className="inspector-ride-toggle-btn"
+                              onClick={() => setRideEdit(ride.id, 'isTrainer', false)}
+                            >
+                              Switch to outdoor ride
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="inspector-ride-edit-field">
+                              <span className="inspector-ride-edit-label">Conditions</span>
+                              <div className="inspector-ride-conditions">
+                                {CONDITIONS.map(c => (
+                                  <button
+                                    key={c.id}
+                                    className={`inspector-condition-pill${effCondition === c.id ? ' inspector-condition-pill--active' : ''}`}
+                                    onClick={() => setRideEdit(ride.id, 'condition', effCondition === c.id ? null : c.id)}
+                                  >
+                                    {c.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            {effCondition && (
+                              <button
+                                className="inspector-ride-clear-btn"
+                                onClick={() => setRideEdit(ride.id, 'condition', null)}
+                              >
+                                Clear conditions
+                              </button>
+                            )}
+                            <button
+                              className="inspector-ride-toggle-btn"
+                              onClick={() => {
+                                setRideEdit(ride.id, 'isTrainer', true);
+                                setRideEdit(ride.id, 'condition', null);
+                              }}
+                            >
+                              Mark as trainer ride
+                            </button>
+                          </>
+                        )}
+
+                        <div className="inspector-ride-edit-actions">
+                          <button
+                            className="btn-pill btn-pill-gold inspector-ride-save-btn"
+                            onClick={() => handleSaveRideEdit(ride)}
+                            disabled={savingRide === ride.id}
+                          >
+                            {savingRide === ride.id ? 'Saving…' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
