@@ -41,7 +41,7 @@ export default function SignInScreen({ onLogin }) {
       </div>
 
       <div className="auth-body">
-        <h1 className="display-heading auth-heading">SIGN IN</h1>
+        <h1 className="marker-heading auth-heading">SIGN IN</h1>
         <p className="text-muted auth-sub">Good to have you back</p>
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>

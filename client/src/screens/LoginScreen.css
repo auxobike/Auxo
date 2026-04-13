@@ -58,7 +58,12 @@
   margin-bottom: 24px;
 }
 
-.login-actions .btn-pill { max-width: 100%; }
+.login-actions .btn-pill {
+  width: auto;
+  max-width: none;
+  padding: 0 40px;
+  height: 44px;
+}
 
 /* ── Fine print ── */
 .login-fine-print {
