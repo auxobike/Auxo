@@ -92,7 +92,7 @@ html, body, #root {
   font-family: var(--font-marker);
   font-size: clamp(2.8rem, 16vw, 5rem);
   line-height: 1.05;
-  color: var(--white);
+  color: var(--accent);
   letter-spacing: 0.01em;
 }
 
@@ -101,6 +101,7 @@ html, body, #root {
   font-family: var(--font-marker);
   font-size: 0.85em;   /* slightly smaller — marker has a taller x-height */
   letter-spacing: 0.01em;
+  color: var(--accent);
 }
 
 /* ── Buttons ── */

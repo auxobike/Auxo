@@ -31,7 +31,7 @@
   font-family: var(--font-marker);
   font-size: clamp(1.4rem, 6vw, 2.2rem);
   line-height: 1.1;
-  color: var(--white);
+  color: var(--accent);
 }
 
 /* ── Action buttons ── */
