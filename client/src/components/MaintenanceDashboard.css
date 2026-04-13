@@ -36,7 +36,7 @@
 
 .quiver-heading-main {
   font-family: var(--font-marker);
-  font-size: clamp(3rem, 16vw, 5rem);
+  font-size: clamp(2rem, 9vw, 3.5rem);
   color: var(--white);
   line-height: 0.9;
   letter-spacing: 0.01em;
