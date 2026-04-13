@@ -19,7 +19,7 @@
 
   /* Typography */
   --font-display: 'Bebas Neue', 'Arial Black', sans-serif;
-  --font-marker:  'Vampiro One', cursive;  /* display/graffiti — personalized moments */
+  --font-marker:  'Rock Salt', cursive;  /* display/graffiti — personalized moments */
   --font-body:    'Inter', system-ui, sans-serif;
 
   /* Spacing */
@@ -111,11 +111,12 @@ html, body, #root {
   gap: 8px;
   width: 100%;
   max-width: 340px;
-  padding: 16px 32px;
+  height: 44px;
+  padding: 0 28px;
   border-radius: var(--radius-pill);
   border: none;
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   cursor: pointer;
