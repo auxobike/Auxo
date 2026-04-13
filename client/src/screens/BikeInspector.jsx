@@ -166,6 +166,8 @@ export default function BikeInspector({ onLogout }) {
   const [loggingItems,     setLoggingItems]     = useState(new Set());
   const [showForgetConfirm, setShowForgetConfirm] = useState(false);
   const [forgetting,        setForgetting]        = useState(false);
+  const [showResetConfirm,  setShowResetConfirm]  = useState(false);
+  const [resetting,         setResetting]         = useState(false);
   const [logError,          setLogError]          = useState(null);
 
   // Recent rides state
@@ -203,6 +205,19 @@ export default function BikeInspector({ onLogout }) {
   }, [bikeId]);
 
   useEffect(() => { loadStatus(); }, [loadStatus]);
+
+  async function handleReset() {
+    setResetting(true);
+    try {
+      await api.resetServiceIntervals(bikeId);
+      setShowResetConfirm(false);
+      await loadStatus();
+    } catch (err) {
+      console.error('[BikeInspector] reset failed:', err.message);
+    } finally {
+      setResetting(false);
+    }
+  }
 
   async function handleForgetBike() {
     setForgetting(true);
@@ -423,14 +438,15 @@ export default function BikeInspector({ onLogout }) {
         )}
 
         {/* Recent Rides */}
-        {(loadingRides || recentRides.length > 0) && (
-          <div className="inspector-recent-rides">
-            <h3 className="inspector-recent-rides-heading">Recent Rides</h3>
+        <div className="inspector-recent-rides">
+          <h3 className="inspector-recent-rides-heading">Recent Rides</h3>
 
-            {loadingRides ? (
-              <p className="inspector-recent-rides-loading">Loading…</p>
-            ) : (
-              recentRides.map(ride => {
+          {loadingRides ? (
+            <div className="inspector-recent-rides-loading"><SpinnerIcon /></div>
+          ) : recentRides.length === 0 ? (
+            <p className="inspector-recent-rides-empty">No recent rides found for this bike.</p>
+          ) : (
+            recentRides.map(ride => {
                 const isEditing = editingRideId === ride.id;
                 const { isTrainer: effIsTrainer, condition: effCondition } =
                   getEffectiveRideValues(ride);
@@ -549,9 +565,8 @@ export default function BikeInspector({ onLogout }) {
                   </div>
                 );
               })
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Footer */}
         <div className="inspector-footer">
@@ -567,9 +582,37 @@ export default function BikeInspector({ onLogout }) {
           >
             Edit Bike Settings
           </button>
-          <button className="inspector-reset-link">
-            Reset All Service Intervals
-          </button>
+          {!showResetConfirm ? (
+            <button
+              className="inspector-reset-link"
+              onClick={() => setShowResetConfirm(true)}
+            >
+              Reset All Service Intervals
+            </button>
+          ) : (
+            <div className="inspector-reset-confirm">
+              <p className="inspector-forget-confirm-text">
+                Are you sure? This will mark all maintenance items as serviced today,
+                as if your bike just had a full overhaul.
+              </p>
+              <div className="inspector-forget-confirm-actions">
+                <button
+                  className="inspector-forget-cancel"
+                  onClick={() => setShowResetConfirm(false)}
+                  disabled={resetting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="inspector-reset-overhaul-btn"
+                  onClick={handleReset}
+                  disabled={resetting}
+                >
+                  {resetting ? 'Resetting…' : 'Yes, Reset'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {!showForgetConfirm ? (
             <button

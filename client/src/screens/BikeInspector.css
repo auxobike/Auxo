@@ -468,6 +468,24 @@
   color: #fff;
 }
 
+/* Reset confirm — gold tint (non-destructive action) */
+.inspector-reset-confirm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(201, 150, 12, 0.08);
+  border: 1px solid rgba(201, 150, 12, 0.25);
+  border-radius: var(--radius-card);
+}
+
+.inspector-reset-overhaul-btn {
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+}
+
 .inspector-log-error {
   margin: 0 var(--screen-pad);
   padding: 10px 14px;
@@ -515,9 +533,22 @@
 }
 
 .inspector-recent-rides-loading {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  color: var(--white-40);
+}
+
+.inspector-recent-rides-loading .spinner-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.inspector-recent-rides-empty {
   font-size: 0.83rem;
   color: var(--white-40);
   padding: 12px 0;
+  margin: 0;
 }
 
 .inspector-ride-row {

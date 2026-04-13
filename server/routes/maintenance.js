@@ -550,6 +550,49 @@ router.get('/summary', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/maintenance/reset/:bikeId
+// Mark every maintenance item as serviced right now — a full overhaul reset.
+// Snapshots current Strava mileage/ride count and writes a single service log
+// entry for all items in one JSONB update (avoids N sequential read-modify-writes).
+router.post('/reset/:bikeId', requireAuth, async (req, res) => {
+  const { bikeId } = req.params;
+  const bikeData   = await getBikeData(bikeId);
+
+  if (!bikeData?.bikeType) {
+    return res.status(400).json({ error: 'Bike not configured' });
+  }
+
+  const rules = RULES[bikeData.bikeType];
+  if (!rules) return res.status(400).json({ error: 'Unknown bike type' });
+
+  try {
+    const stravaState = await fetchStravaState(bikeId, req.session.access_token);
+
+    const entry = {
+      lastServiceDate:         new Date().toISOString().split('T')[0],
+      lastServiceMileage:      Math.round(stravaState.currentMileage),
+      lastServiceRideCount:    stravaState.currentRideCount,
+      lastServiceHours:        Math.round(stravaState.rideHours * 10) / 10,
+      lastChainReplacements:   bikeData.chainReplacements || 0,
+    };
+
+    // Build a fresh serviceLogs map covering every item in the rule set.
+    const serviceLogs = {};
+    for (const section of rules.sections) {
+      for (const item of section.items) {
+        serviceLogs[item.id] = { ...entry };
+      }
+    }
+
+    // Single JSONB merge — replaces serviceLogs key, leaves all other config intact.
+    await setBikeConfig(bikeId, { serviceLogs });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[reset] bikeId=%s error: %s', bikeId, err.message);
+    res.status(500).json({ error: 'Failed to reset service intervals' });
+  }
+});
+
 // GET /api/maintenance/rules
 // Returns the full rule set (used by the frontend to know available bike types)
 router.get('/rules', requireAuth, (req, res) => {
