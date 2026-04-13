@@ -41,6 +41,7 @@
 
 .auth-heading {
   margin-bottom: 6px;
+  color: var(--accent);
 }
 
 .auth-sub {
