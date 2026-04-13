@@ -8,7 +8,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 4px var(--screen-pad) 40px;
+  padding: 1rem var(--screen-pad) 40px;
   gap: 32px;
 }
 
@@ -16,7 +16,7 @@
 .landing-greeting {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .landing-welcome-sub {
@@ -24,12 +24,13 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  margin-bottom: 8px;
 }
 
 .landing-yo {
   font-family: var(--font-marker);
-  font-size: clamp(2.8rem, 16vw, 5rem);
-  line-height: 1.05;
+  font-size: clamp(1.8rem, 8vw, 2.8rem);
+  line-height: 1.1;
   color: var(--white);
 }
 

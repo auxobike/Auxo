@@ -16,7 +16,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 4px var(--screen-pad) 40px;
+  padding: 1rem var(--screen-pad) 40px;
 }
 
 /* ── Heading ───────────────────────────────── */
@@ -31,14 +31,14 @@
   color: var(--white-70);
   letter-spacing: 0.05em;
   line-height: 1;
-  margin-bottom: 0;
+  margin-bottom: 6px;
 }
 
 .quiver-heading-main {
   font-family: var(--font-marker);
   font-size: clamp(2rem, 9vw, 3.5rem);
   color: var(--white);
-  line-height: 0.9;
+  line-height: 1.1;
   letter-spacing: 0.01em;
 }
 
