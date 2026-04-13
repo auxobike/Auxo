@@ -43,8 +43,10 @@
 }
 
 .action-btn {
-  width: 80%;
-  max-width: 80%;
+  width: 75%;
+  max-width: 75%;
+  height: 44px;
+  padding: 0 28px;
 }
 
 /* ── Stats strip ── */

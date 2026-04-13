@@ -6,7 +6,7 @@
 
 /* ── Logo in auth topbar ── */
 .auth-logo {
-  width: 160px;
+  width: 80px;
   height: auto;
 }
 
@@ -41,7 +41,9 @@
 
 .auth-heading {
   margin-bottom: 6px;
-  color: var(--accent);
+  color: var(--accent) !important;
+  font-size: clamp(2rem, 8vw, 3rem) !important;
+  line-height: 1.1;
 }
 
 .auth-sub {
@@ -58,7 +60,10 @@
 }
 
 .auth-submit {
-  max-width: 100%;
+  width: auto;
+  max-width: none;
+  padding: 0 32px;
+  align-self: center;
   margin-top: 8px;
 }
 
