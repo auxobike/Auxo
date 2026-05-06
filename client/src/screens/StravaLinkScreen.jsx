@@ -49,9 +49,9 @@ export default function StravaLinkScreen() {
 
         <button
           className="auth-skip-btn"
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/add-bike')}
         >
-          Skip for now
+          Skip for now — enter mileage manually
         </button>
       </div>
     </div>

@@ -13,6 +13,17 @@ const router = express.Router();
 
 const METERS_PER_MILE = 1609.34;
 
+// Returns a Strava-state-shaped object for bikes without a Strava connection,
+// using the mileage the user entered manually at setup time.
+function getManualState(bikeData) {
+  return {
+    gear:             { name: bikeData.bikeName || 'My Bike' },
+    currentMileage:   bikeData.manualMileage || 0,
+    currentRideCount: 0,
+    rideHours:        0,
+  };
+}
+
 // Fetch current mileage, ride count, and ride hours for a bike from Strava.
 //
 // prefetchedActivities — optional array already fetched by the caller.
@@ -176,7 +187,9 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
 
   try {
     const [stravaState, currentUser] = await Promise.all([
-      fetchStravaState(bikeId, req.session.access_token),
+      req.session.access_token
+        ? fetchStravaState(bikeId, req.session.access_token)
+        : Promise.resolve(getManualState(bikeData)),
       req.session.userId ? findById(req.session.userId) : null,
     ]);
 
@@ -344,10 +357,10 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
   const { notes, userInterval } = req.body;
 
   try {
-    const [stravaState, bikeData] = await Promise.all([
-      fetchStravaState(bikeId, req.session.access_token),
-      getBikeData(bikeId),
-    ]);
+    const bikeData = await getBikeData(bikeId);
+    const stravaState = req.session.access_token
+      ? await fetchStravaState(bikeId, req.session.access_token)
+      : getManualState(bikeData);
 
     const entry = {
       lastServiceDate:          new Date().toISOString().split('T')[0],
@@ -487,20 +500,24 @@ router.get('/summary', requireAuth, async (req, res) => {
     // Round 2 — per-bike status counts, all parallel.
     // fetchStravaState receives the pre-fetched activities so it only needs to
     // hit Strava for each bike's gear endpoint (one call per bike, not two).
+    // Manual users (no token) use stored manualMileage instead of Strava state.
     let itemsDue = 0;
-    if (token && bikeCount > 0) {
+    if (bikeCount > 0) {
       const results = await Promise.allSettled(
         bikeIds.map(async bikeId => {
-          const [bikeData, stravaState] = await Promise.all([
+          const [bikeData, rawStravaState] = await Promise.all([
             getBikeData(bikeId),
-            fetchStravaState(bikeId, token, allActivities),
+            token
+              ? fetchStravaState(bikeId, token, allActivities)
+              : Promise.resolve(null),
           ]);
-          // Use stored adj; no live DB query needed for the quick summary view.
-          const conditionAdj      = bikeData?.effectiveMileageAdj ?? 0;
-          const trainerMilesTotal = bikeData?.trainerMilesTotal   ?? 0;
           if (!bikeData?.bikeType) return 0;
           const rules = RULES[bikeData.bikeType];
           if (!rules) return 0;
+          const stravaState = rawStravaState ?? getManualState(bikeData);
+          // Use stored adj; no live DB query needed for the quick summary view.
+          const conditionAdj      = bikeData?.effectiveMileageAdj ?? 0;
+          const trainerMilesTotal = bikeData?.trainerMilesTotal   ?? 0;
 
           const bikeState = {
             currentMileage:    stravaState.currentMileage + conditionAdj,
@@ -566,7 +583,9 @@ router.post('/reset/:bikeId', requireAuth, async (req, res) => {
   if (!rules) return res.status(400).json({ error: 'Unknown bike type' });
 
   try {
-    const stravaState = await fetchStravaState(bikeId, req.session.access_token);
+    const stravaState = req.session.access_token
+      ? await fetchStravaState(bikeId, req.session.access_token)
+      : getManualState(bikeData);
 
     const entry = {
       lastServiceDate:         new Date().toISOString().split('T')[0],

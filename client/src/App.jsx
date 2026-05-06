@@ -21,9 +21,11 @@ import LearnArticleScreen       from './screens/LearnArticleScreen';
 
 import './styles/design-system.css';
 
-// Redirect logged-in + Strava-linked users away from public screens
-function RequireGuest({ session, children }) {
+// Redirect logged-in users away from public screens
+function RequireGuest({ session, configuredBikeIds, children }) {
   if (session.user && session.stravaLinked) return <Navigate to="/dashboard" replace />;
+  if (session.user && configuredBikeIds.length > 0) return <Navigate to={`/maintenance/${configuredBikeIds[0]}`} replace />;
+  if (session.user) return <Navigate to="/link-strava" replace />;
   return children;
 }
 
@@ -48,6 +50,7 @@ export default function App() {
   });
   const [bikes,              setBikes]              = useState([]);
   const [hasConfiguredBikes, setHasConfiguredBikes] = useState(false);
+  const [configuredBikeIds,  setConfiguredBikeIds]  = useState([]);
   const [loading,            setLoading]            = useState(true);
 
   useEffect(() => {
@@ -59,14 +62,18 @@ export default function App() {
             athlete:      data.athlete,
             stravaLinked: data.stravaLinked,
           });
+          const fetches = [
+            api.getConfiguredBikes()
+              .then(({ hasConfigured, configuredBikeIds: ids }) => {
+                setHasConfiguredBikes(hasConfigured);
+                setConfiguredBikeIds(ids ?? []);
+              })
+              .catch(() => {}),
+          ];
           if (data.stravaLinked) {
-            return Promise.all([
-              api.getBikes().then(setBikes).catch(() => {}),
-              api.getConfiguredBikes()
-                .then(({ hasConfigured }) => setHasConfiguredBikes(hasConfigured))
-                .catch(() => {}),
-            ]);
+            fetches.push(api.getBikes().then(setBikes).catch(() => {}));
           }
+          return Promise.all(fetches);
         }
       })
       .catch(() => {})
@@ -109,7 +116,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <RequireGuest session={session}>
+            <RequireGuest session={session} configuredBikeIds={configuredBikeIds}>
               <LoginScreen />
             </RequireGuest>
           }
@@ -117,7 +124,7 @@ export default function App() {
         <Route
           path="/sign-in"
           element={
-            <RequireGuest session={session}>
+            <RequireGuest session={session} configuredBikeIds={configuredBikeIds}>
               <SignInScreen onLogin={handleLogin} />
             </RequireGuest>
           }
@@ -125,7 +132,7 @@ export default function App() {
         <Route
           path="/create-account"
           element={
-            <RequireGuest session={session}>
+            <RequireGuest session={session} configuredBikeIds={configuredBikeIds}>
               <CreateAccountScreen />
             </RequireGuest>
           }
@@ -158,9 +165,9 @@ export default function App() {
         <Route
           path="/add-bike"
           element={
-            <RequireStrava session={session}>
-              <AddBikeScreen bikes={bikes} onLogout={handleLogout} />
-            </RequireStrava>
+            <RequireAuth session={session}>
+              <AddBikeScreen bikes={bikes} onLogout={handleLogout} stravaLinked={session.stravaLinked} />
+            </RequireAuth>
           }
         />
         <Route
@@ -174,25 +181,25 @@ export default function App() {
         <Route
           path="/maintenance/:bikeId"
           element={
-            <RequireStrava session={session}>
+            <RequireAuth session={session}>
               <BikeInspector onLogout={handleLogout} />
-            </RequireStrava>
+            </RequireAuth>
           }
         />
         <Route
           path="/maintenance/:bikeId/intervals"
           element={
-            <RequireStrava session={session}>
+            <RequireAuth session={session}>
               <ServiceIntervalsScreen onLogout={handleLogout} />
-            </RequireStrava>
+            </RequireAuth>
           }
         />
         <Route
           path="/maintenance/:bikeId/settings"
           element={
-            <RequireStrava session={session}>
+            <RequireAuth session={session}>
               <EditBikeSettingsScreen onLogout={handleLogout} />
-            </RequireStrava>
+            </RequireAuth>
           }
         />
         <Route
@@ -255,7 +262,12 @@ export default function App() {
           path="*"
           element={
             <Navigate
-              to={session.stravaLinked ? '/dashboard' : session.user ? '/link-strava' : '/'}
+              to={
+                session.stravaLinked ? '/dashboard' :
+                (session.user && configuredBikeIds.length > 0) ? `/maintenance/${configuredBikeIds[0]}` :
+                session.user ? '/link-strava' :
+                '/'
+              }
               replace
             />
           }

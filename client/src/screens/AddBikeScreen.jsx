@@ -160,7 +160,7 @@ function ServiceIntervalSection({
 }
 
 // ── Main screen ──────────────────────────────────────────────────────────────
-export default function AddBikeScreen({ onLogout }) {
+export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
   const navigate = useNavigate();
   // Steps: 1=bike type/brakes, 2=MTB suspension type, 3=components, 4=mileage, 5=MTB notifications
   const [step,               setStep]               = useState(1);
@@ -172,6 +172,10 @@ export default function AddBikeScreen({ onLogout }) {
   const [bikesLoading,       setBikesLoading]       = useState(true);
   const [fetchError,         setFetchError]         = useState('');
   const [bikeId,             setBikeId]             = useState('');
+  // Manual mode: stable UUID generated once on mount
+  const [manualBikeId]       = useState(() => crypto.randomUUID());
+  const [manualBikeName,     setManualBikeName]     = useState('');
+  const [manualMileage,      setManualMileage]      = useState('');
   const [padType,            setPadType]            = useState('');
   const [brakeType,          setBrakeType]          = useState('');
   const [rimMaterial,        setRimMaterial]        = useState('');
@@ -202,6 +206,10 @@ export default function AddBikeScreen({ onLogout }) {
   }, [index]);
 
   useEffect(() => {
+    if (!stravaLinked) {
+      setBikesLoading(false);
+      return;
+    }
     api.getBikes()
       .then(data => {
         console.log('[AddBikeScreen] fetched bikes:', data);
@@ -213,7 +221,7 @@ export default function AddBikeScreen({ onLogout }) {
         setFetchError('Could not load your bikes from Strava. Please try again.');
       })
       .finally(() => setBikesLoading(false));
-  }, []);
+  }, [stravaLinked]);
 
   const current   = BIKES[index];
   const total     = BIKES.length;
@@ -285,8 +293,10 @@ export default function AddBikeScreen({ onLogout }) {
     setStep(replacedComponents.size > 0 ? 4 : 3);
   }
 
+  const effectiveBikeId = stravaLinked ? bikeId : manualBikeId;
+
   async function handleAdd() {
-    if (!bikeId) return;
+    if (stravaLinked && !bikeId) return;
     setAdding(true);
     setAddError('');
 
@@ -317,7 +327,7 @@ export default function AddBikeScreen({ onLogout }) {
     } : undefined;
 
     try {
-      await api.configureBike(bikeId, {
+      await api.configureBike(effectiveBikeId, {
         bikeType:           current.type,
         padType:            padType        || undefined,
         brakeType:          brakeType      || undefined,
@@ -329,9 +339,13 @@ export default function AddBikeScreen({ onLogout }) {
         replacedComponents: [...replacedComponents],
         mileageBaselines,
         ...(mtbServiceIntervals && { mtbServiceIntervals }),
+        ...(!stravaLinked && {
+          bikeName:      manualBikeName.trim(),
+          manualMileage: Number(manualMileage),
+        }),
       });
       setSuccess(true);
-      setTimeout(() => navigate(`/maintenance/${bikeId}/intervals`), 1500);
+      setTimeout(() => navigate(`/maintenance/${effectiveBikeId}/intervals`), 1500);
     } catch (err) {
       setAddError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -399,31 +413,60 @@ export default function AddBikeScreen({ onLogout }) {
             </button>
           </div>
 
-          <div className="input-group bike-picker-group">
-            <label className="input-label" htmlFor="bike-select">Select your bike</label>
-            {bikesLoading ? (
-              <p className="bike-picker-loading">Loading your bikes from Strava…</p>
-            ) : bikes.length === 0 ? (
-              <p className="bike-picker-empty">
-                No bikes found on your Strava account.{' '}
-                <a href="https://www.strava.com/settings/gear" target="_blank" rel="noreferrer">
-                  Add one in Strava
-                </a>
-                , then come back.
-              </p>
-            ) : (
-              <select
-                id="bike-select"
-                className="input-field"
-                value={bikeId}
-                onChange={e => setBikeId(e.target.value)}
-              >
-                {bikes.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
+          {stravaLinked ? (
+            <div className="input-group bike-picker-group">
+              <label className="input-label" htmlFor="bike-select">Select your bike</label>
+              {bikesLoading ? (
+                <p className="bike-picker-loading">Loading your bikes from Strava…</p>
+              ) : bikes.length === 0 ? (
+                <p className="bike-picker-empty">
+                  No bikes found on your Strava account.{' '}
+                  <a href="https://www.strava.com/settings/gear" target="_blank" rel="noreferrer">
+                    Add one in Strava
+                  </a>
+                  , then come back.
+                </p>
+              ) : (
+                <select
+                  id="bike-select"
+                  className="input-field"
+                  value={bikeId}
+                  onChange={e => setBikeId(e.target.value)}
+                >
+                  {bikes.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="input-group bike-picker-group">
+                <label className="input-label" htmlFor="manual-bike-name">Bike name</label>
+                <input
+                  id="manual-bike-name"
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g. Trek Domane SL6"
+                  value={manualBikeName}
+                  onChange={e => setManualBikeName(e.target.value)}
+                />
+              </div>
+              <div className="input-group bike-picker-group">
+                <label className="input-label" htmlFor="manual-mileage">Current mileage (miles)</label>
+                <input
+                  id="manual-mileage"
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  className="input-field"
+                  placeholder="e.g. 1200"
+                  value={manualMileage}
+                  onChange={e => setManualMileage(e.target.value)}
+                />
+              </div>
+            </>
+          )}
 
           {/* ── Shifting type ── */}
           <div className="input-group pad-type-group">
@@ -796,7 +839,7 @@ export default function AddBikeScreen({ onLogout }) {
       <div className="add-bike-footer">
         {success && (
           <p className="add-bike-success">
-            ✓ {current.label} added — loading your maintenance schedule…
+            ✓ {stravaLinked ? current.label : (manualBikeName.trim() || current.label)} added — loading your maintenance schedule…
           </p>
         )}
         {addError && (
@@ -809,7 +852,10 @@ export default function AddBikeScreen({ onLogout }) {
               className="btn-pill btn-pill-gold"
               onClick={handleStep1Next}
               disabled={
-                !bikeId || bikesLoading ||
+                (stravaLinked
+                  ? (!bikeId || bikesLoading)
+                  : (!manualBikeName.trim() || manualMileage === '' || isNaN(Number(manualMileage)))
+                ) ||
                 !shiftingType || !chainType || isTubeless === null ||
                 (isMtb
                   ? (!padType || !brakeType)
