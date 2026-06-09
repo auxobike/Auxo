@@ -88,3 +88,26 @@
   background: var(--border);
   flex-shrink: 0;
 }
+
+/* ── Pull-to-refresh ── */
+.ptr-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 32px;
+  margin-bottom: -8px;
+  transition: opacity 0.15s ease;
+}
+
+.ptr-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(201, 150, 12, 0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ptr-spin 0.65s linear infinite;
+}
+
+@keyframes ptr-spin {
+  to { transform: rotate(360deg); }
+}

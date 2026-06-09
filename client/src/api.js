@@ -3,7 +3,6 @@
 // frontend Railway service (e.g. https://auxo-server-production.up.railway.app).
 // Without it, all fetch calls resolve to the frontend origin and silently 404.
 const BASE_URL = import.meta.env.VITE_API_URL || '';
-console.log('[api] BASE_URL:', import.meta.env.VITE_API_URL, '| resolved:', BASE_URL);
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {

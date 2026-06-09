@@ -51,6 +51,7 @@ export default function App() {
   const [bikes,              setBikes]              = useState([]);
   const [hasConfiguredBikes, setHasConfiguredBikes] = useState(false);
   const [configuredBikeIds,  setConfiguredBikeIds]  = useState([]);
+  const [summary,            setSummary]            = useState(null);
   const [loading,            setLoading]            = useState(true);
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function App() {
           ];
           if (data.stravaLinked) {
             fetches.push(api.getBikes().then(setBikes).catch(() => {}));
+            fetches.push(api.getSummary().then(setSummary).catch(() => {}));
           }
           return Promise.all(fetches);
         }
@@ -80,9 +82,30 @@ export default function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Called by SignInScreen after a successful email/password login
+  // Called by SignInScreen after a successful email/password login.
+  // Also re-fetches dashboard data so hasConfiguredBikes and summary are
+  // immediately correct — the mount-time useEffect only runs when the user
+  // was already authenticated on page load.
   function handleLogin(user, stravaLinked, athlete) {
     setSession(prev => ({ ...prev, user, stravaLinked, athlete: athlete ?? prev.athlete }));
+    if (stravaLinked) {
+      api.getConfiguredBikes()
+        .then(({ hasConfigured, configuredBikeIds: ids }) => {
+          setHasConfiguredBikes(hasConfigured);
+          setConfiguredBikeIds(ids ?? []);
+        })
+        .catch(() => {});
+      api.getSummary().then(setSummary).catch(() => {});
+      api.getBikes().then(setBikes).catch(() => {});
+    }
+  }
+
+  async function handleRefreshSummary() {
+    setSummary(null);
+    try {
+      const s = await api.getSummary();
+      setSummary(s);
+    } catch { /* ignore */ }
   }
 
   const handleLogout = async () => {
@@ -158,6 +181,8 @@ export default function App() {
                 user={session.user}
                 onLogout={handleLogout}
                 hasConfiguredBikes={hasConfiguredBikes}
+                summary={summary}
+                onRefreshSummary={handleRefreshSummary}
               />
             </RequireStrava>
           }

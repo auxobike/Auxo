@@ -49,8 +49,6 @@ router.get('/activities/:id', requireAuth, async (req, res) => {
 // Falls back to a fresh GET /athlete request only when cached data is absent.
 router.get('/bikes', requireAuth, async (req, res) => {
   const token = req.session.access_token;
-  console.log('[/api/strava/bikes] token present:', !!token);
-  console.log('[/api/strava/bikes] session expires_at:', req.session.expires_at, '| now:', Math.floor(Date.now() / 1000));
 
   try {
     // Prefer the bike list already stored in DB — avoids a live Strava round-trip.
@@ -58,16 +56,13 @@ router.get('/bikes', requireAuth, async (req, res) => {
       const user = await findById(req.session.userId);
       const cachedBikes = user?.stravaTokens?.athlete?.bikes;
       if (Array.isArray(cachedBikes) && cachedBikes.length > 0) {
-        console.log('[/api/strava/bikes] served from DB cache —', cachedBikes.length, 'bike(s)');
         return res.json(cachedBikes);
       }
     }
 
     // Cache miss — fall back to a live Strava request.
-    console.log('[/api/strava/bikes] cache miss — fetching from Strava');
     const athleteRes = await stravaGet('/athlete', token);
     const bikes = athleteRes.data.bikes || [];
-    console.log('[/api/strava/bikes] Strava returned', bikes.length, 'bike(s)');
     res.json(bikes);
   } catch (err) {
     console.error('[/api/strava/bikes] error status:', err.response?.status);

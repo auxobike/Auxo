@@ -106,7 +106,7 @@ function BikeCard({ bike }) {
   const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
 
   return (
-    <div className="quiver-card">
+    <div className="quiver-card" onClick={() => navigate(`/maintenance/${bike.id}`)}>
       <div className="quiver-card-img-wrap">
         <img
           src={bikeImage}
@@ -131,10 +131,7 @@ function BikeCard({ bike }) {
           </div>
         </div>
 
-        <button
-          className="btn-pill quiver-see-more"
-          onClick={() => navigate(`/maintenance/${bike.id}`)}
-        >
+        <button className="btn-pill quiver-see-more">
           See More
         </button>
       </div>

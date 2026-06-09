@@ -58,14 +58,6 @@ const sessionCookieConfig = {
   sameSite: 'lax',
   maxAge:   24 * 60 * 60 * 1000, // 1 day
 };
-console.log('[session] cookie-session config:', {
-  httpOnly:              sessionCookieConfig.httpOnly,
-  secure:                sessionCookieConfig.secure,
-  sameSite:              sessionCookieConfig.sameSite,
-  maxAge:                sessionCookieConfig.maxAge,
-  SESSION_SECRET_length: (process.env.SESSION_SECRET || '').length, // 0 = not set in Railway
-});
-
 app.use(cookieSession(sessionCookieConfig));
 
 app.use('/auth', authRoutes);
@@ -78,10 +70,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Serve React client in production (must come after all API routes)
 if (process.env.NODE_ENV === 'production') {
-  console.log('[static] __dirname:', __dirname);
   const clientDist = path.join(__dirname, '../client/dist');
-  console.log('[static] clientDist path:', path.join(__dirname, '../client/dist'));
-  console.log('[static] serving client from:', clientDist);
   app.use(express.static(clientDist));
   app.get(/(.*)/,  (req, res) => res.sendFile(path.join(clientDist, 'index.html')));
 }

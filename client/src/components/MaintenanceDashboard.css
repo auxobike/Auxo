@@ -60,6 +60,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 
 .quiver-card--loading,
@@ -164,11 +165,11 @@
   color: var(--white-40);
 }
 
-/* See More pill — dark outline style */
+/* See More pill — gold outline */
 .quiver-see-more {
   background: transparent;
-  color: var(--white);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--accent);
+  border: 1px solid var(--accent);
   max-width: 100%;
   padding: 12px 24px;
   font-size: 0.82rem;
@@ -180,9 +181,9 @@
   transition: background var(--ease), border-color var(--ease);
 }
 
-.quiver-see-more:hover {
-  background: var(--white-15);
-  border-color: rgba(255, 255, 255, 0.4);
+.quiver-see-more:hover,
+.quiver-card:hover .quiver-see-more {
+  background: rgba(201, 150, 12, 0.12);
 }
 
 .quiver-see-more:active {

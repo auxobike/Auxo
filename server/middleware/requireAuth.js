@@ -2,10 +2,7 @@ const axios = require('axios');
 
 // Middleware: ensure user is logged in, auto-refresh token if expired
 async function requireAuth(req, res, next) {
-  console.log(`[requireAuth] ${req.method} ${req.path} | token present: ${!!req.session.access_token} | userId: ${req.session.userId || 'none'}`);
-
   if (!req.session.access_token) {
-    console.warn('[requireAuth] rejected — no access_token in session');
     return res.status(401).json({ error: 'Not authenticated' });
   }
 

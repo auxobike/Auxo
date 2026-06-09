@@ -205,7 +205,6 @@ export default function BookServiceScreen({ onLogout }) {
   useEffect(() => {
     loadMapsAPI()
       .then(() => {
-        console.log('[BookService] Maps API loaded');
         setMapsLoaded(true);
       })
       .catch(err => {
@@ -265,12 +264,9 @@ export default function BookServiceScreen({ onLogout }) {
     const featured   = featuredListRef.current;   // [{ googlePlaceId, boostLevel, name }]
     const featMap    = featuredMap;               // placeId -> boostLevel (from state closure)
 
-    console.log('[BookService] running nearbySearch at', pendingCenter);
-
     service.nearbySearch(
       { location: pendingCenter, radius: 16000, type: 'bicycle_store', keyword: 'bicycle repair shop' },
       async (results, status) => {
-        console.log('[BookService] nearbySearch status:', status, '| results:', results?.length ?? 0);
 
         // Start from whatever the nearby search returned (may be empty)
         const nearbyResults = (status === window.google.maps.places.PlacesServiceStatus.OK && results)
@@ -286,8 +282,6 @@ export default function BookServiceScreen({ onLogout }) {
         // Fetch full details for any featured shop not already in the results
         const nearbyIds      = new Set(filtered.map(p => p.place_id));
         const missingFeatured = featured.filter(s => !nearbyIds.has(s.googlePlaceId));
-
-        console.log('[BookService] featured shops missing from nearby:', missingFeatured.map(s => s.googlePlaceId));
 
         const fetchedDetails = await Promise.all(
           missingFeatured.map(s =>
@@ -347,25 +341,19 @@ export default function BookServiceScreen({ onLogout }) {
 
   function handleManualSearch(e) {
     e.preventDefault();
-    console.log('[BookService] search tapped — query:', manualQuery, '| mapsLoaded:', mapsLoaded, '| phase:', phase);
 
     if (!manualQuery.trim()) {
-      console.log('[BookService] empty query, returning');
       return;
     }
     if (!mapsLoaded) {
-      console.log('[BookService] Maps API not loaded yet, returning');
       return;
     }
 
     const geocoder = new window.google.maps.Geocoder();
-    console.log('[BookService] geocoding:', manualQuery);
     geocoder.geocode({ address: manualQuery }, (results, status) => {
-      console.log('[BookService] geocode status:', status, '| results:', results?.length ?? 0);
       if (status === 'OK' && results[0]) {
         const loc = results[0].geometry.location;
         const center = { lat: loc.lat(), lng: loc.lng() };
-        console.log('[BookService] geocode success — center:', center);
         setPhase('searching');
         setPendingCenter(center);
       } else {

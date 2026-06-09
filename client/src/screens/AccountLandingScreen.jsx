@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '../components/AppHeader';
 import PostRideModal from '../components/PostRideModal';
@@ -9,7 +9,9 @@ import './AccountLandingScreen.css';
 // remount of this screen (e.g. navigating away and back in the same session).
 let _ridesChecked = false;
 
-export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLogout }) {
+const PULL_THRESHOLD = 64;
+
+export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLogout, summary, onRefreshSummary }) {
   const ACTIONS = [
     { id: 'service-log', label: 'Add Service Log',    path: '/add-service-log' },
     { id: 'quiver',      label: 'Review Your Quiver', path: hasConfiguredBikes ? '/maintenance' : '/add-bike' },
@@ -19,12 +21,61 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
   const navigate = useNavigate();
   const firstname = athlete?.firstname || 'Rider';
 
-  const [summary, setSummary] = useState(null);
   const [newRides, setNewRides] = useState([]);
   const [showRideModal, setShowRideModal] = useState(false);
 
+  // Pull-to-refresh state
+  const [pullProgress, setPullProgress] = useState(0); // 0–1 during drag
+  const [refreshing,   setRefreshing]   = useState(false);
+  const pullDyRef      = useRef(0);
+  const refreshingRef  = useRef(false);
+  const onRefreshRef   = useRef(onRefreshSummary);
+  useEffect(() => { onRefreshRef.current = onRefreshSummary; }, [onRefreshSummary]);
+
   useEffect(() => {
-    api.getSummary().then(setSummary).catch(() => {});
+    let startY = 0;
+    let active = false;
+
+    function onStart(e) {
+      if (window.scrollY === 0 && !refreshingRef.current) {
+        startY = e.touches[0].clientY;
+        active = true;
+      }
+    }
+
+    function onMove(e) {
+      if (!active) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy <= 0) { active = false; pullDyRef.current = 0; setPullProgress(0); return; }
+      e.preventDefault();
+      pullDyRef.current = dy;
+      setPullProgress(Math.min(dy / (PULL_THRESHOLD * 2), 1));
+    }
+
+    function onEnd() {
+      if (!active) return;
+      active = false;
+      const dy = pullDyRef.current;
+      pullDyRef.current = 0;
+      setPullProgress(0);
+      if (dy >= PULL_THRESHOLD && !refreshingRef.current) {
+        refreshingRef.current = true;
+        setRefreshing(true);
+        Promise.resolve(onRefreshRef.current?.()).finally(() => {
+          refreshingRef.current = false;
+          setRefreshing(false);
+        });
+      }
+    }
+
+    document.addEventListener('touchstart', onStart,  { passive: true  });
+    document.addEventListener('touchmove',  onMove,   { passive: false });
+    document.addEventListener('touchend',   onEnd,    { passive: true  });
+    return () => {
+      document.removeEventListener('touchstart', onStart);
+      document.removeEventListener('touchmove',  onMove);
+      document.removeEventListener('touchend',   onEnd);
+    };
   }, []);
 
   // Check for new Strava rides since last login — only once per page load, only
@@ -54,6 +105,16 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
       )}
 
       <main className="landing-body">
+        {/* Pull-to-refresh indicator */}
+        {(refreshing || pullProgress > 0.05) && (
+          <div
+            className="ptr-indicator"
+            style={{ opacity: refreshing ? 1 : Math.min(pullProgress * 1.5, 1) }}
+          >
+            {refreshing && <div className="ptr-spinner" />}
+          </div>
+        )}
+
         {/* Greeting */}
         <div className="landing-greeting">
           <p className="landing-welcome-sub text-muted">Welcome back</p>

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "icons": "sips -s format png public/app-icon.svg --out public/icon-192.png --resampleWidth 192 && sips -s format png public/app-icon.svg --out public/icon-512.png --resampleWidth 512"
   },
   "dependencies": {
     "react": "^19.2.4",

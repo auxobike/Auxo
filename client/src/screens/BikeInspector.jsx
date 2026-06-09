@@ -72,42 +72,93 @@ function SpinnerIcon() {
   );
 }
 
+// ── Progress bar helpers ──────────────────────────────────────────────────────
+
+function itemPercentUsed(item) {
+  const s = item.status;
+  switch (item.trigger?.type) {
+    case 'miles':
+    case 'rides':
+    case 'days':
+    case 'chain_replacements':
+      return s.threshold > 0
+        ? Math.min(1, (s.threshold - s.remaining) / s.threshold)
+        : null;
+
+    case 'miles_or_days': {
+      const mp = s.milesThreshold > 0 ? s.milesSince / s.milesThreshold : 0;
+      const dp = s.daysThreshold  > 0 ? (s.daysThreshold - s.daysRemaining) / s.daysThreshold : 0;
+      return Math.min(1, Math.max(mp, dp));
+    }
+
+    case 'hours_or_days': {
+      const hp = s.hoursThreshold > 0 ? s.hoursSince / s.hoursThreshold : 0;
+      const dp = s.daysThreshold  > 0 ? (s.daysThreshold - s.daysRemaining) / s.daysThreshold : 0;
+      return Math.min(1, Math.max(hp, dp));
+    }
+
+    case 'hours_user_defined':
+      return s.interval > 0 ? Math.min(1, s.hoursSince / s.interval) : null;
+
+    default:
+      return null;
+  }
+}
+
+function barColor(pct) {
+  if (pct >= 0.90) return '#ff4757';
+  if (pct >= 0.70) return '#c9960c';
+  return '#128D93';
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function ItemRow({ item, logging, onLog, onLearn }) {
   const navigate = useNavigate();
   const st       = item.status.status;
   const pillText = statusPillText(item);
+  const pct      = itemPercentUsed(item);
 
   return (
     <div className="inspector-item">
-      <button
-        className={`inspector-log-btn${logging ? ' inspector-log-btn--loading' : ''}`}
-        onClick={onLog}
-        disabled={logging}
-        aria-label={`Log service: ${item.label} — ${item.action}`}
-      >
-        {logging ? <SpinnerIcon /> : <LogArrowIcon />}
-      </button>
+      <div className="inspector-item-row">
+        <button
+          className={`inspector-log-btn${logging ? ' inspector-log-btn--loading' : ''}`}
+          onClick={onLog}
+          disabled={logging}
+          aria-label={`Log service: ${item.label} — ${item.action}`}
+        >
+          {logging ? <SpinnerIcon /> : <LogArrowIcon />}
+        </button>
 
-      <div className="inspector-item-info">
-        <span className="inspector-item-label">{item.label}</span>
-        <span className="inspector-item-action">{item.action}</span>
+        <div className="inspector-item-info">
+          <span className="inspector-item-label">{item.label}</span>
+          <span className="inspector-item-action">{item.action}</span>
+        </div>
+
+        {pillText && (
+          <span className={`inspector-status-pill inspector-status-pill--${st}`}>
+            {pillText}
+          </span>
+        )}
+
+        <button
+          className="inspector-learn-btn"
+          onClick={() => navigate('/learn')}
+          aria-label={`Learn about ${item.label}`}
+        >
+          Learn
+        </button>
       </div>
 
-      {pillText && (
-        <span className={`inspector-status-pill inspector-status-pill--${st}`}>
-          {pillText}
-        </span>
+      {pct !== null && (
+        <div className="inspector-item-progress">
+          <div
+            className="inspector-item-progress-fill"
+            style={{ width: `${Math.round(pct * 100)}%`, background: barColor(pct) }}
+          />
+        </div>
       )}
-
-      <button
-        className="inspector-learn-btn"
-        onClick={() => navigate('/learn')}
-        aria-label={`Learn about ${item.label}`}
-      >
-        Learn
-      </button>
     </div>
   );
 }

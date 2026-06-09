@@ -212,7 +212,6 @@ export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
     }
     api.getBikes()
       .then(data => {
-        console.log('[AddBikeScreen] fetched bikes:', data);
         setBikes(data);
         if (data.length > 0) setBikeId(data[0].id);
       })
@@ -226,7 +225,6 @@ export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
   const current   = BIKES[index];
   const total     = BIKES.length;
   const isMtb     = current.type === 'mtb';
-  console.log('[AddBikeScreen] version: MTB-suspension-update, isMtb:', current?.type === 'mtb');
 
   // Bike type carousel (step 1)
   function prev() { setIndex(i => (i - 1 + total) % total); }
