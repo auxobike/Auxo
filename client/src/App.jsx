@@ -18,6 +18,7 @@ import ServiceIntervalsScreen   from './screens/ServiceIntervalsScreen';
 import EditBikeSettingsScreen   from './screens/EditBikeSettingsScreen';
 import LearnScreen              from './screens/LearnScreen';
 import LearnArticleScreen       from './screens/LearnArticleScreen';
+import GarageScreen             from './screens/GarageScreen';
 
 import './styles/design-system.css';
 
@@ -271,6 +272,14 @@ export default function App() {
             <RequireStrava session={session}>
               <LearnArticleScreen onLogout={handleLogout} />
             </RequireStrava>
+          }
+        />
+        <Route
+          path="/garage"
+          element={
+            <RequireAuth session={session}>
+              <GarageScreen onLogout={handleLogout} />
+            </RequireAuth>
           }
         />
 

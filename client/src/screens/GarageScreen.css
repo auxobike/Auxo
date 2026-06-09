@@ -1,0 +1,352 @@
+/* ── Screen ── */
+.garage-screen {
+  overflow: hidden;
+}
+
+/* ── Page heading ── */
+.garage-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 10vw, 3rem);
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  padding: 8px var(--screen-pad) 0;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* ── Scrollable body ── */
+.garage-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px var(--screen-pad) 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Empty state ── */
+.garage-empty {
+  text-align: center;
+  color: var(--white-40);
+  font-size: 0.9rem;
+  padding: 40px 0;
+}
+
+/* ── Wheelset card ── */
+.garage-wheelset-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.garage-wheelset-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.garage-wheelset-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.garage-wheelset-notes {
+  font-size: 0.78rem;
+  color: var(--white-40);
+  margin-top: 2px;
+}
+
+.garage-wheelset-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.garage-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--white-40);
+  cursor: pointer;
+  transition: color var(--ease), border-color var(--ease), background var(--ease);
+}
+
+.garage-icon-btn:hover { color: var(--white); border-color: var(--white-40); }
+.garage-icon-btn--danger:hover { color: #ff4757; border-color: #ff4757; }
+
+.garage-icon-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Miles strip ── */
+.garage-miles-strip {
+  display: flex;
+  gap: 8px;
+}
+
+.garage-miles-stat {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.garage-miles-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--white-40);
+}
+
+.garage-miles-value {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  line-height: 1;
+}
+
+/* ── Install status ── */
+.garage-status-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.garage-status-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.garage-status-text {
+  font-size: 0.82rem;
+  color: var(--white-70);
+}
+
+.garage-status-text strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.garage-in-garage {
+  font-size: 0.82rem;
+  color: var(--white-40);
+  font-style: italic;
+}
+
+.garage-uninstall-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--white-40);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color var(--ease), border-color var(--ease);
+  flex-shrink: 0;
+}
+
+.garage-uninstall-btn:hover {
+  color: #ff4757;
+  border-color: #ff4757;
+}
+
+/* ── Install form ── */
+.garage-install-btn {
+  width: 100%;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(201, 150, 12, 0.3);
+  border-radius: 10px;
+  padding: 9px;
+  cursor: pointer;
+  transition: background var(--ease);
+}
+
+.garage-install-btn:hover { background: rgba(201, 150, 12, 0.22); }
+
+.garage-install-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.garage-install-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.garage-install-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--white-40);
+}
+
+.garage-install-select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 9px 12px;
+  appearance: none;
+  transition: border-color var(--ease);
+}
+
+.garage-install-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.garage-position-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.garage-position-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--white-40);
+  cursor: pointer;
+  transition: background var(--ease), color var(--ease), border-color var(--ease);
+}
+
+.garage-position-btn--active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: rgba(201, 150, 12, 0.4);
+}
+
+.garage-install-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.garage-confirm-btn {
+  flex: 1;
+}
+
+.garage-cancel-link {
+  background: transparent;
+  border: none;
+  color: var(--white-40);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color var(--ease);
+}
+
+.garage-cancel-link:hover { color: var(--white); }
+
+/* ── Edit form ── */
+.garage-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.garage-edit-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 9px 12px;
+  box-sizing: border-box;
+  transition: border-color var(--ease);
+}
+
+.garage-edit-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.garage-edit-input::placeholder {
+  color: var(--white-40);
+}
+
+.garage-edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.garage-edit-error {
+  font-size: 0.78rem;
+  color: #ff4757;
+}
+
+/* ── Add wheelset section ── */
+.garage-add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.garage-add-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.garage-add-form-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--white-70);
+}
+
+.garage-add-error {
+  font-size: 0.78rem;
+  color: #ff4757;
+}

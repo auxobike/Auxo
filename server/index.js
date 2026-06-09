@@ -9,6 +9,7 @@ const stravaRoutes      = require('./routes/strava');
 const maintenanceRoutes = require('./routes/maintenance');
 const shopsRoutes       = require('./routes/shops');
 const learnRoutes       = require('./routes/learn');
+const garageRoutes      = require('./routes/garage');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -64,7 +65,8 @@ app.use('/auth', authRoutes);
 app.use('/api/strava', stravaRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api', shopsRoutes);
-app.use('/api/learn', learnRoutes);
+app.use('/api/learn',   learnRoutes);
+app.use('/api/garage', garageRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

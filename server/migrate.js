@@ -82,6 +82,28 @@ async function migrate() {
     )
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wheelsets (
+      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id     TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name        TEXT        NOT NULL,
+      front_miles NUMERIC     NOT NULL DEFAULT 0,
+      rear_miles  NUMERIC     NOT NULL DEFAULT 0,
+      notes       TEXT,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bike_wheels (
+      bike_id           TEXT NOT NULL,
+      user_id           TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      front_wheelset_id UUID REFERENCES wheelsets(id) ON DELETE SET NULL,
+      rear_wheelset_id  UUID REFERENCES wheelsets(id) ON DELETE SET NULL,
+      PRIMARY KEY (bike_id, user_id)
+    )
+  `);
+
   console.log('[migrate] tables ready');
 }
 

@@ -183,6 +183,66 @@
   margin: 0 8px;
 }
 
+/* ── Installed wheels strip ── */
+.inspector-wheels-strip {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px 16px;
+  gap: 0;
+}
+
+.inspector-wheels-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inspector-wheels-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--white-40);
+}
+
+.inspector-wheels-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.inspector-wheels-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 12px;
+}
+
+.inspector-wheels-manage {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: opacity var(--ease);
+}
+
+.inspector-wheels-manage:hover { opacity: 0.75; }
+
 /* ── Maintenance sections ── */
 .inspector-sections {
   display: flex;

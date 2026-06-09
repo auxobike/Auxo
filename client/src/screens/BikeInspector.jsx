@@ -220,6 +220,7 @@ export default function BikeInspector({ onLogout }) {
   const [showResetConfirm,  setShowResetConfirm]  = useState(false);
   const [resetting,         setResetting]         = useState(false);
   const [logError,          setLogError]          = useState(null);
+  const [bikeWheels,        setBikeWheels]        = useState(null);
 
   // Recent rides state
   const [recentRides,   setRecentRides]   = useState([]);
@@ -232,6 +233,14 @@ export default function BikeInspector({ onLogout }) {
   useEffect(() => {
     api.getBikes().then(setBikes).catch(() => {});
   }, []);
+
+  // Installed wheelsets for this bike
+  useEffect(() => {
+    setBikeWheels(null);
+    api.getBikeWheels(bikeId)
+      .then(setBikeWheels)
+      .catch(() => setBikeWheels({ front: null, rear: null }));
+  }, [bikeId]);
 
   // Recent rides for this bike
   useEffect(() => {
@@ -458,6 +467,29 @@ export default function BikeInspector({ onLogout }) {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Installed wheels strip */}
+          <div className="inspector-wheels-strip">
+            <div className="inspector-wheels-stat">
+              <span className="inspector-wheels-label">Front Wheel</span>
+              <span className="inspector-wheels-value">
+                {bikeWheels === null ? '…' : (bikeWheels.front?.name || '—')}
+              </span>
+            </div>
+            <div className="inspector-wheels-divider" />
+            <div className="inspector-wheels-stat">
+              <span className="inspector-wheels-label">Rear Wheel</span>
+              <span className="inspector-wheels-value">
+                {bikeWheels === null ? '…' : (bikeWheels.rear?.name || '—')}
+              </span>
+            </div>
+            <button
+              className="inspector-wheels-manage"
+              onClick={() => navigate('/garage')}
+            >
+              Manage
+            </button>
           </div>
 
           <button

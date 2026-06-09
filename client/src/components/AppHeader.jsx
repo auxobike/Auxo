@@ -32,6 +32,7 @@ function BellIcon() {
 const NAV_ITEMS = [
   { label: 'Add Service Log',    path: '/add-service-log' },
   { label: 'Review Your Quiver', path: '/maintenance'     },
+  { label: 'Garage',             path: '/garage'          },
   { label: 'Book a Service',     path: '/book-service'    },
   { label: 'Learn',              path: '/learn'           },
 ];

@@ -4,6 +4,7 @@ const requireAuth = require('../middleware/requireAuth');
 const { getBikeData, saveRideConditions, getRideConditions, deleteRideCondition } = require('../utils/store');
 const { findById } = require('../utils/userStore');
 const { recalculateEffectiveMileage } = require('../utils/effectiveMileage');
+const pool = require('../db');
 
 const router = express.Router();
 
@@ -298,6 +299,35 @@ router.post('/ride-conditions', requireAuth, async (req, res) => {
     if (uniqueGearIds.length > 0 && userId) {
       Promise.all(uniqueGearIds.map(gId => recalculateEffectiveMileage(gId, userId)))
         .catch(err => console.error('[ride-conditions] effectiveMileage sync error:', err.message));
+    }
+
+    // Fire-and-forget: add miles to installed wheelsets.
+    if (userId) {
+      const addWheelsetMiles = async () => {
+        for (const record of records) {
+          if (!record.gearId) continue;
+          const { rows } = await pool.query(
+            'SELECT front_wheelset_id, rear_wheelset_id FROM bike_wheels WHERE bike_id = $1 AND user_id = $2',
+            [record.gearId, userId]
+          );
+          if (rows.length === 0) continue;
+          const { front_wheelset_id, rear_wheelset_id } = rows[0];
+          const miles = record.isTrainer ? 0 : record.actualMiles;
+          if (front_wheelset_id) {
+            await pool.query(
+              'UPDATE wheelsets SET front_miles = front_miles + $1 WHERE id = $2 AND user_id = $3',
+              [miles, front_wheelset_id, userId]
+            );
+          }
+          if (rear_wheelset_id) {
+            await pool.query(
+              'UPDATE wheelsets SET rear_miles = rear_miles + $1 WHERE id = $2 AND user_id = $3',
+              [miles, rear_wheelset_id, userId]
+            );
+          }
+        }
+      };
+      addWheelsetMiles().catch(err => console.error('[ride-conditions] wheelset miles error:', err.message));
     }
 
     res.json({ success: true, saved: records.length });

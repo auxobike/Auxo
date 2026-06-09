@@ -123,11 +123,13 @@ function RideCard({
   onLocalEditChange,
   availableBikes,
   loadingBikes,
+  wheels,
 }) {
   const effectiveIsTrainer = localEdit?.isTrainer !== undefined
     ? localEdit.isTrainer
     : ride.isTrainer;
   const warnings = getWarnings(ride.distanceMiles, condition, maintenanceStatus);
+  const noWheelsInstalled = ride.gearId && wheels && !wheels.front && !wheels.rear;
 
   return (
     <div className="prm-ride-card">
@@ -150,6 +152,13 @@ function RideCard({
           {isEditing ? 'Done' : 'Edit'}
         </button>
       </div>
+
+      {noWheelsInstalled && (
+        <div className="prm-no-wheels-warning">
+          No wheels installed on this bike — add them in the{' '}
+          <a href="/garage" className="prm-no-wheels-link">Garage</a>
+        </div>
+      )}
 
       {isEditing ? (
         /* ── Edit form ── */
@@ -282,8 +291,9 @@ export default function PostRideModal({ rides, onClose }) {
   const [localEdits,     setLocalEdits]     = useState({});
   const [availableBikes, setAvailableBikes] = useState([]);
   const [loadingBikes,   setLoadingBikes]   = useState(false);
+  const [bikeWheels,     setBikeWheels]     = useState({});
 
-  // Pre-load maintenance status for every unique configured bike in the rides list
+  // Pre-load maintenance status and installed wheels for every unique bike
   useEffect(() => {
     const uniqueGearIds = [...new Set(rides.map(r => r.gearId).filter(Boolean))];
     for (const gearId of uniqueGearIds) {
@@ -291,6 +301,9 @@ export default function PostRideModal({ rides, onClose }) {
       api.getMaintenanceStatus(gearId)
         .then(status => setMaintenanceStatus(prev => ({ ...prev, [gearId]: status })))
         .catch(() => setMaintenanceStatus(prev => ({ ...prev, [gearId]: false })));
+      api.getBikeWheels(gearId)
+        .then(wheels => setBikeWheels(prev => ({ ...prev, [gearId]: wheels })))
+        .catch(() => {});
     }
   }, [rides]);
 
@@ -378,6 +391,7 @@ export default function PostRideModal({ rides, onClose }) {
               onLocalEditChange={(field, value) => handleLocalEditChange(ride.id, field, value)}
               availableBikes={availableBikes}
               loadingBikes={loadingBikes}
+              wheels={ride.gearId ? (bikeWheels[ride.gearId] ?? null) : null}
             />
           ))}
         </div>

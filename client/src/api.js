@@ -97,4 +97,13 @@ export const api = {
   // Learn
   getArticles:   ()   => apiFetch('/api/learn/articles'),
   getArticle:    (id) => apiFetch(`/api/learn/articles/${id}`),
+
+  // Garage
+  getWheelsets:     ()         => apiFetch('/api/garage/wheelsets'),
+  createWheelset:   (data)     => apiFetch('/api/garage/wheelsets', { method: 'POST', body: JSON.stringify(data) }),
+  updateWheelset:   (id, data) => apiFetch(`/api/garage/wheelsets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteWheelset:   (id)       => apiFetch(`/api/garage/wheelsets/${id}`, { method: 'DELETE' }),
+  installWheelset:  (data)     => apiFetch('/api/garage/install',   { method: 'POST', body: JSON.stringify(data) }),
+  uninstallWheelset:(data)     => apiFetch('/api/garage/uninstall', { method: 'POST', body: JSON.stringify(data) }),
+  getBikeWheels:    (bikeId)   => apiFetch(`/api/garage/bike/${bikeId}`),
 };
