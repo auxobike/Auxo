@@ -28,6 +28,82 @@ function formatMiles(n) {
   return Math.round(n).toLocaleString();
 }
 
+// ── Tire status helpers ───────────────────────────────────────────────────────
+
+function tireBarColor(pct) {
+  if (pct >= 1.0)  return '#ff4757';
+  if (pct >= 0.85) return '#c9960c';
+  return '#128D93';
+}
+
+function sealantStatus(lastServiceDate) {
+  if (!lastServiceDate) return { label: 'Due', cls: 'due' };
+  const days = Math.floor((Date.now() - new Date(lastServiceDate)) / 86400000);
+  if (days > 207) return { label: 'Overdue', cls: 'due' };  // 180 * 1.15
+  if (days >= 180) return { label: 'Due',     cls: 'due' };
+  if (days >= 162) return { label: 'Soon',    cls: 'soon' }; // 180 * 0.90
+  return { label: `${180 - days}d left`, cls: 'ok' };
+}
+
+function TireStatusSection({ wheelset }) {
+  // Use the same tire_replace threshold that the rules use; gravel/mtb differ
+  // but we don't know bike type here so we carry whichever value came from the
+  // maintenance log (lastServiceMileage) as the baseline.
+  const frontMiles     = wheelset.frontMiles;
+  const rearMiles      = wheelset.rearMiles;
+  const replaceLog     = wheelset.tireLogs?.tireReplace;
+  const sealantLog     = wheelset.tireLogs?.sealant;
+  const THRESHOLD      = 2500; // generic default; BikeInspector uses per-bike-type threshold
+
+  const frontBase = replaceLog?.lastServiceMileage ?? 0;
+  const rearBase  = replaceLog?.lastServiceMileage ?? 0;
+  const frontPct  = Math.min(1.15, (frontMiles - frontBase) / THRESHOLD);
+  const rearPct   = Math.min(1.15, (rearMiles  - rearBase)  / THRESHOLD);
+
+  const seal = sealantStatus(sealantLog?.lastServiceDate);
+
+  return (
+    <div className="garage-tire-status">
+      <span className="garage-tire-status-heading">Tire Tracking</span>
+
+      <div className="garage-tire-row">
+        <div className="garage-tire-row-header">
+          <span className="garage-tire-label">Front tire</span>
+          <span className="garage-tire-meta">{formatMiles(frontMiles)} mi</span>
+        </div>
+        <div className="garage-tire-bar-track">
+          <div
+            className="garage-tire-bar-fill"
+            style={{ width: `${Math.min(100, frontPct * 100)}%`, background: tireBarColor(frontPct) }}
+          />
+        </div>
+      </div>
+
+      <div className="garage-tire-row">
+        <div className="garage-tire-row-header">
+          <span className="garage-tire-label">Rear tire</span>
+          <span className="garage-tire-meta">{formatMiles(rearMiles)} mi</span>
+        </div>
+        <div className="garage-tire-bar-track">
+          <div
+            className="garage-tire-bar-fill"
+            style={{ width: `${Math.min(100, rearPct * 100)}%`, background: tireBarColor(rearPct) }}
+          />
+        </div>
+      </div>
+
+      {wheelset.tireLogs !== undefined && (
+        <div className="garage-sealant-row">
+          <span className="garage-sealant-label">Tubeless Sealant</span>
+          <span className={`garage-sealant-status garage-sealant-status--${seal.cls}`}>
+            {seal.label}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── WheelsetCard ─────────────────────────────────────────────────────────────
 
 function WheelsetCard({ wheelset, bikes, onRefresh }) {
@@ -168,6 +244,9 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
           </div>
         </div>
       )}
+
+      {/* Tire status */}
+      <TireStatusSection wheelset={wheelset} />
 
       {/* Installation status */}
       <div className="garage-status-row">

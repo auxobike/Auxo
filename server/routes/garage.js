@@ -27,6 +27,21 @@ router.get('/wheelsets', requireAuth, async (req, res) => {
       ORDER BY w.created_at ASC
     `, [userId]);
 
+    // Fetch tire service logs for all wheelsets in one query
+    const ids = rows.map(r => r.id);
+    const logMap = {};
+    if (ids.length > 0) {
+      const { rows: logRows } = await pool.query(`
+        SELECT wheelset_id, item_id, log FROM wheelset_service_logs
+        WHERE wheelset_id = ANY($1) AND user_id = $2
+          AND item_id IN ('sealant_add', 'tire_replace')
+      `, [ids, userId]);
+      for (const r of logRows) {
+        if (!logMap[r.wheelset_id]) logMap[r.wheelset_id] = {};
+        logMap[r.wheelset_id][r.item_id] = r.log;
+      }
+    }
+
     res.json(rows.map(r => ({
       id:                     r.id,
       name:                   r.name,
@@ -36,6 +51,10 @@ router.get('/wheelsets', requireAuth, async (req, res) => {
       createdAt:              r.created_at,
       installedFrontOnBikeId: r.installed_front_on_bike_id || null,
       installedRearOnBikeId:  r.installed_rear_on_bike_id  || null,
+      tireLogs: {
+        sealant:     logMap[r.id]?.sealant_add  || null,
+        tireReplace: logMap[r.id]?.tire_replace || null,
+      },
     })));
   } catch (err) {
     console.error('[garage/wheelsets GET]', err.message);

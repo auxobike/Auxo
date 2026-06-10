@@ -14,6 +14,9 @@
 //   padType: 'resin' | 'metal'     — shown only if bike is configured with this pad type
 //   brakeType: 'hydraulic' | 'mechanical' | 'rim'  — shown only if configured
 //   tubelessOnly: true             — shown only if bike is marked tubeless
+//   wheelTracked: true             — mileage base uses installed wheelset miles, and
+//                                    service log is stored per-wheelset so history
+//                                    travels when the wheelset moves to a different bike
 
 const RULES = {
   road: {
@@ -51,7 +54,8 @@ const RULES = {
         label: 'Tires',
         items: [
           { id: 'tires_check',  label: 'Tires',            action: 'Inspect',     trigger: { type: 'miles', firstAt: 1000, thenEvery: 500 } },
-          { id: 'sealant_add',  label: 'Tubeless Sealant', action: 'Add/top up',  tubelessOnly: true, trigger: { type: 'days', every: 180 } },
+          { id: 'tire_replace', label: 'Tires',            action: 'Replace',     wheelTracked: true, trigger: { type: 'miles', every: 2500 } },
+          { id: 'sealant_add',  label: 'Tubeless Sealant', action: 'Add/top up',  tubelessOnly: true, wheelTracked: true, trigger: { type: 'days', every: 180 } },
         ],
       },
       {
@@ -99,7 +103,8 @@ const RULES = {
         label: 'Tires',
         items: [
           { id: 'tires_check', label: 'Tires',            action: 'Inspect',    trigger: { type: 'miles', firstAt: 500, thenEvery: 100 } },
-          { id: 'sealant_add', label: 'Tubeless Sealant', action: 'Add/top up', tubelessOnly: true, trigger: { type: 'days', every: 180 } },
+          { id: 'tire_replace', label: 'Tires',           action: 'Replace',    wheelTracked: true, trigger: { type: 'miles', every: 1500 } },
+          { id: 'sealant_add', label: 'Tubeless Sealant', action: 'Add/top up', tubelessOnly: true, wheelTracked: true, trigger: { type: 'days', every: 180 } },
         ],
       },
       {
@@ -158,7 +163,8 @@ const RULES = {
         label: 'Tires',
         items: [
           { id: 'tires_check', label: 'Tires',            action: 'Inspect',    trigger: { type: 'miles', firstAt: 1000, thenEvery: 500 } },
-          { id: 'sealant_add', label: 'Tubeless Sealant', action: 'Add/top up', tubelessOnly: true, trigger: { type: 'days', every: 180 } },
+          { id: 'tire_replace', label: 'Tires',           action: 'Replace',    wheelTracked: true, trigger: { type: 'miles', every: 2000 } },
+          { id: 'sealant_add', label: 'Tubeless Sealant', action: 'Add/top up', tubelessOnly: true, wheelTracked: true, trigger: { type: 'days', every: 180 } },
         ],
       },
       {

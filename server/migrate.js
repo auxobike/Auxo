@@ -104,6 +104,20 @@ async function migrate() {
     )
   `);
 
+  // Per-wheelset service logs for wheelTracked maintenance items (sealant, tire replace).
+  // Storing here instead of bike_data means the history travels when a wheelset
+  // is uninstalled from one bike and installed on another.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wheelset_service_logs (
+      wheelset_id UUID NOT NULL REFERENCES wheelsets(id) ON DELETE CASCADE,
+      item_id     TEXT NOT NULL,
+      user_id     TEXT NOT NULL,
+      log         JSONB NOT NULL DEFAULT '{}',
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (wheelset_id, item_id)
+    )
+  `);
+
   console.log('[migrate] tables ready');
 }
 

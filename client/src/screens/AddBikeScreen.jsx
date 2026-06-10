@@ -194,6 +194,13 @@ export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
   const [shockLowerLeg,    setShockLowerLeg]    = useState({ value: '', unit: 'Hours' });
   const [shockFullService, setShockFullService] = useState({ value: '', unit: 'Hours' });
 
+  // Step 6 — optional wheelset setup
+  const [wheelChoice,    setWheelChoice]    = useState(null); // null | 'yes' | 'skip'
+  const [frontWheelName, setFrontWheelName] = useState('');
+  const [rearWheelName,  setRearWheelName]  = useState('');
+  const [savingWheels,   setSavingWheels]   = useState(false);
+  const [wheelError,     setWheelError]     = useState(null);
+
   // Reset brake selections whenever the bike type changes in the carousel
   useEffect(() => {
     setPadType('');
@@ -342,12 +349,40 @@ export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
           manualMileage: Number(manualMileage),
         }),
       });
-      setSuccess(true);
-      setTimeout(() => navigate(`/maintenance/${effectiveBikeId}/intervals`), 1500);
+      setStep(6);
     } catch (err) {
       setAddError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setAdding(false);
+    }
+  }
+
+  function handleWheelSkip() {
+    navigate(`/maintenance/${effectiveBikeId}/intervals`);
+  }
+
+  async function handleWheelSave() {
+    if (!frontWheelName.trim() && !rearWheelName.trim()) {
+      handleWheelSkip();
+      return;
+    }
+    setSavingWheels(true);
+    setWheelError(null);
+    try {
+      const installs = {};
+      if (frontWheelName.trim()) {
+        const ws = await api.createWheelset({ name: frontWheelName.trim() });
+        installs.frontWheelsetId = ws.id;
+      }
+      if (rearWheelName.trim()) {
+        const ws = await api.createWheelset({ name: rearWheelName.trim() });
+        installs.rearWheelsetId = ws.id;
+      }
+      await api.installWheelset({ bikeId: effectiveBikeId, ...installs });
+      navigate(`/maintenance/${effectiveBikeId}/intervals`);
+    } catch (err) {
+      setWheelError(err.message || 'Failed to save wheelsets');
+      setSavingWheels(false);
     }
   }
 
@@ -833,6 +868,70 @@ export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
         </div>
       )}
 
+      {/* ── Step 6: Wheelset setup ── */}
+      {step === 6 && (
+        <div className="add-bike-body">
+          <h2 className="section-heading" style={{ marginBottom: 8 }}>
+            Add a Wheelset?
+          </h2>
+          <p className="add-bike-tagline text-muted" style={{ marginBottom: 24 }}>
+            Auxo can track tire miles and sealant separately for each wheelset — so maintenance history follows the wheels, not the bike.
+          </p>
+
+          {wheelChoice === null && (
+            <div className="input-group pad-type-group">
+              <div className="pad-type-picker">
+                <button
+                  type="button"
+                  className="pad-type-btn"
+                  onClick={() => setWheelChoice('yes')}
+                >
+                  Yes, add wheels
+                </button>
+                <button
+                  type="button"
+                  className="pad-type-btn"
+                  onClick={handleWheelSkip}
+                >
+                  Skip for now
+                </button>
+              </div>
+            </div>
+          )}
+
+          {wheelChoice === 'yes' && (
+            <>
+              <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: 16 }}>
+                Name your wheelset(s). Leave a field blank to skip that position.
+              </p>
+              <div className="input-group">
+                <label className="input-label" htmlFor="front-wheel-name">Front wheelset name</label>
+                <input
+                  id="front-wheel-name"
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g. Zipp 404s, Training Wheels"
+                  value={frontWheelName}
+                  onChange={e => setFrontWheelName(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label className="input-label" htmlFor="rear-wheel-name">Rear wheelset name</label>
+                <input
+                  id="rear-wheel-name"
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g. Zipp 404s, Training Wheels"
+                  value={rearWheelName}
+                  onChange={e => setRearWheelName(e.target.value)}
+                />
+              </div>
+              {wheelError && <p className="add-bike-error">{wheelError}</p>}
+            </>
+          )}
+        </div>
+      )}
+
       {/* ── Sticky bottom CTA ── */}
       <div className="add-bike-footer">
         {success && (
@@ -928,6 +1027,21 @@ export default function AddBikeScreen({ onLogout, stravaLinked = true }) {
             </button>
             <button className="auth-skip-btn" onClick={handleStep5Back}>
               Back
+            </button>
+          </>
+        )}
+
+        {step === 6 && wheelChoice === 'yes' && (
+          <>
+            <button
+              className="btn-pill btn-pill-gold"
+              onClick={handleWheelSave}
+              disabled={savingWheels || (!frontWheelName.trim() && !rearWheelName.trim())}
+            >
+              {savingWheels ? 'Saving…' : 'Save & Continue'}
+            </button>
+            <button className="auth-skip-btn" onClick={handleWheelSkip}>
+              Skip for now
             </button>
           </>
         )}
