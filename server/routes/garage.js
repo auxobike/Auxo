@@ -167,6 +167,7 @@ router.post('/uninstall', requireAuth, async (req, res) => {
 });
 
 // GET /api/garage/bike/:bikeId — wheels currently installed on a specific bike
+// Returns front/rear with name and the miles accumulated in that position.
 router.get('/bike/:bikeId', requireAuth, async (req, res) => {
   const userId = req.session.userId;
   const { bikeId } = req.params;
@@ -175,8 +176,10 @@ router.get('/bike/:bikeId', requireAuth, async (req, res) => {
       SELECT
         bw.front_wheelset_id,
         bw.rear_wheelset_id,
-        fw.name AS front_name,
-        rw.name AS rear_name
+        fw.name        AS front_name,
+        fw.front_miles AS front_position_miles,
+        rw.name        AS rear_name,
+        rw.rear_miles  AS rear_position_miles
       FROM bike_wheels bw
       LEFT JOIN wheelsets fw ON fw.id = bw.front_wheelset_id
       LEFT JOIN wheelsets rw ON rw.id = bw.rear_wheelset_id
@@ -186,8 +189,8 @@ router.get('/bike/:bikeId', requireAuth, async (req, res) => {
     if (rows.length === 0) return res.json({ front: null, rear: null });
     const r = rows[0];
     res.json({
-      front: r.front_wheelset_id ? { id: r.front_wheelset_id, name: r.front_name } : null,
-      rear:  r.rear_wheelset_id  ? { id: r.rear_wheelset_id,  name: r.rear_name  } : null,
+      front: r.front_wheelset_id ? { id: r.front_wheelset_id, name: r.front_name, miles: parseFloat(r.front_position_miles) } : null,
+      rear:  r.rear_wheelset_id  ? { id: r.rear_wheelset_id,  name: r.rear_name,  miles: parseFloat(r.rear_position_miles)  } : null,
     });
   } catch (err) {
     console.error('[garage/bike GET]', err.message);

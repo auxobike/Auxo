@@ -232,31 +232,6 @@
   border-color: var(--accent);
 }
 
-.garage-position-btns {
-  display: flex;
-  gap: 8px;
-}
-
-.garage-position-btn {
-  flex: 1;
-  padding: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--white-40);
-  cursor: pointer;
-  transition: background var(--ease), color var(--ease), border-color var(--ease);
-}
-
-.garage-position-btn--active {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: rgba(201, 150, 12, 0.4);
-}
 
 .garage-install-actions {
   display: flex;

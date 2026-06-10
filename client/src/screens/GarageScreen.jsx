@@ -31,12 +31,11 @@ function formatMiles(n) {
 // ── WheelsetCard ─────────────────────────────────────────────────────────────
 
 function WheelsetCard({ wheelset, bikes, onRefresh }) {
-  const [showInstallForm, setShowInstallForm]   = useState(false);
-  const [installBikeId,   setInstallBikeId]     = useState('');
-  const [installFront,    setInstallFront]       = useState(false);
-  const [installRear,     setInstallRear]        = useState(false);
-  const [installing,      setInstalling]         = useState(false);
-  const [uninstallingPos, setUninstallingPos]    = useState(null);
+  // 'front' | 'rear' | null — which install form is open
+  const [activeInstall,   setActiveInstall]   = useState(null);
+  const [installBikeId,   setInstallBikeId]   = useState('');
+  const [installing,      setInstalling]       = useState(false);
+  const [uninstallingPos, setUninstallingPos]  = useState(null);
 
   const [editing,   setEditing]   = useState(false);
   const [editName,  setEditName]  = useState(wheelset.name);
@@ -48,25 +47,21 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
   const frontBike = bikes.find(b => b.id === wheelset.installedFrontOnBikeId);
   const rearBike  = bikes.find(b => b.id === wheelset.installedRearOnBikeId);
 
-  const isInstalled = !!wheelset.installedFrontOnBikeId || !!wheelset.installedRearOnBikeId;
-
-  function openInstall() {
+  function openInstallForm(position) {
     setInstallBikeId(bikes[0]?.id || '');
-    setInstallFront(false);
-    setInstallRear(false);
-    setShowInstallForm(true);
+    setActiveInstall(position);
   }
 
-  async function handleInstall() {
-    if (!installBikeId || (!installFront && !installRear)) return;
+  async function handleInstall(position) {
+    if (!installBikeId) return;
     setInstalling(true);
     try {
       await api.installWheelset({
-        bikeId:           installBikeId,
-        frontWheelsetId:  installFront ? wheelset.id : undefined,
-        rearWheelsetId:   installRear  ? wheelset.id : undefined,
+        bikeId:          installBikeId,
+        frontWheelsetId: position === 'front' ? wheelset.id : undefined,
+        rearWheelsetId:  position === 'rear'  ? wheelset.id : undefined,
       });
-      setShowInstallForm(false);
+      setActiveInstall(null);
       onRefresh();
     } catch (err) {
       console.error('[Garage] install failed:', err.message);
@@ -78,7 +73,8 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
   async function handleUninstall(position) {
     setUninstallingPos(position);
     try {
-      await api.uninstallWheelset({ bikeId: position === 'front' ? wheelset.installedFrontOnBikeId : wheelset.installedRearOnBikeId, position });
+      const bikeId = position === 'front' ? wheelset.installedFrontOnBikeId : wheelset.installedRearOnBikeId;
+      await api.uninstallWheelset({ bikeId, position });
       onRefresh();
     } catch (err) {
       console.error('[Garage] uninstall failed:', err.message);
@@ -113,6 +109,8 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
       setDeleting(false);
     }
   }
+
+  const neitherInstalled = !wheelset.installedFrontOnBikeId && !wheelset.installedRearOnBikeId;
 
   return (
     <div className="garage-wheelset-card">
@@ -171,9 +169,10 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
         </div>
       )}
 
-      {/* Install status */}
+      {/* Installation status */}
       <div className="garage-status-row">
-        {wheelset.installedFrontOnBikeId && (
+        {/* Front position */}
+        {wheelset.installedFrontOnBikeId ? (
           <div className="garage-status-line">
             <span className="garage-status-text">
               Front on <strong>{frontBike?.name || wheelset.installedFrontOnBikeId}</strong>
@@ -183,11 +182,43 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
               onClick={() => handleUninstall('front')}
               disabled={uninstallingPos === 'front'}
             >
-              {uninstallingPos === 'front' ? '…' : 'Uninstall'}
+              {uninstallingPos === 'front' ? '…' : 'Remove Front'}
             </button>
           </div>
+        ) : activeInstall !== 'front' && bikes.length > 0 && (
+          <button className="garage-install-btn" onClick={() => openInstallForm('front')}>
+            + Install as Front
+          </button>
         )}
-        {wheelset.installedRearOnBikeId && (
+
+        {/* Inline front install form */}
+        {activeInstall === 'front' && (
+          <div className="garage-install-form">
+            <div className="garage-install-row">
+              <span className="garage-install-label">Bike</span>
+              <select
+                className="garage-install-select"
+                value={installBikeId}
+                onChange={e => setInstallBikeId(e.target.value)}
+              >
+                {bikes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+            <div className="garage-install-actions">
+              <button
+                className="btn-pill btn-pill-gold garage-confirm-btn"
+                onClick={() => handleInstall('front')}
+                disabled={installing || !installBikeId}
+              >
+                {installing ? 'Installing…' : 'Confirm as Front'}
+              </button>
+              <button className="garage-cancel-link" onClick={() => setActiveInstall(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Rear position */}
+        {wheelset.installedRearOnBikeId ? (
           <div className="garage-status-line">
             <span className="garage-status-text">
               Rear on <strong>{rearBike?.name || wheelset.installedRearOnBikeId}</strong>
@@ -197,65 +228,45 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
               onClick={() => handleUninstall('rear')}
               disabled={uninstallingPos === 'rear'}
             >
-              {uninstallingPos === 'rear' ? '…' : 'Uninstall'}
+              {uninstallingPos === 'rear' ? '…' : 'Remove Rear'}
             </button>
           </div>
+        ) : activeInstall !== 'rear' && bikes.length > 0 && (
+          <button className="garage-install-btn" onClick={() => openInstallForm('rear')}>
+            + Install as Rear
+          </button>
         )}
-        {!isInstalled && !showInstallForm && (
+
+        {/* Inline rear install form */}
+        {activeInstall === 'rear' && (
+          <div className="garage-install-form">
+            <div className="garage-install-row">
+              <span className="garage-install-label">Bike</span>
+              <select
+                className="garage-install-select"
+                value={installBikeId}
+                onChange={e => setInstallBikeId(e.target.value)}
+              >
+                {bikes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+            <div className="garage-install-actions">
+              <button
+                className="btn-pill btn-pill-gold garage-confirm-btn"
+                onClick={() => handleInstall('rear')}
+                disabled={installing || !installBikeId}
+              >
+                {installing ? 'Installing…' : 'Confirm as Rear'}
+              </button>
+              <button className="garage-cancel-link" onClick={() => setActiveInstall(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {neitherInstalled && activeInstall === null && (
           <span className="garage-in-garage">In Garage</span>
         )}
       </div>
-
-      {/* Install button / form */}
-      {!showInstallForm && bikes.length > 0 && (
-        <button className="garage-install-btn" onClick={openInstall}>
-          + Install on a Bike
-        </button>
-      )}
-
-      {showInstallForm && (
-        <div className="garage-install-form">
-          <div className="garage-install-row">
-            <span className="garage-install-label">Bike</span>
-            <select
-              className="garage-install-select"
-              value={installBikeId}
-              onChange={e => setInstallBikeId(e.target.value)}
-            >
-              {bikes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
-          </div>
-          <div className="garage-install-row">
-            <span className="garage-install-label">Position</span>
-            <div className="garage-position-btns">
-              <button
-                className={`garage-position-btn${installFront ? ' garage-position-btn--active' : ''}`}
-                onClick={() => setInstallFront(v => !v)}
-              >
-                Front
-              </button>
-              <button
-                className={`garage-position-btn${installRear ? ' garage-position-btn--active' : ''}`}
-                onClick={() => setInstallRear(v => !v)}
-              >
-                Rear
-              </button>
-            </div>
-          </div>
-          <div className="garage-install-actions">
-            <button
-              className="btn-pill btn-pill-gold garage-confirm-btn"
-              onClick={handleInstall}
-              disabled={installing || !installBikeId || (!installFront && !installRear)}
-            >
-              {installing ? 'Installing…' : 'Confirm Install'}
-            </button>
-            <button className="garage-cancel-link" onClick={() => setShowInstallForm(false)}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

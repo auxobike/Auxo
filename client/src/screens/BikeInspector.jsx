@@ -476,6 +476,11 @@ export default function BikeInspector({ onLogout }) {
               <span className="inspector-wheels-value">
                 {bikeWheels === null ? '…' : (bikeWheels.front?.name || '—')}
               </span>
+              {bikeWheels?.front && (
+                <span className="inspector-wheels-miles">
+                  {Math.round(bikeWheels.front.miles).toLocaleString()} mi
+                </span>
+              )}
             </div>
             <div className="inspector-wheels-divider" />
             <div className="inspector-wheels-stat">
@@ -483,6 +488,11 @@ export default function BikeInspector({ onLogout }) {
               <span className="inspector-wheels-value">
                 {bikeWheels === null ? '…' : (bikeWheels.rear?.name || '—')}
               </span>
+              {bikeWheels?.rear && (
+                <span className="inspector-wheels-miles">
+                  {Math.round(bikeWheels.rear.miles).toLocaleString()} mi
+                </span>
+              )}
             </div>
             <button
               className="inspector-wheels-manage"

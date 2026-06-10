@@ -220,6 +220,12 @@
   max-width: 120px;
 }
 
+.inspector-wheels-miles {
+  font-size: 0.72rem;
+  color: var(--white-40);
+  letter-spacing: 0.03em;
+}
+
 .inspector-wheels-divider {
   width: 1px;
   height: 32px;
