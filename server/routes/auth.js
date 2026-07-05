@@ -3,7 +3,7 @@ const axios   = require('axios');
 const bcrypt  = require('bcrypt');
 const router  = express.Router();
 
-const { findByEmail, findById, createUser, updateUser, deleteUser, publicUser } = require('../utils/userStore');
+const { findByEmail, findById, findByStravaId, createUser, createStravaUser, updateUser, deleteUser, publicUser } = require('../utils/userStore');
 const { getConfiguredBikeIds, deleteBikeData } = require('../utils/store');
 const { syncEffectiveMileageForUser } = require('../utils/effectiveMileage');
 
@@ -219,10 +219,30 @@ router.get('/strava/callback', async (req, res) => {
       });
       req.session.user = publicUser(updatedUser);
     } else {
-      // Strava-only login: store athlete id as the session identifier.
-      // No users row exists for these accounts so lastLoginAt stays null —
-      // the new-rides endpoint will default to the past 7 days.
-      req.session.userId = String(athlete.id);
+      // Strava-only login (no email/password session): look up a user row by
+      // strava_id so lastLoginAt can still be tracked across visits. Create
+      // one on first login so there's a row to update going forward.
+      const stravaIdStr = String(athlete.id);
+      const existingUser = await findByStravaId(stravaIdStr);
+
+      let stravaUser;
+      if (existingUser) {
+        req.session.lastLoginAt = existingUser.lastLoginAt || null;
+        stravaUser = await updateUser(existingUser.id, {
+          stravaLinked: true,
+          stravaTokens: { access_token, refresh_token, expires_at, athlete },
+          lastLoginAt:  new Date().toISOString(),
+        });
+      } else {
+        req.session.lastLoginAt = null;
+        stravaUser = await createStravaUser({
+          stravaId:     stravaIdStr,
+          stravaTokens: { access_token, refresh_token, expires_at, athlete },
+        });
+      }
+
+      req.session.userId = stravaUser.id;
+      req.session.user   = publicUser(stravaUser);
     }
 
     // Fire-and-forget: refresh stored effective mileage for all linked bikes.

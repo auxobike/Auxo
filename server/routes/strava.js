@@ -108,6 +108,8 @@ router.get('/new-rides', requireAuth, async (req, res) => {
       req.session.userId ? findById(req.session.userId) : Promise.resolve(null),
     ]);
 
+    console.log(`[new-rides] lastLoginAt=${lastLoginAt} after=${after} activitiesReturned=${actRes.data.length}`);
+
     const RIDE_TYPES = new Set(['Ride', 'MountainBikeRide', 'GravelRide', 'VirtualRide']);
     // Strava returns activities newest-first; take the 5 most recent ride types.
     const activities = actRes.data
