@@ -16,7 +16,16 @@
       "Bash(sips -s format png public/app-icon.svg --out public/icon-192.png --resampleWidth 192)",
       "Bash(sips -s format png public/app-icon.svg --out public/icon-512.png --resampleWidth 512)",
       "Bash(git -C /Users/deanngarcia/Documents/_BIZ/Auxo ls-files --others --exclude-standard)",
-      "Bash(git -C /Users/deanngarcia/Documents/_BIZ/Auxo ls-files)"
+      "Bash(git -C /Users/deanngarcia/Documents/_BIZ/Auxo ls-files)",
+      "Bash(xargs cat -n)",
+      "Bash(node -e \"console.log\\(process.version\\)\")",
+      "Bash(node --check server/routes/auth.js)",
+      "Bash(node --check server/routes/strava.js)",
+      "Bash(node --check server/utils/userStore.js)",
+      "Bash(node -e \"require\\('bcrypt'\\); console.log\\('bcrypt resolves OK'\\)\")",
+      "Bash(npx --no-install esbuild src/screens/AccountLandingScreen.jsx --loader=jsx --format=esm --outfile=/dev/null)",
+      "Bash(node -e ' *)",
+      "Bash(node *)"
     ]
   }
 }
