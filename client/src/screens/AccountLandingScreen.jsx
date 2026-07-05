@@ -5,10 +5,6 @@ import PostRideModal from '../components/PostRideModal';
 import { api } from '../api';
 import './AccountLandingScreen.css';
 
-// Module-level flag: only fetch new rides once per page load, not on every
-// remount of this screen (e.g. navigating away and back in the same session).
-let _ridesChecked = false;
-
 const PULL_THRESHOLD = 64;
 
 export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLogout, summary, onRefreshSummary }) {
@@ -23,6 +19,7 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
 
   const [newRides, setNewRides] = useState([]);
   const [showRideModal, setShowRideModal] = useState(false);
+  const ridesCheckedRef = useRef(false);
 
   // Pull-to-refresh state
   const [pullProgress, setPullProgress] = useState(0); // 0–1 during drag
@@ -78,13 +75,15 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
     };
   }, []);
 
-  // Check for new Strava rides since last login — only once per page load, only
+  // Check for new Strava rides since last login — only once per mount, only
   // when Strava is linked (athlete prop is set by the parent when token exists).
   useEffect(() => {
-    if (_ridesChecked || !athlete) return;
-    _ridesChecked = true;
+    if (ridesCheckedRef.current || !athlete) return;
+    ridesCheckedRef.current = true;
+    console.log('[AccountLandingScreen] calling getNewRides, athlete:', athlete);
     api.getNewRides()
       .then(rides => {
+        console.log('[AccountLandingScreen] getNewRides returned', rides.length, 'rides:', rides);
         if (rides.length > 0) {
           setNewRides(rides);
           setShowRideModal(true);
