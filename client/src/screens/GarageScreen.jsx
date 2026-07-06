@@ -235,16 +235,18 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
       </div>
 
       {/* Miles */}
-      <div className="garage-miles-strip">
-        <div className="garage-miles-stat">
-          <span className="garage-miles-label">Front Miles</span>
-          <span className="garage-miles-value">{formatMiles(wheelset.frontMiles)}</span>
+      {!editing && (
+        <div className="garage-miles-strip">
+          <div className="garage-miles-stat">
+            <span className="garage-miles-label">Front Miles</span>
+            <span className="garage-miles-value">{formatMiles(wheelset.frontMiles)}</span>
+          </div>
+          <div className="garage-miles-stat">
+            <span className="garage-miles-label">Rear Miles</span>
+            <span className="garage-miles-value">{formatMiles(wheelset.rearMiles)}</span>
+          </div>
         </div>
-        <div className="garage-miles-stat">
-          <span className="garage-miles-label">Rear Miles</span>
-          <span className="garage-miles-value">{formatMiles(wheelset.rearMiles)}</span>
-        </div>
-      </div>
+      )}
 
       {/* Edit form */}
       {editing && (
