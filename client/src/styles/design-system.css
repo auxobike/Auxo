@@ -276,7 +276,6 @@ html, body, #root {
   border-bottom: none;
   color: var(--white-70);
   font-size: 1.25rem;
-  margin-top: auto;
 }
 
 .nav-item--logout:hover { color: var(--white); }
