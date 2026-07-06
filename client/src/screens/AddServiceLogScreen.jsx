@@ -78,7 +78,10 @@ export default function AddServiceLogScreen({ onLogout }) {
       <AppHeader onLogout={onLogout} />
 
       <div className="service-log-body">
-        <h1 className="service-log-heading">Add a<br />Service Log</h1>
+        <div className="service-log-heading">
+          <p className="service-log-heading-sub">Add a</p>
+          <h1 className="service-log-heading-main">Service Log</h1>
+        </div>
 
         {/* Bike selector */}
         <div className="input-group">

@@ -14,7 +14,16 @@
 }
 
 /* ── Heading ── */
-.service-log-heading {
+.service-log-heading-sub {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 7vw, 2rem);
+  color: var(--white-70);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.service-log-heading-main {
   font-family: var(--font-marker);
   font-size: clamp(2rem, 9vw, 3.5rem);
   color: var(--accent);
@@ -36,8 +45,14 @@
 /* ── Date input — override native chrome ── */
 .service-log-date {
   width: 100%;
+  height: 44px;
+  padding: 0 18px;
   box-sizing: border-box;
   color-scheme: dark;
+}
+
+.service-log-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
 }
 
 /* ── Inline status messages ── */
