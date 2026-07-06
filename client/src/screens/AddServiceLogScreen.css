@@ -15,11 +15,11 @@
 
 /* ── Heading ── */
 .service-log-heading {
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 7vw, 2.5rem);
-  line-height: 0.95;
+  font-family: var(--font-marker);
+  font-size: clamp(2rem, 9vw, 3.5rem);
   color: var(--accent);
-  letter-spacing: 0.02em;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
 }
 
 /* ── Gold-bordered service card ── */
