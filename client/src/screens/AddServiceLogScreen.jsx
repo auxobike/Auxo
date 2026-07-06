@@ -152,14 +152,14 @@ export default function AddServiceLogScreen({ onLogout }) {
       <div className="service-log-footer">
         {saveError && <p className="service-log-save-error">{saveError}</p>}
         <button
-          className="btn-pill btn-pill-dark"
+          className="btn-pill btn-pill-gold"
           onClick={() => submit('complete')}
           disabled={!canSubmit}
         >
           {saving ? 'Saving…' : 'Log Complete'}
         </button>
         <button
-          className="btn-pill btn-pill-dark"
+          className="btn-pill btn-pill-outline"
           onClick={() => submit('another')}
           disabled={!canSubmit}
         >
