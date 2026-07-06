@@ -531,7 +531,7 @@ export default function GarageScreen({ onLogout }) {
             <AddWheelsetForm onAdd={handleAdd} onCancel={() => setShowAddForm(false)} />
           ) : (
             <button
-              className="btn-pill btn-pill-outline"
+              className="btn-pill btn-pill-outline garage-add-btn"
               onClick={() => setShowAddForm(true)}
             >
               + Add Wheelset
