@@ -36,7 +36,6 @@
 /* ── Wheelset card ── */
 .garage-wheelset-card {
   box-sizing: border-box;
-  margin: 0 12px;
   max-width: 100%;
   background: var(--bg-card);
   border: 1px solid var(--border);
