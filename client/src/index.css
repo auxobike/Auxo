@@ -3,3 +3,5 @@
 button, input, select, textarea { font: inherit; }
 img { display: block; max-width: 100%; }
 a { color: inherit; }
+
+body, #root { overflow-x: hidden; }
