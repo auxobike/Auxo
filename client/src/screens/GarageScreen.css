@@ -34,6 +34,8 @@
 
 /* ── Wheelset card ── */
 .garage-wheelset-card {
+  box-sizing: border-box;
+  margin: 0 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -177,6 +179,7 @@
 
 /* ── Install form ── */
 .garage-install-btn {
+  box-sizing: border-box;
   width: 100%;
   font-size: 0.82rem;
   font-weight: 600;
@@ -215,6 +218,7 @@
 }
 
 .garage-install-select {
+  box-sizing: border-box;
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border);
