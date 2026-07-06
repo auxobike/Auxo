@@ -35,8 +35,10 @@
 
 /* ── Wheelset card ── */
 .garage-wheelset-card {
+  position: relative;
   box-sizing: border-box;
   max-width: 100%;
+  overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -261,6 +263,7 @@
 
 /* ── Edit form ── */
 .garage-edit-form {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;

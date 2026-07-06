@@ -123,14 +123,25 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
   const [deleting,    setDeleting]    = useState(false);
   const [editError,   setEditError]   = useState(null);
 
-  function openEditForm() {
+  // Single source of truth for the edit form's fields, so save/cancel/reopen
+  // can never diverge and leave a stale value behind in one of them.
+  function resetEditFields() {
     setEditName(wheelset.name);
     setEditNotes(wheelset.notes || '');
     setEditFront(String(wheelset.frontMiles));
     setEditRear(String(wheelset.rearMiles));
     setNotesOpen(!!wheelset.notes);
     setEditError(null);
+  }
+
+  function openEditForm() {
+    resetEditFields();
     setEditing(true);
+  }
+
+  function closeEditForm() {
+    setEditing(false);
+    resetEditFields();
   }
 
   const frontBike = bikes.find(b => b.id === wheelset.installedFrontOnBikeId);
@@ -193,7 +204,7 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
         frontMiles,
         rearMiles,
       });
-      setEditing(false);
+      closeEditForm();
       onRefresh();
     } catch (err) {
       setEditError(err.message);
@@ -225,7 +236,11 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
           {wheelset.notes && <div className="garage-wheelset-notes">{wheelset.notes}</div>}
         </div>
         <div className="garage-wheelset-header-actions">
-          <button className="garage-icon-btn" onClick={() => (editing ? setEditing(false) : openEditForm())} aria-label="Edit">
+          <button
+            className="garage-icon-btn"
+            onClick={() => (editing ? closeEditForm() : openEditForm())}
+            aria-label="Edit"
+          >
             <EditIcon />
           </button>
           <button className="garage-icon-btn garage-icon-btn--danger" onClick={handleDelete} disabled={deleting} aria-label="Delete">
@@ -304,17 +319,7 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
             <button className="btn-pill btn-pill-gold garage-confirm-btn" onClick={handleSaveEdit} disabled={saving}>
               {saving ? 'Saving…' : 'Save'}
             </button>
-            <button
-              className="btn-pill btn-pill-outline garage-cancel-btn"
-              onClick={() => {
-                setEditing(false);
-                setEditName(wheelset.name);
-                setEditNotes(wheelset.notes || '');
-                setEditFront(String(wheelset.frontMiles));
-                setEditRear(String(wheelset.rearMiles));
-                setNotesOpen(!!wheelset.notes);
-              }}
-            >
+            <button className="btn-pill btn-pill-outline garage-cancel-btn" onClick={closeEditForm}>
               Cancel
             </button>
           </div>
