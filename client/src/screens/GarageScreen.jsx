@@ -113,12 +113,23 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
   const [installing,      setInstalling]       = useState(false);
   const [uninstallingPos, setUninstallingPos]  = useState(null);
 
-  const [editing,   setEditing]   = useState(false);
-  const [editName,  setEditName]  = useState(wheelset.name);
-  const [editNotes, setEditNotes] = useState(wheelset.notes || '');
-  const [saving,    setSaving]    = useState(false);
-  const [deleting,  setDeleting]  = useState(false);
-  const [editError, setEditError] = useState(null);
+  const [editing,     setEditing]     = useState(false);
+  const [editName,    setEditName]    = useState(wheelset.name);
+  const [editNotes,   setEditNotes]   = useState(wheelset.notes || '');
+  const [editFront,   setEditFront]   = useState(String(wheelset.frontMiles));
+  const [editRear,    setEditRear]    = useState(String(wheelset.rearMiles));
+  const [saving,      setSaving]      = useState(false);
+  const [deleting,    setDeleting]    = useState(false);
+  const [editError,   setEditError]   = useState(null);
+
+  function openEditForm() {
+    setEditName(wheelset.name);
+    setEditNotes(wheelset.notes || '');
+    setEditFront(String(wheelset.frontMiles));
+    setEditRear(String(wheelset.rearMiles));
+    setEditError(null);
+    setEditing(true);
+  }
 
   const frontBike = bikes.find(b => b.id === wheelset.installedFrontOnBikeId);
   const rearBike  = bikes.find(b => b.id === wheelset.installedRearOnBikeId);
@@ -161,10 +172,25 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
 
   async function handleSaveEdit() {
     if (!editName.trim()) { setEditError('Name is required'); return; }
+
+    const frontMiles = editFront.trim() === '' ? undefined : Number(editFront);
+    const rearMiles  = editRear.trim()  === '' ? undefined : Number(editRear);
+    if (frontMiles !== undefined && (!Number.isFinite(frontMiles) || frontMiles < 0)) {
+      setEditError('Front miles must be a non-negative number'); return;
+    }
+    if (rearMiles !== undefined && (!Number.isFinite(rearMiles) || rearMiles < 0)) {
+      setEditError('Rear miles must be a non-negative number'); return;
+    }
+
     setSaving(true);
     setEditError(null);
     try {
-      await api.updateWheelset(wheelset.id, { name: editName.trim(), notes: editNotes.trim() || null });
+      await api.updateWheelset(wheelset.id, {
+        name:  editName.trim(),
+        notes: editNotes.trim() || null,
+        frontMiles,
+        rearMiles,
+      });
       setEditing(false);
       onRefresh();
     } catch (err) {
@@ -197,7 +223,7 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
           {wheelset.notes && <div className="garage-wheelset-notes">{wheelset.notes}</div>}
         </div>
         <div className="garage-wheelset-header-actions">
-          <button className="garage-icon-btn" onClick={() => { setEditing(v => !v); setEditError(null); }} aria-label="Edit">
+          <button className="garage-icon-btn" onClick={() => (editing ? setEditing(false) : openEditForm())} aria-label="Edit">
             <EditIcon />
           </button>
           <button className="garage-icon-btn garage-icon-btn--danger" onClick={handleDelete} disabled={deleting} aria-label="Delete">
@@ -233,12 +259,41 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
             onChange={e => setEditNotes(e.target.value)}
             placeholder="Notes (optional)"
           />
+          <div className="garage-edit-miles-row">
+            <input
+              className="garage-edit-input"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              value={editFront}
+              onChange={e => setEditFront(e.target.value)}
+              placeholder="Front miles"
+            />
+            <input
+              className="garage-edit-input"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              value={editRear}
+              onChange={e => setEditRear(e.target.value)}
+              placeholder="Rear miles"
+            />
+          </div>
           {editError && <span className="garage-edit-error">{editError}</span>}
           <div className="garage-edit-actions">
             <button className="btn-pill btn-pill-gold garage-confirm-btn" onClick={handleSaveEdit} disabled={saving}>
               {saving ? 'Saving…' : 'Save'}
             </button>
-            <button className="garage-cancel-link" onClick={() => { setEditing(false); setEditName(wheelset.name); setEditNotes(wheelset.notes || ''); }}>
+            <button
+              className="garage-cancel-link"
+              onClick={() => {
+                setEditing(false);
+                setEditName(wheelset.name);
+                setEditNotes(wheelset.notes || '');
+                setEditFront(String(wheelset.frontMiles));
+                setEditRear(String(wheelset.rearMiles));
+              }}
+            >
               Cancel
             </button>
           </div>

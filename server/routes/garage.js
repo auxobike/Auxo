@@ -86,16 +86,38 @@ router.post('/wheelsets', requireAuth, async (req, res) => {
 });
 
 // PUT /api/garage/wheelsets/:id
+// name/notes are always updated; frontMiles/rearMiles are optional and, when
+// present, overwrite the stored mileage directly (e.g. to set a starting
+// mileage for a wheel that predates being tracked in the app).
 router.put('/wheelsets/:id', requireAuth, async (req, res) => {
   const userId = req.session.userId;
   const { id } = req.params;
-  const { name, notes } = req.body;
+  const { name, notes, frontMiles, rearMiles } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
+
+  const setClauses = [`name = $1`, `notes = $2`];
+  const values      = [name.trim(), notes?.trim() || null];
+  let   i           = 3;
+
+  if (frontMiles !== undefined && frontMiles !== null && frontMiles !== '') {
+    const n = Number(frontMiles);
+    if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'frontMiles must be a non-negative number' });
+    setClauses.push(`front_miles = $${i++}`);
+    values.push(n);
+  }
+  if (rearMiles !== undefined && rearMiles !== null && rearMiles !== '') {
+    const n = Number(rearMiles);
+    if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'rearMiles must be a non-negative number' });
+    setClauses.push(`rear_miles = $${i++}`);
+    values.push(n);
+  }
+
+  values.push(id, userId);
   try {
     const { rowCount } = await pool.query(`
-      UPDATE wheelsets SET name = $1, notes = $2
-      WHERE id = $3 AND user_id = $4
-    `, [name.trim(), notes?.trim() || null, id, userId]);
+      UPDATE wheelsets SET ${setClauses.join(', ')}
+      WHERE id = $${i++} AND user_id = $${i}
+    `, values);
     if (rowCount === 0) return res.status(404).json({ error: 'Wheelset not found' });
     res.json({ success: true });
   } catch (err) {

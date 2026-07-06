@@ -306,26 +306,40 @@ router.post('/ride-conditions', requireAuth, async (req, res) => {
     // Fire-and-forget: add miles to installed wheelsets.
     if (userId) {
       const addWheelsetMiles = async () => {
+        console.log(`[wheelset-miles] starting, userId=${userId}, records=${records.length}`);
         for (const record of records) {
-          if (!record.gearId) continue;
-          const { rows } = await pool.query(
-            'SELECT front_wheelset_id, rear_wheelset_id FROM bike_wheels WHERE bike_id = $1 AND user_id = $2',
-            [record.gearId, userId]
-          );
-          if (rows.length === 0) continue;
-          const { front_wheelset_id, rear_wheelset_id } = rows[0];
-          const miles = record.isTrainer ? 0 : record.actualMiles;
-          if (front_wheelset_id) {
-            await pool.query(
-              'UPDATE wheelsets SET front_miles = front_miles + $1 WHERE id = $2 AND user_id = $3',
-              [miles, front_wheelset_id, userId]
-            );
+          if (!record.gearId) {
+            console.log(`[wheelset-miles] skip activity=${record.activityId} — no gearId`);
+            continue;
           }
-          if (rear_wheelset_id) {
-            await pool.query(
-              'UPDATE wheelsets SET rear_miles = rear_miles + $1 WHERE id = $2 AND user_id = $3',
-              [miles, rear_wheelset_id, userId]
+          try {
+            const { rows } = await pool.query(
+              'SELECT front_wheelset_id, rear_wheelset_id FROM bike_wheels WHERE bike_id = $1 AND user_id = $2',
+              [record.gearId, userId]
             );
+            if (rows.length === 0) {
+              console.log(`[wheelset-miles] skip activity=${record.activityId} gearId=${record.gearId} userId=${userId} — no bike_wheels row found`);
+              continue;
+            }
+            const { front_wheelset_id, rear_wheelset_id } = rows[0];
+            const miles = record.isTrainer ? 0 : record.actualMiles;
+            console.log(`[wheelset-miles] activity=${record.activityId} gearId=${record.gearId} miles=${miles} front=${front_wheelset_id || 'none'} rear=${rear_wheelset_id || 'none'}`);
+
+            if (front_wheelset_id) {
+              await pool.query(
+                'UPDATE wheelsets SET front_miles = front_miles + $1 WHERE id = $2 AND user_id = $3',
+                [miles, front_wheelset_id, userId]
+              );
+            }
+            if (rear_wheelset_id) {
+              await pool.query(
+                'UPDATE wheelsets SET rear_miles = rear_miles + $1 WHERE id = $2 AND user_id = $3',
+                [miles, rear_wheelset_id, userId]
+              );
+            }
+          } catch (err) {
+            // Log per-record so one bad record doesn't hide failures on the rest.
+            console.error(`[wheelset-miles] FAILED activity=${record.activityId} gearId=${record.gearId} userId=${userId}:`, err.message);
           }
         }
       };

@@ -285,6 +285,16 @@
   color: var(--white-40);
 }
 
+.garage-edit-miles-row {
+  display: flex;
+  gap: 10px;
+}
+
+.garage-edit-miles-row .garage-edit-input {
+  width: auto;
+  flex: 1;
+}
+
 .garage-edit-actions {
   display: flex;
   gap: 8px;
