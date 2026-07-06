@@ -346,6 +346,48 @@ router.post('/ride-conditions', requireAuth, async (req, res) => {
       addWheelsetMiles().catch(err => console.error('[ride-conditions] wheelset miles error:', err.message));
     }
 
+    // Fire-and-forget: add miles to installed tires.
+    if (userId) {
+      const addTireMiles = async () => {
+        console.log(`[tire-miles] starting, userId=${userId}, records=${records.length}`);
+        for (const record of records) {
+          if (!record.gearId) {
+            console.log(`[tire-miles] skip activity=${record.activityId} — no gearId`);
+            continue;
+          }
+          try {
+            const { rows } = await pool.query(
+              'SELECT front_tire_id, rear_tire_id FROM bike_tires WHERE bike_id = $1 AND user_id = $2',
+              [record.gearId, userId]
+            );
+            if (rows.length === 0) {
+              console.log(`[tire-miles] skip activity=${record.activityId} gearId=${record.gearId} userId=${userId} — no bike_tires row found`);
+              continue;
+            }
+            const { front_tire_id, rear_tire_id } = rows[0];
+            const miles = record.isTrainer ? 0 : record.actualMiles;
+            console.log(`[tire-miles] activity=${record.activityId} gearId=${record.gearId} miles=${miles} front=${front_tire_id || 'none'} rear=${rear_tire_id || 'none'}`);
+
+            if (front_tire_id) {
+              await pool.query(
+                'UPDATE tires SET miles = miles + $1 WHERE id = $2 AND user_id = $3',
+                [miles, front_tire_id, userId]
+              );
+            }
+            if (rear_tire_id) {
+              await pool.query(
+                'UPDATE tires SET miles = miles + $1 WHERE id = $2 AND user_id = $3',
+                [miles, rear_tire_id, userId]
+              );
+            }
+          } catch (err) {
+            console.error(`[tire-miles] FAILED activity=${record.activityId} gearId=${record.gearId} userId=${userId}:`, err.message);
+          }
+        }
+      };
+      addTireMiles().catch(err => console.error('[ride-conditions] tire miles error:', err.message));
+    }
+
     res.json({ success: true, saved: records.length });
   } catch (err) {
     console.error('[ride-conditions] error:', err.message);

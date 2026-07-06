@@ -118,6 +118,45 @@ async function migrate() {
     )
   `);
 
+  // Tires are tracked independently of wheelsets — a tire is a single physical
+  // item (one position, one mileage total), unlike a wheelset which can be
+  // installed at either position.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tires (
+      id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name       TEXT        NOT NULL,
+      notes      TEXT,
+      miles      NUMERIC     NOT NULL DEFAULT 0,
+      position   TEXT        NOT NULL CHECK (position IN ('front', 'rear')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bike_tires (
+      bike_id       TEXT NOT NULL,
+      user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      front_tire_id UUID REFERENCES tires(id) ON DELETE SET NULL,
+      rear_tire_id  UUID REFERENCES tires(id) ON DELETE SET NULL,
+      PRIMARY KEY (bike_id, user_id)
+    )
+  `);
+
+  // Per-tire service logs for tireTracked maintenance items (sealant, tire
+  // replace) — mirrors wheelset_service_logs so history travels with the tire
+  // when it moves between bikes.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tire_service_logs (
+      tire_id    UUID NOT NULL REFERENCES tires(id) ON DELETE CASCADE,
+      item_id    TEXT NOT NULL,
+      user_id    TEXT NOT NULL,
+      log        JSONB NOT NULL DEFAULT '{}',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (tire_id, item_id)
+    )
+  `);
+
   console.log('[migrate] tables ready');
 }
 

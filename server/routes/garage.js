@@ -5,6 +5,8 @@ const requireAuth = require('../middleware/requireAuth');
 const router = express.Router();
 
 // GET /api/garage/wheelsets
+// Wheelsets track only wheel/rim miles — tire mileage and tire maintenance
+// live entirely under the tires/bike_tires tables below.
 router.get('/wheelsets', requireAuth, async (req, res) => {
   const userId = req.session.userId;
   try {
@@ -27,21 +29,6 @@ router.get('/wheelsets', requireAuth, async (req, res) => {
       ORDER BY w.created_at ASC
     `, [userId]);
 
-    // Fetch tire service logs for all wheelsets in one query
-    const ids = rows.map(r => r.id);
-    const logMap = {};
-    if (ids.length > 0) {
-      const { rows: logRows } = await pool.query(`
-        SELECT wheelset_id, item_id, log FROM wheelset_service_logs
-        WHERE wheelset_id = ANY($1) AND user_id = $2
-          AND item_id IN ('sealant_add', 'tire_replace')
-      `, [ids, userId]);
-      for (const r of logRows) {
-        if (!logMap[r.wheelset_id]) logMap[r.wheelset_id] = {};
-        logMap[r.wheelset_id][r.item_id] = r.log;
-      }
-    }
-
     res.json(rows.map(r => ({
       id:                     r.id,
       name:                   r.name,
@@ -51,10 +38,6 @@ router.get('/wheelsets', requireAuth, async (req, res) => {
       createdAt:              r.created_at,
       installedFrontOnBikeId: r.installed_front_on_bike_id || null,
       installedRearOnBikeId:  r.installed_rear_on_bike_id  || null,
-      tireLogs: {
-        sealant:     logMap[r.id]?.sealant_add  || null,
-        tireReplace: logMap[r.id]?.tire_replace || null,
-      },
     })));
   } catch (err) {
     console.error('[garage/wheelsets GET]', err.message);
@@ -236,6 +219,183 @@ router.get('/bike/:bikeId', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('[garage/bike GET]', err.message);
     res.status(500).json({ error: 'Failed to fetch bike wheels' });
+  }
+});
+
+// ── Tires ────────────────────────────────────────────────────────────────────
+// Unlike wheelsets, a tire occupies exactly one position and tracks a single
+// mileage total — no separate front/rear miles on the same record.
+
+// GET /api/garage/tires
+router.get('/tires', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        t.id,
+        t.name,
+        t.notes,
+        t.miles,
+        t.position,
+        t.created_at,
+        front_bt.bike_id AS installed_front_on_bike_id,
+        rear_bt.bike_id  AS installed_rear_on_bike_id
+      FROM tires t
+      LEFT JOIN bike_tires front_bt
+        ON front_bt.front_tire_id = t.id AND front_bt.user_id = $1
+      LEFT JOIN bike_tires rear_bt
+        ON rear_bt.rear_tire_id = t.id AND rear_bt.user_id = $1
+      WHERE t.user_id = $1
+      ORDER BY t.created_at ASC
+    `, [userId]);
+
+    res.json(rows.map(r => ({
+      id:                     r.id,
+      name:                   r.name,
+      notes:                  r.notes,
+      miles:                  parseFloat(r.miles),
+      position:               r.position,
+      createdAt:              r.created_at,
+      installedFrontOnBikeId: r.installed_front_on_bike_id || null,
+      installedRearOnBikeId:  r.installed_rear_on_bike_id  || null,
+    })));
+  } catch (err) {
+    console.error('[garage/tires GET]', err.message);
+    res.status(500).json({ error: 'Failed to fetch tires' });
+  }
+});
+
+// POST /api/garage/tires
+router.post('/tires', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  const { name, notes, miles, position } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
+  if (!['front', 'rear'].includes(position)) {
+    return res.status(400).json({ error: "position must be 'front' or 'rear'" });
+  }
+
+  const startMiles = (miles !== undefined && miles !== null && miles !== '') ? Number(miles) : 0;
+  if (!Number.isFinite(startMiles) || startMiles < 0) {
+    return res.status(400).json({ error: 'miles must be a non-negative number' });
+  }
+
+  try {
+    const { rows } = await pool.query(`
+      INSERT INTO tires (user_id, name, notes, miles, position)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `, [userId, name.trim(), notes?.trim() || null, startMiles, position]);
+    const r = rows[0];
+    res.json({
+      id:                     r.id,
+      name:                   r.name,
+      notes:                  r.notes,
+      miles:                  parseFloat(r.miles),
+      position:               r.position,
+      createdAt:              r.created_at,
+      installedFrontOnBikeId: null,
+      installedRearOnBikeId:  null,
+    });
+  } catch (err) {
+    console.error('[garage/tires POST]', err.message);
+    res.status(500).json({ error: 'Failed to create tire' });
+  }
+});
+
+// PUT /api/garage/tires/:id — update name/notes/miles
+router.put('/tires/:id', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  const { id } = req.params;
+  const { name, notes, miles } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
+
+  const setClauses = [`name = $1`, `notes = $2`];
+  const values      = [name.trim(), notes?.trim() || null];
+  let   i           = 3;
+
+  if (miles !== undefined && miles !== null && miles !== '') {
+    const n = Number(miles);
+    if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'miles must be a non-negative number' });
+    setClauses.push(`miles = $${i++}`);
+    values.push(n);
+  }
+
+  values.push(id, userId);
+  try {
+    const { rowCount } = await pool.query(`
+      UPDATE tires SET ${setClauses.join(', ')}
+      WHERE id = $${i++} AND user_id = $${i}
+    `, values);
+    if (rowCount === 0) return res.status(404).json({ error: 'Tire not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[garage/tires PUT]', err.message);
+    res.status(500).json({ error: 'Failed to update tire' });
+  }
+});
+
+// DELETE /api/garage/tires/:id
+router.delete('/tires/:id', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  const { id } = req.params;
+  try {
+    const { rows } = await pool.query(`
+      SELECT bike_id FROM bike_tires
+      WHERE user_id = $1 AND (front_tire_id = $2 OR rear_tire_id = $2)
+    `, [userId, id]);
+    if (rows.length > 0) {
+      return res.status(400).json({ error: 'Tire is currently installed — uninstall it first' });
+    }
+    const { rowCount } = await pool.query(`
+      DELETE FROM tires WHERE id = $1 AND user_id = $2
+    `, [id, userId]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Tire not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[garage/tires DELETE]', err.message);
+    res.status(500).json({ error: 'Failed to delete tire' });
+  }
+});
+
+// POST /api/garage/tires/install — { bikeId, tireId, position: 'front'|'rear' }
+router.post('/tires/install', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  const { bikeId, tireId, position } = req.body;
+  if (!bikeId || !tireId || !['front', 'rear'].includes(position)) {
+    return res.status(400).json({ error: 'bikeId, tireId, and position (front|rear) are required' });
+  }
+  const col = position === 'front' ? 'front_tire_id' : 'rear_tire_id';
+  try {
+    await pool.query(`
+      INSERT INTO bike_tires (bike_id, user_id, ${col})
+      VALUES ($1, $2, $3)
+      ON CONFLICT (bike_id, user_id) DO UPDATE
+        SET ${col} = $3
+    `, [bikeId, userId, tireId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[garage/tires install]', err.message);
+    res.status(500).json({ error: 'Failed to install tire' });
+  }
+});
+
+// POST /api/garage/tires/uninstall — { bikeId, position: 'front'|'rear' }
+router.post('/tires/uninstall', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  const { bikeId, position } = req.body;
+  if (!bikeId || !['front', 'rear'].includes(position)) {
+    return res.status(400).json({ error: 'bikeId and position (front|rear) are required' });
+  }
+  const col = position === 'front' ? 'front_tire_id' : 'rear_tire_id';
+  try {
+    await pool.query(
+      `UPDATE bike_tires SET ${col} = NULL WHERE bike_id = $1 AND user_id = $2`,
+      [bikeId, userId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[garage/tires uninstall]', err.message);
+    res.status(500).json({ error: 'Failed to uninstall tire' });
   }
 });
 

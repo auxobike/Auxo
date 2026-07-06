@@ -171,60 +171,62 @@ function sectionMileage(sectionId, rawMileage, conditionAdj, trainerMilesTotal) 
   return base;
 }
 
-// Returns true when a maintenance item is tagged wheelTracked in the rule set.
-function isWheelTrackedItem(bikeType, itemId) {
+// Returns true when a maintenance item is tagged tireTracked in the rule set.
+function isTireTrackedItem(bikeType, itemId) {
   const rules = RULES[bikeType];
   if (!rules) return false;
   for (const section of rules.sections) {
     const item = section.items.find(i => i.id === itemId);
-    if (item?.wheelTracked) return true;
+    if (item?.tireTracked) return true;
   }
   return false;
 }
 
-// Query the installed wheelsets for a bike and return their positional mileage
-// plus any wheelset service logs for wheelTracked items.
-async function getWheelData(bikeId, userId) {
-  if (!userId) return { wheelMileage: null, wheelsetServiceLogs: {}, wheelsetIds: [] };
+// Query the installed tires for a bike and return their combined mileage
+// (whichever tire is more worn, since tire_replace/sealant_add are single
+// per-bike items, not split by position) plus any tire service logs for
+// tireTracked items.
+async function getTireData(bikeId, userId) {
+  if (!userId) return { tireMileage: null, tireServiceLogs: {}, tireIds: [] };
 
   const { rows } = await pool.query(`
     SELECT
-      bw.front_wheelset_id, bw.rear_wheelset_id,
-      fw.front_miles,
-      rw.rear_miles
-    FROM bike_wheels bw
-    LEFT JOIN wheelsets fw ON fw.id = bw.front_wheelset_id
-    LEFT JOIN wheelsets rw ON rw.id = bw.rear_wheelset_id
-    WHERE bw.bike_id = $1 AND bw.user_id = $2
+      bt.front_tire_id, bt.rear_tire_id,
+      ft.miles AS front_tire_miles,
+      rt.miles AS rear_tire_miles
+    FROM bike_tires bt
+    LEFT JOIN tires ft ON ft.id = bt.front_tire_id
+    LEFT JOIN tires rt ON rt.id = bt.rear_tire_id
+    WHERE bt.bike_id = $1 AND bt.user_id = $2
   `, [bikeId, userId]);
 
-  if (rows.length === 0) return { wheelMileage: null, wheelsetServiceLogs: {}, wheelsetIds: [] };
+  if (rows.length === 0) return { tireMileage: null, tireServiceLogs: {}, tireIds: [] };
 
   const row        = rows[0];
-  const frontMiles = row.front_wheelset_id ? parseFloat(row.front_miles) : null;
-  const rearMiles  = row.rear_wheelset_id  ? parseFloat(row.rear_miles)  : null;
-  const wheelMileage = (frontMiles !== null && rearMiles !== null)
+  const frontMiles = row.front_tire_id ? parseFloat(row.front_tire_miles) : null;
+  const rearMiles  = row.rear_tire_id  ? parseFloat(row.rear_tire_miles)  : null;
+  const tireMileage = (frontMiles !== null && rearMiles !== null)
     ? Math.max(frontMiles, rearMiles)
     : (frontMiles ?? rearMiles);
 
-  const wheelsetIds = [row.front_wheelset_id, row.rear_wheelset_id].filter(Boolean);
-  const wheelsetServiceLogs = {};
+  const tireIds = [row.front_tire_id, row.rear_tire_id].filter(Boolean);
+  const tireServiceLogs = {};
 
-  if (wheelsetIds.length > 0) {
+  if (tireIds.length > 0) {
     const logRows = await pool.query(`
-      SELECT item_id, log FROM wheelset_service_logs
-      WHERE wheelset_id = ANY($1) AND user_id = $2
-    `, [wheelsetIds, userId]);
+      SELECT item_id, log FROM tire_service_logs
+      WHERE tire_id = ANY($1) AND user_id = $2
+    `, [tireIds, userId]);
     for (const r of logRows.rows) {
-      const existing = wheelsetServiceLogs[r.item_id];
-      // Keep the most recent log when both wheelsets have different records
+      const existing = tireServiceLogs[r.item_id];
+      // Keep the most recent log when both tires have different records
       if (!existing || (r.log.lastServiceDate || '') > (existing.lastServiceDate || '')) {
-        wheelsetServiceLogs[r.item_id] = r.log;
+        tireServiceLogs[r.item_id] = r.log;
       }
     }
   }
 
-  return { wheelMileage, wheelsetServiceLogs, wheelsetIds };
+  return { tireMileage, tireServiceLogs, tireIds };
 }
 
 // ── Routes ───────────────────────────────────────────────────────────────────
@@ -244,14 +246,14 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
 
   try {
     const userId = req.session.userId;
-    const [stravaState, currentUser, wheelData] = await Promise.all([
+    const [stravaState, currentUser, tireData] = await Promise.all([
       req.session.access_token
         ? fetchStravaState(bikeId, req.session.access_token)
         : Promise.resolve(getManualState(bikeData)),
       userId ? findById(userId) : null,
-      getWheelData(bikeId, userId),
+      getTireData(bikeId, userId),
     ]);
-    const { wheelMileage, wheelsetServiceLogs } = wheelData;
+    const { tireMileage, tireServiceLogs } = tireData;
 
     // Use stored effectiveMileageAdj if available; fall back to a live DB query
     // for bikes that haven't been synced yet (e.g. first login after deploy).
@@ -295,24 +297,24 @@ router.get('/status/:bikeId', requireAuth, async (req, res) => {
         id:    section.id,
         label: section.label,
         items: filterItems(section.items, bikeData).map(item => {
-          // wheelTracked items use wheelset miles as the mileage base and read
-          // their service log from wheelset_service_logs so history travels with
-          // the wheelset when it moves between bikes.
-          const isWheelItem = !!item.wheelTracked;
-          const itemMileage = (isWheelItem && wheelMileage !== null) ? wheelMileage : secMileage;
+          // tireTracked items use the installed tire's miles as the mileage base and
+          // read their service log from tire_service_logs so history travels with
+          // the tire when it moves between bikes.
+          const isTireItem = !!item.tireTracked;
+          const itemMileage = (isTireItem && tireMileage !== null) ? tireMileage : secMileage;
           const itemBikeState = itemMileage !== secBikeState.currentMileage
             ? { ...secBikeState, currentMileage: itemMileage }
             : secBikeState;
 
           const bikeLog    = bikeData.serviceLogs?.[item.id] || null;
-          const wheelLog   = isWheelItem ? (wheelsetServiceLogs[item.id] || null) : null;
-          const existingLog = wheelLog || bikeLog;
+          const tireLog    = isTireItem ? (tireServiceLogs[item.id] || null) : null;
+          const existingLog = tireLog || bikeLog;
           const serviceLog  = existingLog || (baselineItemIds.has(item.id) ? baselineLog : null);
 
           return {
             ...item,
             serviceLog,
-            wheelMilesBase: (isWheelItem && wheelMileage !== null) ? Math.round(wheelMileage) : null,
+            tireMilesBase: (isTireItem && tireMileage !== null) ? Math.round(tireMileage) : null,
             status: getItemStatus(item, serviceLog, itemBikeState, {
               warnFraction,
               customInterval: bikeData.customIntervals?.[item.id] ?? null,
@@ -469,24 +471,24 @@ router.post('/log/:bikeId/:itemId', requireAuth, async (req, res) => {
       await logService(bikeId, id, linkedEntry);
     }
 
-    // For wheelTracked items (and their linked items), also write the log to
-    // wheelset_service_logs so it travels with the wheelset if it's moved.
+    // For tireTracked items (and their linked items), also write the log to
+    // tire_service_logs so it travels with the tire if it's moved.
     const userId = req.session.userId;
     if (userId && bikeData?.bikeType) {
-      const { wheelsetIds } = await getWheelData(bikeId, userId);
-      if (wheelsetIds.length > 0) {
+      const { tireIds } = await getTireData(bikeId, userId);
+      if (tireIds.length > 0) {
         const allLogged = [
           { id: itemId,  e: entry       },
           ...linkedIds.map(id => ({ id, e: linkedEntry })),
         ];
-        for (const wheelsetId of wheelsetIds) {
+        for (const tireId of tireIds) {
           for (const { id: logItemId, e: logEntry } of allLogged) {
-            if (isWheelTrackedItem(bikeData.bikeType, logItemId)) {
+            if (isTireTrackedItem(bikeData.bikeType, logItemId)) {
               await pool.query(`
-                INSERT INTO wheelset_service_logs (wheelset_id, item_id, user_id, log, updated_at)
+                INSERT INTO tire_service_logs (tire_id, item_id, user_id, log, updated_at)
                 VALUES ($1, $2, $3, $4, NOW())
-                ON CONFLICT (wheelset_id, item_id) DO UPDATE SET log = $4, updated_at = NOW()
-              `, [wheelsetId, logItemId, userId, logEntry]);
+                ON CONFLICT (tire_id, item_id) DO UPDATE SET log = $4, updated_at = NOW()
+              `, [tireId, logItemId, userId, logEntry]);
             }
           }
         }

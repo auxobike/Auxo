@@ -34,6 +34,15 @@
   padding: 40px 0;
 }
 
+/* ── Section heading (Wheelsets / Tires) ── */
+.garage-section-heading {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--white-40);
+}
+
 /* ── Wheelset card ── */
 .garage-wheelset-card {
   position: relative;
@@ -62,6 +71,27 @@
   letter-spacing: 0.04em;
   color: var(--white);
   line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.garage-tire-position-badge {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.garage-tire-position-badge--rear {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white-70);
 }
 
 .garage-wheelset-notes {
@@ -381,76 +411,3 @@
   color: #ff4757;
 }
 
-/* ── Tire status section ── */
-.garage-tire-status {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border);
-}
-
-.garage-tire-status-heading {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--white-40);
-}
-
-.garage-tire-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.garage-tire-row-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.garage-tire-label {
-  font-size: 0.78rem;
-  color: var(--white-70);
-}
-
-.garage-tire-meta {
-  font-size: 0.75rem;
-  color: var(--white-40);
-}
-
-.garage-tire-bar-track {
-  height: 4px;
-  background: var(--white-15);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.garage-tire-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width var(--ease);
-}
-
-.garage-sealant-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.garage-sealant-label {
-  font-size: 0.78rem;
-  color: var(--white-70);
-}
-
-.garage-sealant-status {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.garage-sealant-status--ok      { background: rgba(18, 141, 147, 0.2); color: #128D93; }
-.garage-sealant-status--soon    { background: rgba(201, 150, 12, 0.2); color: var(--accent); }
-.garage-sealant-status--due     { background: rgba(255, 71, 87, 0.15); color: #ff4757; }

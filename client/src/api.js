@@ -106,4 +106,12 @@ export const api = {
   installWheelset:  (data)     => apiFetch('/api/garage/install',   { method: 'POST', body: JSON.stringify(data) }),
   uninstallWheelset:(data)     => apiFetch('/api/garage/uninstall', { method: 'POST', body: JSON.stringify(data) }),
   getBikeWheels:    (bikeId)   => apiFetch(`/api/garage/bike/${bikeId}`),
+
+  // Garage — tires
+  getTires:      ()         => apiFetch('/api/garage/tires'),
+  createTire:    (data)     => apiFetch('/api/garage/tires', { method: 'POST', body: JSON.stringify(data) }),
+  updateTire:    (id, data) => apiFetch(`/api/garage/tires/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTire:    (id)       => apiFetch(`/api/garage/tires/${id}`, { method: 'DELETE' }),
+  installTire:   (data)     => apiFetch('/api/garage/tires/install',   { method: 'POST', body: JSON.stringify(data) }),
+  uninstallTire: (data)     => apiFetch('/api/garage/tires/uninstall', { method: 'POST', body: JSON.stringify(data) }),
 };
