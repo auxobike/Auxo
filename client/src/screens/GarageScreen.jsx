@@ -118,6 +118,7 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
   const [editNotes,   setEditNotes]   = useState(wheelset.notes || '');
   const [editFront,   setEditFront]   = useState(String(wheelset.frontMiles));
   const [editRear,    setEditRear]    = useState(String(wheelset.rearMiles));
+  const [notesOpen,   setNotesOpen]   = useState(!!wheelset.notes);
   const [saving,      setSaving]      = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [editError,   setEditError]   = useState(null);
@@ -127,6 +128,7 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
     setEditNotes(wheelset.notes || '');
     setEditFront(String(wheelset.frontMiles));
     setEditRear(String(wheelset.rearMiles));
+    setNotesOpen(!!wheelset.notes);
     setEditError(null);
     setEditing(true);
   }
@@ -253,13 +255,9 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
             onChange={e => setEditName(e.target.value)}
             placeholder="Wheelset name"
           />
-          <input
-            className="garage-edit-input"
-            value={editNotes}
-            onChange={e => setEditNotes(e.target.value)}
-            placeholder="Notes (optional)"
-          />
-          <div className="garage-edit-miles-row">
+
+          <div className="garage-edit-field">
+            <label className="garage-edit-label">Front Miles</label>
             <input
               className="garage-edit-input"
               type="number"
@@ -267,8 +265,12 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
               min="0"
               value={editFront}
               onChange={e => setEditFront(e.target.value)}
-              placeholder="Front miles"
+              placeholder="0"
             />
+          </div>
+
+          <div className="garage-edit-field">
+            <label className="garage-edit-label">Rear Miles</label>
             <input
               className="garage-edit-input"
               type="number"
@@ -276,22 +278,39 @@ function WheelsetCard({ wheelset, bikes, onRefresh }) {
               min="0"
               value={editRear}
               onChange={e => setEditRear(e.target.value)}
-              placeholder="Rear miles"
+              placeholder="0"
             />
           </div>
+
+          {notesOpen ? (
+            <input
+              className="garage-edit-input"
+              value={editNotes}
+              onChange={e => setEditNotes(e.target.value)}
+              placeholder="Notes (optional)"
+              autoFocus
+            />
+          ) : (
+            <button type="button" className="garage-notes-toggle" onClick={() => setNotesOpen(true)}>
+              + Add notes
+            </button>
+          )}
+
           {editError && <span className="garage-edit-error">{editError}</span>}
+
           <div className="garage-edit-actions">
             <button className="btn-pill btn-pill-gold garage-confirm-btn" onClick={handleSaveEdit} disabled={saving}>
               {saving ? 'Saving…' : 'Save'}
             </button>
             <button
-              className="garage-cancel-link"
+              className="btn-pill btn-pill-outline garage-cancel-btn"
               onClick={() => {
                 setEditing(false);
                 setEditName(wheelset.name);
                 setEditNotes(wheelset.notes || '');
                 setEditFront(String(wheelset.frontMiles));
                 setEditRear(String(wheelset.rearMiles));
+                setNotesOpen(!!wheelset.notes);
               }}
             >
               Cancel
