@@ -25,7 +25,7 @@ import './styles/design-system.css';
 // Redirect logged-in users away from public screens
 function RequireGuest({ session, configuredBikeIds, children }) {
   if (session.user && session.stravaLinked) return <Navigate to="/dashboard" replace />;
-  if (session.user && configuredBikeIds.length > 0) return <Navigate to={`/maintenance/${configuredBikeIds[0]}`} replace />;
+  if (session.user && configuredBikeIds.length > 0) return <Navigate to="/dashboard" replace />;
   if (session.user) return <Navigate to="/link-strava" replace />;
   return children;
 }
@@ -298,7 +298,7 @@ export default function App() {
             <Navigate
               to={
                 session.stravaLinked ? '/dashboard' :
-                (session.user && configuredBikeIds.length > 0) ? `/maintenance/${configuredBikeIds[0]}` :
+                (session.user && configuredBikeIds.length > 0) ? '/dashboard' :
                 session.user ? '/link-strava' :
                 '/'
               }

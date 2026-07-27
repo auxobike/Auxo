@@ -24,7 +24,7 @@ export default function SignInScreen({ onLogin }) {
         navigate('/link-strava');
       } else {
         const { hasConfigured } = await api.getConfiguredBikes();
-        navigate(hasConfigured ? '/maintenance' : '/add-bike');
+        navigate(hasConfigured ? '/dashboard' : '/add-bike');
       }
     } catch (err) {
       setError(err.message || 'Sign in failed. Please try again.');
