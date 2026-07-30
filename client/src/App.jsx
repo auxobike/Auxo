@@ -21,6 +21,7 @@ import LearnArticleScreen       from './screens/LearnArticleScreen';
 import GarageScreen             from './screens/GarageScreen';
 import ShopDashboardScreen      from './screens/ShopDashboardScreen';
 import ShopProfileScreen        from './screens/ShopProfileScreen';
+import ShopRegisterScreen       from './screens/ShopRegisterScreen';
 
 import './styles/design-system.css';
 
@@ -168,6 +169,14 @@ export default function App() {
           element={
             <RequireGuest session={session} configuredBikeIds={configuredBikeIds}>
               <CreateAccountScreen />
+            </RequireGuest>
+          }
+        />
+        <Route
+          path="/shop/register"
+          element={
+            <RequireGuest session={session} configuredBikeIds={configuredBikeIds}>
+              <ShopRegisterScreen onLogin={handleLogin} />
             </RequireGuest>
           }
         />
