@@ -1,0 +1,42 @@
+.shop-profile-body {
+  flex: 1;
+  padding: 24px var(--screen-pad) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.shop-profile-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 10vw, 3rem);
+  letter-spacing: 0.02em;
+  color: var(--shop-text);
+}
+
+.shop-profile-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shop-profile-rating-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--shop-text);
+}
+
+.shop-see-reviews-btn {
+  margin-left: auto;
+}
+
+.shop-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.shop-profile-loading {
+  padding: 40px var(--screen-pad);
+  color: var(--shop-text-70);
+  text-align: center;
+}

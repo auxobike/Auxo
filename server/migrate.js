@@ -183,6 +183,12 @@ async function migrate() {
     )
   `);
 
+  // Booking mode: whether riders can book through Auxo directly or must call.
+  await pool.query(`
+    ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_mode TEXT NOT NULL DEFAULT 'call'
+      CHECK (booking_mode IN ('auxo', 'call'))
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS conversations (
       id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),

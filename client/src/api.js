@@ -98,6 +98,10 @@ export const api = {
   // Shops
   getFeaturedShops: () => apiFetch('/api/shops/featured'),
 
+  // Shop portal — profile
+  getShopProfile:    ()     => apiFetch('/api/shop/profile'),
+  updateShopProfile: (data) => apiFetch('/api/shop/profile', { method: 'PUT', body: JSON.stringify(data) }),
+
   // Learn
   getArticles:   ()   => apiFetch('/api/learn/articles'),
   getArticle:    (id) => apiFetch(`/api/learn/articles/${id}`),

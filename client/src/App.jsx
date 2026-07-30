@@ -20,6 +20,7 @@ import LearnScreen              from './screens/LearnScreen';
 import LearnArticleScreen       from './screens/LearnArticleScreen';
 import GarageScreen             from './screens/GarageScreen';
 import ShopDashboardScreen      from './screens/ShopDashboardScreen';
+import ShopProfileScreen        from './screens/ShopProfileScreen';
 
 import './styles/design-system.css';
 
@@ -298,6 +299,14 @@ export default function App() {
           element={
             <RequireShop session={session}>
               <ShopDashboardScreen user={session.user} onLogout={handleLogout} />
+            </RequireShop>
+          }
+        />
+        <Route
+          path="/shop/profile"
+          element={
+            <RequireShop session={session}>
+              <ShopProfileScreen onLogout={handleLogout} />
             </RequireShop>
           }
         />

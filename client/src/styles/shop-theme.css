@@ -1,0 +1,206 @@
+/* ─────────────────────────────────────────────
+   AUXO SHOP THEME — gold background, dark text.
+   Scoped under .shop-screen so it never bleeds
+   into the rider (dark) design system. Reuses
+   typography/spacing tokens from design-system.css
+   (--font-display, --font-body, --radius-*, --ease,
+   --screen-pad) but defines its own color tokens.
+   ───────────────────────────────────────────── */
+
+.shop-screen {
+  --shop-bg:       #C49A0A;
+  --shop-text:     #2D2613;
+  --shop-text-70:  rgba(45, 38, 19, 0.72);
+  --shop-text-40:  rgba(45, 38, 19, 0.45);
+  --shop-text-20:  rgba(45, 38, 19, 0.2);
+  --shop-border:   rgba(45, 38, 19, 0.3);
+  --shop-input-bg: rgba(255, 255, 255, 0.35);
+
+  background: var(--shop-bg);
+  color: var(--shop-text);
+}
+
+.shop-text-70 { color: var(--shop-text-70); }
+
+/* ── Header ── */
+.shop-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px var(--screen-pad);
+  flex-shrink: 0;
+}
+
+.shop-header-logo-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.shop-header-logo-text {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: var(--shop-text);
+}
+
+.shop-header-icons { display: flex; align-items: center; gap: 4px; }
+
+.shop-icon-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  color: var(--shop-text);
+  transition: background var(--ease);
+}
+.shop-icon-btn:hover { background: rgba(45, 38, 19, 0.1); }
+.shop-icon-btn svg { width: 22px; height: 22px; }
+
+/* ── Nav drawer ── */
+.shop-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 90;
+}
+
+.shop-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(320px, 100vw);
+  background: var(--shop-bg);
+  border-left: 1px solid var(--shop-border);
+  display: flex;
+  flex-direction: column;
+  padding: 80px var(--screen-pad) 40px;
+  z-index: 100;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.shop-nav-drawer--open { transform: translateX(0); }
+
+.shop-nav-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+
+.shop-nav-item {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  color: var(--shop-text);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--shop-border);
+  transition: opacity var(--ease);
+}
+.shop-nav-item:active { opacity: 0.7; }
+
+.shop-nav-divider { height: 1px; background: var(--shop-border); margin: 24px 0; }
+
+.shop-nav-item--logout { border-bottom: none; color: var(--shop-text-70); font-size: 1.1rem; }
+
+/* ── Form controls ── */
+.shop-input-group { display: flex; flex-direction: column; gap: 4px; }
+
+.shop-input-row { display: flex; gap: 12px; }
+.shop-input-row .shop-input-group { flex: 1; }
+.shop-input-group--narrow { flex: 0 0 84px !important; }
+
+.shop-input-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--shop-text-70);
+}
+
+.shop-input-field {
+  width: 100%;
+  background: var(--shop-input-bg);
+  border: 1px solid var(--shop-border);
+  border-radius: var(--radius-input);
+  color: var(--shop-text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color var(--ease), background var(--ease);
+}
+.shop-input-field::placeholder { color: var(--shop-text-40); }
+.shop-input-field:focus {
+  border-color: var(--shop-text);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.shop-radio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  color: var(--shop-text);
+  padding: 4px 0;
+  cursor: pointer;
+}
+.shop-radio-row input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--shop-text);
+  cursor: pointer;
+}
+
+/* ── Buttons ── */
+.shop-btn-save {
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--shop-text);
+  color: var(--shop-bg);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: opacity var(--ease), transform var(--ease);
+}
+.shop-btn-save:active { transform: scale(0.98); }
+.shop-btn-save:disabled { opacity: 0.6; cursor: default; }
+
+.shop-btn-outline {
+  background: transparent;
+  border: 2px solid var(--shop-text);
+  color: var(--shop-text);
+  border-radius: var(--radius-pill);
+  padding: 8px 18px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--ease), opacity var(--ease);
+}
+.shop-btn-outline:hover:not(:disabled) { background: rgba(45, 38, 19, 0.08); }
+.shop-btn-outline:disabled { opacity: 0.55; cursor: default; }
+
+/* ── Star rating ── */
+.shop-star-rating { display: flex; gap: 1px; }
+.shop-star { font-size: 1.1rem; line-height: 1; }
+.shop-star--full  { color: var(--shop-text); }
+.shop-star--half  { color: var(--shop-text); opacity: 0.5; }
+.shop-star--empty { color: var(--shop-text-20); }
+
+/* ── Messages ── */
+.shop-profile-msg { font-size: 0.85rem; font-weight: 600; }
+.shop-profile-msg.success { color: #1f6b2f; }
+.shop-profile-msg.error   { color: #8a1f1f; }

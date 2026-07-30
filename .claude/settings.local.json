@@ -27,7 +27,9 @@
       "Bash(node -e ' *)",
       "Bash(node *)",
       "Bash(railway status *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(brew services *)",
+      "Bash(pg_isready)"
     ]
   }
 }

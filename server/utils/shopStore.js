@@ -17,6 +17,7 @@ function rowToShop(row) {
     bio:           row.bio,
     isActive:      row.is_active,
     inviteCode:    row.invite_code,
+    bookingMode:   row.booking_mode,
     createdAt:     row.created_at,
   };
 }
