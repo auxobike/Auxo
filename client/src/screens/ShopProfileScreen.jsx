@@ -85,22 +85,6 @@ export default function ShopProfileScreen({ onLogout }) {
       <main className="shop-profile-body">
         <h1 className="shop-profile-heading">Update Shop Profile</h1>
 
-        <div className="shop-profile-rating-section">
-          <span className="shop-section-label">Review Rating</span>
-          <div className="shop-profile-rating-row">
-            <StarRating rating={PLACEHOLDER_RATING} />
-            <span className="shop-profile-rating-num">{PLACEHOLDER_RATING.toFixed(1)}</span>
-            <button
-              type="button"
-              className="shop-btn-outline shop-see-reviews-btn"
-              disabled
-              title="Coming soon"
-            >
-              See Reviews
-            </button>
-          </div>
-        </div>
-
         <form className="shop-profile-form" onSubmit={handleSave} noValidate>
           <div className="shop-input-group">
             <label className="shop-input-label" htmlFor="shop-name">Shop Name</label>
@@ -192,6 +176,22 @@ export default function ShopProfileScreen({ onLogout }) {
               value={form.website}
               onChange={handleChange}
             />
+          </div>
+
+          <div className="shop-profile-rating-section">
+            <span className="shop-section-label">Review Rating</span>
+            <div className="shop-profile-rating-row">
+              <StarRating rating={PLACEHOLDER_RATING} />
+              <span className="shop-profile-rating-num">{PLACEHOLDER_RATING.toFixed(1)}</span>
+              <button
+                type="button"
+                className="shop-btn-outline shop-see-reviews-btn"
+                disabled
+                title="Coming soon"
+              >
+                See Reviews
+              </button>
+            </div>
           </div>
 
           <div className="shop-input-group">

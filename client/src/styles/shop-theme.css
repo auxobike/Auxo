@@ -9,7 +9,7 @@
 
 .shop-screen {
   --shop-bg:           #C49A0A;
-  --shop-bg-input:     #B8890A;
+  --shop-bg-input:     rgba(255, 255, 255, 0.15);
   --shop-text:         #1a1500;
   --shop-text-70:      rgba(26, 21, 0, 0.72);
   --shop-text-40:      rgba(26, 21, 0, 0.45);
@@ -52,6 +52,14 @@
   font-size: 1.3rem;
   letter-spacing: 0.08em;
   color: var(--shop-text);
+}
+
+/* logo.svg is solid white — brightness(0) renders it flat black so it
+   reads as dark on the gold background instead of disappearing. */
+.shop-header-logo {
+  width: 70px;
+  height: auto;
+  filter: brightness(0);
 }
 
 .shop-header-icons { display: flex; align-items: center; gap: 4px; }
@@ -251,8 +259,8 @@
 /* ── Star rating ── */
 .shop-star-rating { display: flex; gap: 1px; }
 .shop-star { font-size: 1.1rem; line-height: 1; }
-.shop-star--full  { color: var(--shop-rating); }
-.shop-star--half  { color: var(--shop-rating); opacity: 0.5; }
+.shop-star--full  { color: var(--shop-rating, #128D93); }
+.shop-star--half  { color: var(--shop-rating, #128D93); opacity: 0.5; }
 .shop-star--empty { color: var(--shop-text-20); }
 
 /* ── Messages ── */

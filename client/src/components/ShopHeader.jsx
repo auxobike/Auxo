@@ -50,7 +50,7 @@ export default function ShopHeader({ onLogout }) {
           onClick={() => navigate('/shop/dashboard')}
           aria-label="Auxo Shop home"
         >
-          <span className="shop-header-logo-text">AUXO SHOP</span>
+          <img src="/logo.svg" alt="Auxo Shop" className="shop-header-logo" />
         </button>
 
         <div className="shop-header-icons">
