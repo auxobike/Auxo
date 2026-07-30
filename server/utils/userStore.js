@@ -16,6 +16,7 @@ function rowToUser(row) {
     preferences:  row.preferences ?? {},
     createdAt:    row.created_at,
     lastLoginAt:  row.last_login_at ?? null,
+    accountType:  row.account_type,
   };
 }
 
@@ -36,13 +37,13 @@ async function findById(id) {
   return rowToUser(rows[0]);
 }
 
-async function createUser({ email, passwordHash }) {
+async function createUser({ email, passwordHash, accountType = 'rider' }) {
   const id = crypto.randomUUID();
   const { rows } = await pool.query(
-    `INSERT INTO users (id, email, password_hash)
-     VALUES ($1, $2, $3)
+    `INSERT INTO users (id, email, password_hash, account_type)
+     VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [id, email.toLowerCase().trim(), passwordHash],
+    [id, email.toLowerCase().trim(), passwordHash, accountType],
   );
   return rowToUser(rows[0]);
 }

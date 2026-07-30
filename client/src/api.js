@@ -33,6 +33,10 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   }),
+  registerShop: (inviteCode, shopName, email, password, confirm) => apiFetch('/auth/shop/register', {
+    method: 'POST',
+    body: JSON.stringify({ inviteCode, shopName, email, password, confirm }),
+  }),
   connectStrava: () => {
     // Relative path works in both dev (Vite proxies /auth → localhost:3001)
     // and production (same domain, Express handles /auth directly).

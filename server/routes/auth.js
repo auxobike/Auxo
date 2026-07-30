@@ -4,6 +4,7 @@ const bcrypt  = require('bcrypt');
 const router  = express.Router();
 
 const { findByEmail, findById, findByStravaId, createUser, createStravaUser, updateUser, deleteUser, publicUser } = require('../utils/userStore');
+const { createShop } = require('../utils/shopStore');
 const { getConfiguredBikeIds, deleteBikeData } = require('../utils/store');
 const { syncEffectiveMileageForUser } = require('../utils/effectiveMileage');
 
@@ -122,6 +123,49 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ error: 'Login failed. Please try again.' });
+  }
+});
+
+// POST /auth/shop/register — creates a shop-account user plus its shops row.
+// Gated by an invite code checked against SHOP_INVITE_CODES (comma-separated
+// list in server/.env) so shop signup isn't open to the public yet.
+router.post('/shop/register', async (req, res) => {
+  const { inviteCode, shopName, email, password, confirm } = req.body;
+
+  if (!inviteCode || !shopName || !email || !password || !confirm) {
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
+  if (password !== confirm) {
+    return res.status(400).json({ error: 'Passwords do not match.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  const validCodes = (process.env.SHOP_INVITE_CODES || '')
+    .split(',')
+    .map(c => c.trim())
+    .filter(Boolean);
+  if (!validCodes.includes(inviteCode.trim())) {
+    return res.status(403).json({ error: 'Invalid invite code.' });
+  }
+
+  if (await findByEmail(email)) {
+    return res.status(409).json({ error: 'An account with that email already exists.' });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    const user = await createUser({ email, passwordHash, accountType: 'shop' });
+    await createShop({ userId: user.id, name: shopName, inviteCode: inviteCode.trim() });
+
+    req.session.userId = user.id;
+    req.session.user   = publicUser(user);
+
+    res.status(201).json({ success: true, user: publicUser(user) });
+  } catch (err) {
+    console.error('Shop register error:', err.message);
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
 

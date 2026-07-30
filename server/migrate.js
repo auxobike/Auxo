@@ -33,6 +33,11 @@ async function migrate() {
   `);
 
   await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'rider'
+      CHECK (account_type IN ('rider', 'shop'))
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS ride_conditions (
       activity_id     TEXT        NOT NULL,
       user_id         TEXT        NOT NULL,
@@ -154,6 +159,49 @@ async function migrate() {
       log        JSONB NOT NULL DEFAULT '{}',
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       PRIMARY KEY (tire_id, item_id)
+    )
+  `);
+
+  // Bike shop portal — shops.user_id links a shop back to its login account.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS shops (
+      id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id         TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name            TEXT        NOT NULL,
+      address         TEXT,
+      city            TEXT,
+      state           TEXT,
+      zip             TEXT,
+      phone_front     TEXT,
+      phone_service   TEXT,
+      website         TEXT,
+      google_place_id TEXT,
+      bio             TEXT,
+      is_active       BOOLEAN     NOT NULL DEFAULT FALSE,
+      invite_code     TEXT,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS conversations (
+      id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      rider_id        TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      shop_id         UUID        NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_message_at TIMESTAMPTZ
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      conversation_id UUID        NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+      sender_id       TEXT        NOT NULL,
+      sender_type     TEXT        NOT NULL CHECK (sender_type IN ('rider', 'shop')),
+      body            TEXT        NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      read_at         TIMESTAMPTZ
     )
   `);
 

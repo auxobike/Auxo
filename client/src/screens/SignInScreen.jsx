@@ -20,7 +20,9 @@ export default function SignInScreen({ onLogin }) {
     try {
       const data = await api.login(form.email, form.password);
       onLogin(data.user, data.stravaLinked, data.athlete);
-      if (!data.stravaLinked) {
+      if (data.user?.accountType === 'shop') {
+        navigate('/shop/dashboard');
+      } else if (!data.stravaLinked) {
         navigate('/link-strava');
       } else {
         const { hasConfigured } = await api.getConfiguredBikes();

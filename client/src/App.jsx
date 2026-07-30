@@ -19,11 +19,13 @@ import EditBikeSettingsScreen   from './screens/EditBikeSettingsScreen';
 import LearnScreen              from './screens/LearnScreen';
 import LearnArticleScreen       from './screens/LearnArticleScreen';
 import GarageScreen             from './screens/GarageScreen';
+import ShopDashboardScreen      from './screens/ShopDashboardScreen';
 
 import './styles/design-system.css';
 
 // Redirect logged-in users away from public screens
 function RequireGuest({ session, configuredBikeIds, children }) {
+  if (session.user?.accountType === 'shop') return <Navigate to="/shop/dashboard" replace />;
   if (session.user && session.stravaLinked) return <Navigate to="/dashboard" replace />;
   if (session.user && configuredBikeIds.length > 0) return <Navigate to="/dashboard" replace />;
   if (session.user) return <Navigate to="/link-strava" replace />;
@@ -40,6 +42,13 @@ function RequireAuth({ session, children }) {
 function RequireStrava({ session, children }) {
   if (!session.user && !session.athlete) return <Navigate to="/" replace />;
   if (!session.stravaLinked)             return <Navigate to="/link-strava" replace />;
+  return children;
+}
+
+// Require a shop account
+function RequireShop({ session, children }) {
+  if (!session.user) return <Navigate to="/" replace />;
+  if (session.user.accountType !== 'shop') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -283,6 +292,16 @@ export default function App() {
           }
         />
 
+        {/* ── Auxo Shop — bike shop portal ── */}
+        <Route
+          path="/shop/dashboard"
+          element={
+            <RequireShop session={session}>
+              <ShopDashboardScreen user={session.user} onLogout={handleLogout} />
+            </RequireShop>
+          }
+        />
+
         {/* ── Admin — password-protected within the component, no Strava required ── */}
         <Route path="/admin/shops" element={<AdminShopsScreen />} />
 
@@ -297,6 +316,7 @@ export default function App() {
           element={
             <Navigate
               to={
+                session.user?.accountType === 'shop' ? '/shop/dashboard' :
                 session.stravaLinked ? '/dashboard' :
                 (session.user && configuredBikeIds.length > 0) ? '/dashboard' :
                 session.user ? '/link-strava' :

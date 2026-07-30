@@ -25,7 +25,9 @@
       "Bash(node -e \"require\\('bcrypt'\\); console.log\\('bcrypt resolves OK'\\)\")",
       "Bash(npx --no-install esbuild src/screens/AccountLandingScreen.jsx --loader=jsx --format=esm --outfile=/dev/null)",
       "Bash(node -e ' *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(railway status *)",
+      "Bash(npx eslint *)"
     ]
   }
 }
