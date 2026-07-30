@@ -146,6 +146,9 @@ router.post('/shop/register', async (req, res) => {
     .split(',')
     .map(c => c.trim())
     .filter(Boolean);
+  console.log('[shop/register] SHOP_INVITE_CODES env:', process.env.SHOP_INVITE_CODES);
+  console.log('[shop/register] parsed validCodes:', validCodes);
+  console.log('[shop/register] submitted inviteCode:', inviteCode, '-> trimmed:', inviteCode.trim());
   if (!validCodes.includes(inviteCode.trim())) {
     return res.status(403).json({ error: 'Invalid invite code.' });
   }
