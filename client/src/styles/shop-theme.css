@@ -15,6 +15,7 @@
   --shop-text-20:  rgba(45, 38, 19, 0.2);
   --shop-border:   rgba(45, 38, 19, 0.3);
   --shop-input-bg: rgba(255, 255, 255, 0.35);
+  --shop-card-bg:  rgba(255, 255, 255, 0.28);
 
   background: var(--shop-bg);
   color: var(--shop-text);
@@ -192,6 +193,13 @@
 }
 .shop-btn-outline:hover:not(:disabled) { background: rgba(45, 38, 19, 0.08); }
 .shop-btn-outline:disabled { opacity: 0.55; cursor: default; }
+
+/* ── Card ── */
+.shop-card {
+  background: var(--shop-card-bg);
+  border: 1px solid var(--shop-border);
+  border-radius: var(--radius-card);
+}
 
 /* ── Star rating ── */
 .shop-star-rating { display: flex; gap: 1px; }
