@@ -8,14 +8,16 @@
    ───────────────────────────────────────────── */
 
 .shop-screen {
-  --shop-bg:       #C49A0A;
-  --shop-text:     #2D2613;
-  --shop-text-70:  rgba(45, 38, 19, 0.72);
-  --shop-text-40:  rgba(45, 38, 19, 0.45);
-  --shop-text-20:  rgba(45, 38, 19, 0.2);
-  --shop-border:   rgba(45, 38, 19, 0.3);
-  --shop-input-bg: rgba(255, 255, 255, 0.35);
-  --shop-card-bg:  rgba(255, 255, 255, 0.28);
+  --shop-bg:           #C49A0A;
+  --shop-bg-input:     #B8890A;
+  --shop-text:         #1a1500;
+  --shop-text-70:      rgba(26, 21, 0, 0.72);
+  --shop-text-40:      rgba(26, 21, 0, 0.45);
+  --shop-text-20:      rgba(26, 21, 0, 0.2);
+  --shop-border:       rgba(26, 21, 0, 0.3);
+  --shop-input-border: rgba(26, 21, 0, 0.45);
+  --shop-card-bg:      rgba(255, 255, 255, 0.28);
+  --shop-rating:       #128D93;
 
   background: var(--shop-bg);
   color: var(--shop-text);
@@ -61,7 +63,7 @@
   color: var(--shop-text);
   transition: background var(--ease);
 }
-.shop-icon-btn:hover { background: rgba(45, 38, 19, 0.1); }
+.shop-icon-btn:hover { background: rgba(26, 21, 0, 0.1); }
 .shop-icon-btn svg { width: 22px; height: 22px; }
 
 /* ── Nav drawer ── */
@@ -111,6 +113,14 @@
 
 .shop-nav-item--logout { border-bottom: none; color: var(--shop-text-70); font-size: 1.1rem; }
 
+/* ── Section label — bold dark subheading used above a form section ── */
+.shop-section-label {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--shop-text);
+}
+
 /* ── Form controls ── */
 .shop-input-group { display: flex; flex-direction: column; gap: 4px; }
 
@@ -128,8 +138,8 @@
 
 .shop-input-field {
   width: 100%;
-  background: var(--shop-input-bg);
-  border: 1px solid var(--shop-border);
+  background: var(--shop-bg-input);
+  border: 1px solid var(--shop-input-border);
   border-radius: var(--radius-input);
   color: var(--shop-text);
   font-family: var(--font-body);
@@ -141,23 +151,46 @@
 .shop-input-field::placeholder { color: var(--shop-text-40); }
 .shop-input-field:focus {
   border-color: var(--shop-text);
-  background: rgba(255, 255, 255, 0.5);
 }
 
+/* ── Custom radio (filled dark dot when selected, empty ring otherwise) ── */
 .shop-radio-row {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 0.95rem;
+  font-weight: 600;
   color: var(--shop-text);
-  padding: 4px 0;
+  padding: 6px 0;
   cursor: pointer;
 }
-.shop-radio-row input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--shop-text);
-  cursor: pointer;
+
+.shop-radio-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shop-radio-dot {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--shop-text);
+  position: relative;
+}
+.shop-radio-input:checked + .shop-radio-dot::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--shop-text);
+}
+.shop-radio-input:focus-visible + .shop-radio-dot {
+  outline: 2px solid var(--shop-text);
+  outline-offset: 2px;
 }
 
 /* ── Buttons ── */
@@ -191,8 +224,16 @@
   white-space: nowrap;
   transition: background var(--ease), opacity var(--ease);
 }
-.shop-btn-outline:hover:not(:disabled) { background: rgba(45, 38, 19, 0.08); }
+.shop-btn-outline:hover:not(:disabled) { background: rgba(26, 21, 0, 0.08); }
 .shop-btn-outline:disabled { opacity: 0.55; cursor: default; }
+
+/* Full-width outline pill — stacked action buttons (e.g. Configure Booking) */
+.shop-btn-outline--block {
+  width: 100%;
+  height: 46px;
+  font-size: 0.9rem;
+  white-space: normal;
+}
 
 /* ── Card ── */
 .shop-card {
@@ -204,8 +245,8 @@
 /* ── Star rating ── */
 .shop-star-rating { display: flex; gap: 1px; }
 .shop-star { font-size: 1.1rem; line-height: 1; }
-.shop-star--full  { color: var(--shop-text); }
-.shop-star--half  { color: var(--shop-text); opacity: 0.5; }
+.shop-star--full  { color: var(--shop-rating); }
+.shop-star--half  { color: var(--shop-rating); opacity: 0.5; }
 .shop-star--empty { color: var(--shop-text-20); }
 
 /* ── Messages ── */

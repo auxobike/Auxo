@@ -1,6 +1,6 @@
 .shop-auth-screen {
   background:
-    radial-gradient(ellipse 60% 40% at 80% 0%, rgba(45, 38, 19, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 0%, rgba(26, 21, 0, 0.08) 0%, transparent 60%),
     var(--shop-bg);
 }
 

@@ -83,19 +83,22 @@ export default function ShopProfileScreen({ onLogout }) {
       <ShopHeader onLogout={onLogout} />
 
       <main className="shop-profile-body">
-        <h1 className="shop-profile-heading">Shop Profile</h1>
+        <h1 className="shop-profile-heading">Update Shop Profile</h1>
 
-        <div className="shop-profile-rating-row">
-          <StarRating rating={PLACEHOLDER_RATING} />
-          <span className="shop-profile-rating-num">{PLACEHOLDER_RATING.toFixed(1)}</span>
-          <button
-            type="button"
-            className="shop-btn-outline shop-see-reviews-btn"
-            disabled
-            title="Coming soon"
-          >
-            See Reviews
-          </button>
+        <div className="shop-profile-rating-section">
+          <span className="shop-section-label">Review Rating</span>
+          <div className="shop-profile-rating-row">
+            <StarRating rating={PLACEHOLDER_RATING} />
+            <span className="shop-profile-rating-num">{PLACEHOLDER_RATING.toFixed(1)}</span>
+            <button
+              type="button"
+              className="shop-btn-outline shop-see-reviews-btn"
+              disabled
+              title="Coming soon"
+            >
+              See Reviews
+            </button>
+          </div>
         </div>
 
         <form className="shop-profile-form" onSubmit={handleSave} noValidate>
@@ -192,7 +195,8 @@ export default function ShopProfileScreen({ onLogout }) {
           </div>
 
           <div className="shop-input-group">
-            <span className="shop-input-label">Booking</span>
+            <span className="shop-section-label">Booking</span>
+
             <label className="shop-radio-row">
               <input
                 type="radio"
@@ -200,7 +204,9 @@ export default function ShopProfileScreen({ onLogout }) {
                 value="auxo"
                 checked={form.bookingMode === 'auxo'}
                 onChange={handleChange}
+                className="shop-radio-input"
               />
+              <span className="shop-radio-dot" aria-hidden="true" />
               AUXO Booking activated
             </label>
             <label className="shop-radio-row">
@@ -210,9 +216,30 @@ export default function ShopProfileScreen({ onLogout }) {
                 value="call"
                 checked={form.bookingMode === 'call'}
                 onChange={handleChange}
+                className="shop-radio-input"
               />
+              <span className="shop-radio-dot" aria-hidden="true" />
               Call to Book
             </label>
+
+            <div className="shop-booking-actions">
+              <button
+                type="button"
+                className="shop-btn-outline shop-btn-outline--block"
+                disabled
+                title="Coming soon"
+              >
+                Configure Booking
+              </button>
+              <button
+                type="button"
+                className="shop-btn-outline shop-btn-outline--block"
+                disabled
+                title="Coming soon"
+              >
+                Review Booking Calendar
+              </button>
+            </div>
           </div>
 
           {msg && <p className={`shop-profile-msg ${msg.type}`}>{msg.text}</p>}
