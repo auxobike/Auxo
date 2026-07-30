@@ -18,7 +18,13 @@
   --shop-input-border: rgba(26, 21, 0, 0.45);
   --shop-card-bg:      rgba(255, 255, 255, 0.28);
   --shop-rating:       #128D93;
+}
 
+/* .screen.shop-screen (two classes) outranks design-system.css's plain
+   .screen rule regardless of which stylesheet's import lands later in the
+   bundle — CSS import order across JS modules isn't something we control
+   reliably, so this can't be a same-specificity tie. */
+.screen.shop-screen {
   background: var(--shop-bg);
   color: var(--shop-text);
 }
