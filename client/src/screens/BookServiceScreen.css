@@ -285,10 +285,16 @@
 
 .book-search-area-btn:hover { opacity: 0.88; }
 
-/* Contact button */
+/* Contact / message actions */
+.book-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .book-contact-btn {
   max-width: 100%;
-  margin-top: 4px;
   background: rgba(0, 0, 0, 0.45);
   color: var(--white);
   border: 1px solid var(--border);
@@ -301,4 +307,8 @@
 .book-contact-btn:hover {
   background: rgba(0, 0, 0, 0.6);
   border-color: var(--white-40);
+}
+
+.book-message-btn {
+  max-width: 100%;
 }

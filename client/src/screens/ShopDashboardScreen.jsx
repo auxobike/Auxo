@@ -55,8 +55,7 @@ export default function ShopDashboardScreen({ user, onLogout }) {
           <button
             type="button"
             className="shop-btn-outline shop-quick-action-btn"
-            disabled
-            title="Coming soon"
+            onClick={() => navigate('/shop/messages')}
           >
             View Messages
           </button>

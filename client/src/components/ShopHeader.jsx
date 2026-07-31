@@ -23,6 +23,7 @@ function CloseIcon() {
 
 const NAV_ITEMS = [
   { label: 'Dashboard',    path: '/shop/dashboard' },
+  { label: 'Messages',     path: '/shop/messages'  },
   { label: 'Shop Profile', path: '/shop/profile'   },
 ];
 

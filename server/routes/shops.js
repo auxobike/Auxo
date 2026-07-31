@@ -25,6 +25,24 @@ router.get('/shops/featured', async (req, res) => {
   }
 });
 
+// GET /api/shops/messaging  — public. Shops registered on Auxo that can
+// receive in-app messages, keyed by Google Place ID so the client (Book a
+// Service screen, which sources its shop cards from Google Places) can tell
+// which cards belong to an actual Auxo shop account.
+router.get('/shops/messaging', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, name, google_place_id AS "googlePlaceId"
+       FROM shops
+       WHERE google_place_id IS NOT NULL`,
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('[shops] GET messaging error:', err.message);
+    res.status(500).json({ error: 'Failed to load messaging-enabled shops' });
+  }
+});
+
 // GET /api/admin/shops/verify  — validates the admin key without side effects
 router.get('/admin/shops/verify', requireAdminKey, (req, res) => {
   res.json({ ok: true });

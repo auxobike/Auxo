@@ -65,6 +65,20 @@
   height: 44px;
 }
 
+/* ── Shop sign-in link ── */
+.login-shop-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--white-40);
+  margin-bottom: 16px;
+  padding: 4px;
+  transition: color var(--ease);
+}
+.login-shop-link:hover { color: var(--white-70); }
+
 /* ── Fine print ── */
 .login-fine-print {
   font-size: 0.75rem;

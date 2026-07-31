@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AppHeader from '../components/AppHeader';
+import MessageShopModal from '../components/MessageShopModal';
 import { api } from '../api';
 import './BookServiceScreen.css';
 
@@ -78,7 +79,7 @@ function PinIcon() {
   );
 }
 
-function ShopCard({ place, boostLevel, isSelected, service, onPin }) {
+function ShopCard({ place, boostLevel, isSelected, service, onPin, messagingShop, onMessage }) {
   const [details, setDetails] = useState(null);
 
   useEffect(() => {
@@ -158,13 +159,25 @@ function ShopCard({ place, boostLevel, isSelected, service, onPin }) {
         )}
       </div>
 
-      {phone && (
-        <button
-          className="btn-pill book-contact-btn"
-          onClick={() => { window.location.href = `tel:${phone}`; }}
-        >
-          Contact
-        </button>
+      {(phone || messagingShop) && (
+        <div className="book-card-actions">
+          {phone && (
+            <button
+              className="btn-pill book-contact-btn"
+              onClick={() => { window.location.href = `tel:${phone}`; }}
+            >
+              Contact
+            </button>
+          )}
+          {messagingShop && (
+            <button
+              className="btn-pill btn-pill-outline book-message-btn"
+              onClick={() => onMessage(messagingShop)}
+            >
+              Message this shop
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -188,6 +201,20 @@ export default function BookServiceScreen({ onLogout }) {
   const [selectedPin,   setSelectedPin]   = useState(null);
   const [featuredMap,   setFeaturedMap]   = useState({}); // placeId -> boostLevel
   const [mapMoved,      setMapMoved]      = useState(false);
+  const [messagingMap,  setMessagingMap]  = useState({}); // placeId -> { shopId, name }
+  const [messageTarget, setMessageTarget] = useState(null); // { shopId, name } | null
+
+  // Fetch shops registered with Auxo that can receive in-app messages
+  // (fire-and-forget — the "Message this shop" button just won't show).
+  useEffect(() => {
+    api.getMessagingShops()
+      .then(list => {
+        const map = {};
+        list.forEach(s => { map[s.googlePlaceId] = { shopId: s.id, name: s.name }; });
+        setMessagingMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
   // Fetch featured shops list (fire-and-forget — OK if it fails)
   useEffect(() => {
@@ -460,12 +487,22 @@ export default function BookServiceScreen({ onLogout }) {
                 isSelected={selectedPin === place.place_id}
                 service={serviceRef.current}
                 onPin={highlightPin}
+                messagingShop={messagingMap[place.place_id] || null}
+                onMessage={setMessageTarget}
               />
             ))}
           </div>
         )}
 
       </div>
+
+      {messageTarget && (
+        <MessageShopModal
+          shopId={messageTarget.shopId}
+          shopName={messageTarget.name}
+          onClose={() => setMessageTarget(null)}
+        />
+      )}
     </div>
   );
 }

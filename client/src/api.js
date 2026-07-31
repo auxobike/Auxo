@@ -96,11 +96,25 @@ export const api = {
   deleteAccount: () => apiFetch('/auth/account', { method: 'DELETE' }),
 
   // Shops
-  getFeaturedShops: () => apiFetch('/api/shops/featured'),
+  getFeaturedShops:   () => apiFetch('/api/shops/featured'),
+  getMessagingShops:  () => apiFetch('/api/shops/messaging'),
 
   // Shop portal — profile
   getShopProfile:    ()     => apiFetch('/api/shop/profile'),
   updateShopProfile: (data) => apiFetch('/api/shop/profile', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Messaging
+  getConversations:     ()          => apiFetch('/api/messages/conversations'),
+  getConversation:      (id)        => apiFetch(`/api/messages/conversations/${id}`),
+  startConversation:    (shopId, body) => apiFetch('/api/messages/conversations', {
+    method: 'POST',
+    body: JSON.stringify({ shopId, body }),
+  }),
+  sendMessage:          (id, body)  => apiFetch(`/api/messages/conversations/${id}`, {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  }),
+  markConversationRead: (id)        => apiFetch(`/api/messages/conversations/${id}/read`, { method: 'PUT' }),
 
   // Learn
   getArticles:   ()   => apiFetch('/api/learn/articles'),

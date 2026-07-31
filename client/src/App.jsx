@@ -22,6 +22,7 @@ import GarageScreen             from './screens/GarageScreen';
 import ShopDashboardScreen      from './screens/ShopDashboardScreen';
 import ShopProfileScreen        from './screens/ShopProfileScreen';
 import ShopRegisterScreen       from './screens/ShopRegisterScreen';
+import ShopMessagesScreen       from './screens/ShopMessagesScreen';
 
 import './styles/design-system.css';
 
@@ -316,6 +317,14 @@ export default function App() {
           element={
             <RequireShop session={session}>
               <ShopProfileScreen onLogout={handleLogout} />
+            </RequireShop>
+          }
+        />
+        <Route
+          path="/shop/messages"
+          element={
+            <RequireShop session={session}>
+              <ShopMessagesScreen onLogout={handleLogout} />
             </RequireShop>
           }
         />

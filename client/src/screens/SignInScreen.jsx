@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import './AuthForms.css';
 
 export default function SignInScreen({ onLogin }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isShop = searchParams.get('accountType') === 'shop';
   const [form,       setForm]       = useState({ email: '', password: '' });
   const [error,      setError]      = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -43,8 +45,10 @@ export default function SignInScreen({ onLogin }) {
       </div>
 
       <div className="auth-body">
-        <h1 className="marker-heading auth-heading">SIGN IN</h1>
-        <p className="text-muted auth-sub">Good to have you back</p>
+        <h1 className="marker-heading auth-heading">{isShop ? 'SHOP SIGN IN' : 'SIGN IN'}</h1>
+        <p className="text-muted auth-sub">
+          {isShop ? 'Sign in to manage your shop' : 'Good to have you back'}
+        </p>
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <div className="input-group">
@@ -86,7 +90,10 @@ export default function SignInScreen({ onLogin }) {
 
         <p className="auth-switch">
           Don&apos;t have an account?{' '}
-          <button className="auth-link-btn" onClick={() => navigate('/create-account')}>
+          <button
+            className="auth-link-btn"
+            onClick={() => navigate(isShop ? '/shop/register' : '/create-account')}
+          >
             Sign up
           </button>
         </p>

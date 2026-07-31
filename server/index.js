@@ -9,6 +9,7 @@ const stravaRoutes      = require('./routes/strava');
 const maintenanceRoutes = require('./routes/maintenance');
 const shopsRoutes       = require('./routes/shops');
 const shopRoutes        = require('./routes/shop');
+const messagesRoutes    = require('./routes/messages');
 const learnRoutes       = require('./routes/learn');
 const garageRoutes      = require('./routes/garage');
 
@@ -67,6 +68,7 @@ app.use('/api/strava', stravaRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api', shopsRoutes);
 app.use('/api/shop', shopRoutes);
+app.use('/api/messages', messagesRoutes);
 app.use('/api/learn',   learnRoutes);
 app.use('/api/garage', garageRoutes);
 

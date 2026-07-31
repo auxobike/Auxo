@@ -32,6 +32,14 @@ export default function LoginScreen() {
           </button>
         </div>
 
+        <button
+          type="button"
+          className="login-shop-link"
+          onClick={() => navigate('/sign-in?accountType=shop')}
+        >
+          Are you a bike shop? Sign in here
+        </button>
+
         <p className="login-fine-print">
           By continuing you agree to our{' '}
           <a href="#terms" className="text-accent">Terms</a> &amp;{' '}
