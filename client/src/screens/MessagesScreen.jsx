@@ -38,9 +38,18 @@ export default function MessagesScreen({ onLogout }) {
         {loading && <p className="msgs-status">Loading…</p>}
         {error && <p className="msgs-status msgs-status--error">{error}</p>}
         {!loading && !error && conversations.length === 0 && (
-          <p className="msgs-status">
-            No conversations yet. Message a shop from Book a Service to get started.
-          </p>
+          <div className="msgs-empty">
+            <p className="msgs-status">
+              No conversations yet. Message a shop from Book a Service to get started.
+            </p>
+            <button
+              type="button"
+              className="btn-pill btn-pill-gold msgs-empty-btn"
+              onClick={() => navigate('/book-service')}
+            >
+              Find a Shop
+            </button>
+          </div>
         )}
 
         <div className="msgs-list">
