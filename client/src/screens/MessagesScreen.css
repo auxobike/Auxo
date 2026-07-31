@@ -1,0 +1,106 @@
+.msgs-screen {
+  background:
+    radial-gradient(ellipse 90% 30% at 50% -5%, rgba(201, 150, 12, 0.08) 0%, transparent 60%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.msgs-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px var(--screen-pad) max(env(safe-area-inset-bottom), 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.msgs-heading {
+  font-family: var(--font-marker);
+  font-size: 2.6rem;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1;
+}
+
+.msgs-status {
+  font-size: 0.9rem;
+  color: var(--white-40);
+  margin: 0;
+}
+.msgs-status--error { color: #f87171; }
+
+.msgs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msgs-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  color: inherit;
+  transition: background var(--ease), border-color var(--ease);
+}
+.msgs-row:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--white-40); }
+
+.msgs-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.msgs-row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.msgs-row-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--white);
+}
+
+.msgs-row-time {
+  font-size: 0.75rem;
+  color: var(--white-40);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.msgs-row-preview {
+  font-size: 0.85rem;
+  color: var(--white-70);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.msgs-unread-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #D62828;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}

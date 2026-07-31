@@ -19,6 +19,8 @@ import EditBikeSettingsScreen   from './screens/EditBikeSettingsScreen';
 import LearnScreen              from './screens/LearnScreen';
 import LearnArticleScreen       from './screens/LearnArticleScreen';
 import GarageScreen             from './screens/GarageScreen';
+import MessagesScreen           from './screens/MessagesScreen';
+import MessageThreadScreen      from './screens/MessageThreadScreen';
 import ShopDashboardScreen      from './screens/ShopDashboardScreen';
 import ShopProfileScreen        from './screens/ShopProfileScreen';
 import ShopRegisterScreen       from './screens/ShopRegisterScreen';
@@ -300,6 +302,22 @@ export default function App() {
             <RequireAuth session={session}>
               <GarageScreen onLogout={handleLogout} />
             </RequireAuth>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <RequireStrava session={session}>
+              <MessagesScreen onLogout={handleLogout} />
+            </RequireStrava>
+          }
+        />
+        <Route
+          path="/messages/:conversationId"
+          element={
+            <RequireStrava session={session}>
+              <MessageThreadScreen onLogout={handleLogout} />
+            </RequireStrava>
           }
         />
 

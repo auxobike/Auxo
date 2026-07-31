@@ -47,13 +47,6 @@
   padding: 0;
 }
 
-.shop-header-logo-text {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  letter-spacing: 0.08em;
-  color: var(--shop-text);
-}
-
 /* logo.svg is solid white — brightness(0) renders it flat black so it
    reads as dark on the gold background instead of disappearing. */
 .shop-header-logo {
@@ -267,3 +260,89 @@
 .shop-profile-msg { font-size: 0.85rem; font-weight: 600; }
 .shop-profile-msg.success { color: #1f6b2f; }
 .shop-profile-msg.error   { color: #8a1f1f; }
+
+/* ── Auth screens (Shop Register / Shop Sign In) ──
+   Shared by ShopRegisterScreen and SignInScreen (when rendered in shop
+   mode via ?accountType=shop), so these live here rather than in either
+   screen's own CSS file. */
+.screen.shop-screen.shop-auth-screen {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 0%, rgba(26, 21, 0, 0.08) 0%, transparent 60%),
+    var(--shop-bg);
+}
+
+.shop-auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px var(--screen-pad);
+  flex-shrink: 0;
+}
+
+.shop-auth-back-btn {
+  background: none;
+  border: none;
+  color: var(--shop-text-70);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color var(--ease);
+}
+.shop-auth-back-btn:hover { color: var(--shop-text); }
+
+.shop-auth-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px var(--screen-pad) 48px;
+}
+
+.shop-auth-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: var(--shop-text);
+  margin-bottom: 6px;
+}
+
+.shop-auth-sub {
+  font-size: 0.95rem;
+  margin-bottom: 32px;
+}
+
+.shop-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+.shop-auth-error {
+  font-size: 0.85rem;
+  color: #8a1f1f;
+  background: rgba(138, 31, 31, 0.1);
+  border: 1px solid rgba(138, 31, 31, 0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.shop-auth-switch {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--shop-text-70);
+  margin-top: 24px;
+}
+
+.shop-auth-link-btn {
+  background: none;
+  border: none;
+  color: var(--shop-text);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}

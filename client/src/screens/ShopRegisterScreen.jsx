@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import '../styles/shop-theme.css';
-import './ShopRegisterScreen.css';
 
 export default function ShopRegisterScreen({ onLogin }) {
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ export default function ShopRegisterScreen({ onLogin }) {
   return (
     <div className="screen shop-screen shop-auth-screen">
       <div className="shop-auth-topbar">
-        <span className="shop-header-logo-text">AUXO SHOP</span>
+        <img src="/logo.svg" alt="Auxo Shop" className="shop-header-logo" />
         <button className="shop-auth-back-btn" onClick={() => navigate(-1)}>← Back</button>
       </div>
 

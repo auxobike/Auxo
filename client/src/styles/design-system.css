@@ -198,6 +198,7 @@ html, body, #root {
 }
 
 .icon-btn {
+  position: relative;
   width: 40px;
   height: 40px;
   display: flex;
@@ -212,6 +213,25 @@ html, body, #root {
 }
 .icon-btn:hover { background: var(--white-15); }
 .icon-btn svg { width: 22px; height: 22px; }
+
+.icon-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #D62828;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
 
 /* ── Nav Drawer ── */
 .nav-backdrop {
