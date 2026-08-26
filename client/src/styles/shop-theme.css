@@ -160,6 +160,11 @@
   border-color: var(--shop-text);
 }
 
+.shop-input-help {
+  font-size: 0.78rem;
+  color: var(--shop-text-40);
+}
+
 /* ── Custom radio (filled dark dot when selected, empty ring otherwise) ── */
 .shop-radio-row {
   display: flex;

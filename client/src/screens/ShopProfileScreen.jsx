@@ -21,7 +21,7 @@ function StarRating({ rating }) {
 
 const EMPTY_FORM = {
   name: '', address: '', city: '', state: '', zip: '',
-  phoneFront: '', phoneService: '', website: '', bookingMode: 'call',
+  phoneFront: '', phoneService: '', website: '', googlePlaceId: '', bookingMode: 'call',
 };
 
 export default function ShopProfileScreen({ onLogout }) {
@@ -42,6 +42,7 @@ export default function ShopProfileScreen({ onLogout }) {
           phoneFront:   shop.phoneFront ?? '',
           phoneService: shop.phoneService ?? '',
           website:      shop.website ?? '',
+          googlePlaceId: shop.googlePlaceId ?? '',
           bookingMode:  shop.bookingMode ?? 'call',
         });
       })
@@ -176,6 +177,20 @@ export default function ShopProfileScreen({ onLogout }) {
               value={form.website}
               onChange={handleChange}
             />
+          </div>
+
+          <div className="shop-input-group">
+            <label className="shop-input-label" htmlFor="shop-google-place-id">Google Place ID</label>
+            <input
+              id="shop-google-place-id"
+              name="googlePlaceId"
+              className="shop-input-field"
+              value={form.googlePlaceId}
+              onChange={handleChange}
+            />
+            <span className="shop-input-help">
+              Find your Place ID at developers.google.com/maps/documentation/javascript/examples/places-placeid-finder
+            </span>
           </div>
 
           <div className="shop-profile-rating-section">

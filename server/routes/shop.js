@@ -15,6 +15,7 @@ const EDITABLE_FIELDS = {
   phoneFront:   'phone_front',
   phoneService: 'phone_service',
   website:      'website',
+  googlePlaceId: 'google_place_id',
   bookingMode:  'booking_mode',
 };
 
