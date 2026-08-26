@@ -80,10 +80,8 @@ export default function AccountLandingScreen({ athlete, hasConfiguredBikes, onLo
   useEffect(() => {
     if (ridesCheckedRef.current || !athlete) return;
     ridesCheckedRef.current = true;
-    console.log('[AccountLandingScreen] calling getNewRides, athlete:', athlete);
     api.getNewRides()
       .then(rides => {
-        console.log('[AccountLandingScreen] getNewRides returned', rides.length, 'rides:', rides);
         if (rides.length > 0) {
           setNewRides(rides);
           setShowRideModal(true);
